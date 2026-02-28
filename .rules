@@ -188,3 +188,38 @@ Rules emerge from validated patterns, not one-off observations. The workflow is:
 1. Agent notes a pattern during a session.
 2. Team validates the pattern in code review.
 3. A dedicated commit adds the rule with context on *why* it exists.
+
+# Build and development commands
+
+```sh
+cargo run                   # debug build + run Zed
+cargo run --release         # release build + run Zed
+cargo test --workspace      # run all tests
+cargo test -p <crate_name>  # run tests for a specific crate
+./script/clippy             # lint (use this instead of cargo clippy)
+```
+
+For tests that fail with "Too many open files":
+```sh
+cargo nextest run --workspace --no-fail-fast
+```
+
+To avoid continual rebuilds when developing, run Zed against a different project: `cargo run ~/other-project`.
+
+# Architecture overview
+
+Zed is a ~225-crate Rust workspace. The key layers:
+
+- **`gpui`** — custom GPU-accelerated UI framework (flexbox layout, entity/event system, concurrency primitives). Everything UI-related builds on this.
+- **`editor`** — the core text editor (buffer management, selections, multi-cursor, inlay hints, diff rendering).
+- **`project`** — project model: file system, language server protocol (LSP) orchestration, search, git integration.
+- **`workspace`** — top-level window/pane/item management; coordinates how panels and editors are arranged.
+- **`language`** — language grammar, syntax highlighting (Tree-sitter), and LSP types.
+- **`settings`** / **`theme`** — typed settings system and theme loading.
+- **`collab`** — server-side collab backend (runs separately, see `Procfile`).
+- **`agent`** / **`agent_ui`** — AI assistant/agent panel and thread management.
+- **`zed`** (binary crate) — entry point; wires everything together.
+
+UI panels follow a pattern: a `*_ui` crate holds the GPUI views/panels, while a sibling crate (without `_ui`) holds the non-UI model/logic. For example `agent_ui` renders the panel while `agent` manages the thread state.
+
+Settings are strongly typed structs registered via `settings::Settings`. To add a new setting, define the struct, implement `Settings`, and register it during app startup.
