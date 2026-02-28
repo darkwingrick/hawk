@@ -297,10 +297,10 @@ impl ProjectEnvironment {
 }
 
 fn set_origin_marker(env: &mut HashMap<String, String>, origin: EnvironmentOrigin) {
-    env.insert(ZED_ENVIRONMENT_ORIGIN_MARKER.to_string(), origin.into());
+    env.insert(HAWK_ENVIRONMENT_ORIGIN_MARKER.to_string(), origin.into());
 }
 
-const ZED_ENVIRONMENT_ORIGIN_MARKER: &str = "ZED_ENVIRONMENT";
+const HAWK_ENVIRONMENT_ORIGIN_MARKER: &str = "HAWK_ENVIRONMENT";
 
 enum EnvironmentOrigin {
     Cli,

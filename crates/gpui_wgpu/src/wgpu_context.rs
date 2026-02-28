@@ -15,13 +15,13 @@ pub struct WgpuContext {
 impl WgpuContext {
     #[cfg(not(target_family = "wasm"))]
     pub fn new(instance: wgpu::Instance, surface: &wgpu::Surface<'_>) -> anyhow::Result<Self> {
-        let device_id_filter = match std::env::var("ZED_DEVICE_ID") {
+        let device_id_filter = match std::env::var("HAWK_DEVICE_ID") {
             Ok(val) => parse_pci_id(&val)
-                .context("Failed to parse device ID from `ZED_DEVICE_ID` environment variable")
+                .context("Failed to parse device ID from `HAWK_DEVICE_ID` environment variable")
                 .log_err(),
             Err(std::env::VarError::NotPresent) => None,
             err => {
-                err.context("Failed to read value of `ZED_DEVICE_ID` environment variable")
+                err.context("Failed to read value of `HAWK_DEVICE_ID` environment variable")
                     .log_err();
                 None
             }
@@ -180,7 +180,7 @@ impl WgpuContext {
                         let caps = surface.get_capabilities(&adapter);
                         if caps.formats.is_empty() {
                             log::warn!(
-                                "GPU matching ZED_DEVICE_ID={:#06x} ({}) is not compatible \
+                                "GPU matching HAWK_DEVICE_ID={:#06x} ({}) is not compatible \
                                  with the display surface. Falling back to auto-selection.",
                                 device_id,
                                 info.name,
@@ -189,7 +189,7 @@ impl WgpuContext {
                         }
                     }
                     log::info!(
-                        "Found GPU matching ZED_DEVICE_ID={:#06x}: {}",
+                        "Found GPU matching HAWK_DEVICE_ID={:#06x}: {}",
                         device_id,
                         info.name
                     );
@@ -200,7 +200,7 @@ impl WgpuContext {
             }
 
             log::warn!(
-                "No compatible GPU found matching ZED_DEVICE_ID={:#06x}. Available devices:",
+                "No compatible GPU found matching HAWK_DEVICE_ID={:#06x}. Available devices:",
                 device_id
             );
 

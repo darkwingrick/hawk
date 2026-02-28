@@ -34,4 +34,4 @@ pub enum CliResponse {
 
 /// When Zed started not as an *.app but as a binary (e.g. local development),
 /// there's a possibility to tell it to behave "regularly".
-pub const FORCE_CLI_MODE_ENV_VAR_NAME: &str = "ZED_FORCE_CLI_MODE";
+pub const FORCE_CLI_MODE_ENV_VAR_NAME: &str = "HAWK_FORCE_CLI_MODE";

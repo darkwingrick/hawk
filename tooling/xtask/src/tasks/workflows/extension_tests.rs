@@ -12,7 +12,7 @@ use crate::tasks::workflows::{
     vars::{PathCondition, StepOutput, one_workflow_per_non_main_branch},
 };
 
-pub(crate) const ZED_EXTENSION_CLI_SHA: &str = "03d8e9aee95ea6117d75a48bcac2e19241f6e667";
+pub(crate) const HAWK_EXTENSION_CLI_SHA: &str = "03d8e9aee95ea6117d75a48bcac2e19241f6e667";
 
 // This should follow the set target in crates/extension/src/extension_builder.rs
 const EXTENSION_RUST_TARGET: &str = "wasm32-wasip2";
@@ -40,7 +40,7 @@ pub(crate) fn extension_tests() -> Workflow {
         .add_env(("CARGO_TERM_COLOR", "always"))
         .add_env(("RUST_BACKTRACE", 1))
         .add_env(("CARGO_INCREMENTAL", 0))
-        .add_env(("ZED_EXTENSION_CLI_SHA", ZED_EXTENSION_CLI_SHA))
+        .add_env(("HAWK_EXTENSION_CLI_SHA", HAWK_EXTENSION_CLI_SHA))
         .add_env(("RUSTUP_TOOLCHAIN", "stable"))
         .add_env(("CARGO_BUILD_TARGET", EXTENSION_RUST_TARGET))
         .map(|workflow| {
@@ -82,7 +82,7 @@ fn check_rust() -> NamedJob {
 }
 
 pub(crate) fn check_extension() -> NamedJob {
-    let (cache_download, cache_hit) = cache_zed_extension_cli();
+    let (cache_download, cache_hit) = cache_hawk_extension_cli();
     let (check_version_job, version_changed, _) = compare_versions();
 
     let job = Job::default()
@@ -91,7 +91,7 @@ pub(crate) fn check_extension() -> NamedJob {
         .timeout_minutes(6u32)
         .add_step(steps::checkout_repo().with_full_history())
         .add_step(cache_download)
-        .add_step(download_zed_extension_cli(cache_hit))
+        .add_step(download_hawk_extension_cli(cache_hit))
         .add_step(cache_rust_dependencies_namespace()) // Extensions can compile Rust, so provide the cache if needed.
         .add_step(check())
         .add_step(check_version_job)
@@ -100,7 +100,7 @@ pub(crate) fn check_extension() -> NamedJob {
     named::job(job)
 }
 
-pub fn cache_zed_extension_cli() -> (Step<Use>, StepOutput) {
+pub fn cache_hawk_extension_cli() -> (Step<Use>, StepOutput) {
     let step = named::uses(
         "actions",
         "cache",
@@ -110,17 +110,17 @@ pub fn cache_zed_extension_cli() -> (Step<Use>, StepOutput) {
     .with(
         Input::default()
             .add("path", "zed-extension")
-            .add("key", "zed-extension-${{ env.ZED_EXTENSION_CLI_SHA }}"),
+            .add("key", "zed-extension-${{ env.HAWK_EXTENSION_CLI_SHA }}"),
     );
     let output = StepOutput::new(&step, "cache-hit");
     (step, output)
 }
 
-pub fn download_zed_extension_cli(cache_hit: StepOutput) -> Step<Run> {
+pub fn download_hawk_extension_cli(cache_hit: StepOutput) -> Step<Run> {
     named::bash(
     indoc! {
         r#"
-        wget --quiet "https://zed-extension-cli.nyc3.digitaloceanspaces.com/$ZED_EXTENSION_CLI_SHA/x86_64-unknown-linux-gnu/zed-extension"
+        wget --quiet "https://zed-extension-cli.nyc3.digitaloceanspaces.com/$HAWK_EXTENSION_CLI_SHA/x86_64-unknown-linux-gnu/zed-extension"
         chmod +x zed-extension
         "#,
     }

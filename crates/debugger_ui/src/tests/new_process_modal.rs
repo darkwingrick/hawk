@@ -73,10 +73,10 @@ async fn test_debug_session_substitutes_variables_and_relativizes_paths(
                 .to_string()
                 .leak(),
         ),
-        // Path with $ZED_WORKTREE_ROOT - should be substituted without double appending
+        // Path with $HAWK_WORKTREE_ROOT - should be substituted without double appending
         (
             format!(
-                "$ZED_WORKTREE_ROOT{0}src{0}program",
+                "$HAWK_WORKTREE_ROOT{0}src{0}program",
                 std::path::MAIN_SEPARATOR
             )
             .leak(),
@@ -110,8 +110,8 @@ async fn test_debug_session_substitutes_variables_and_relativizes_paths(
                             input_path
                         );
 
-                        let expected_other_field = if input_path.contains("$ZED_WORKTREE_ROOT") {
-                            input_path.replace("$ZED_WORKTREE_ROOT", path!("/test/worktree/path"))
+                        let expected_other_field = if input_path.contains("$HAWK_WORKTREE_ROOT") {
+                            input_path.replace("$HAWK_WORKTREE_ROOT", path!("/test/worktree/path"))
                         } else {
                             input_path.to_string()
                         };
@@ -374,7 +374,7 @@ async fn test_dap_adapter_config_conversion_and_validation(cx: &mut TestAppConte
         registry.enumerate_adapters::<Vec<_>>()
     });
 
-    let zed_config = ZedDebugConfig {
+    let hawk_config = ZedDebugConfig {
         label: "test_debug_session".into(),
         adapter: "test_adapter".into(),
         request: DebugRequest::Launch(LaunchRequest {
@@ -399,11 +399,11 @@ async fn test_dap_adapter_config_conversion_and_validation(cx: &mut TestAppConte
             })
             .unwrap_or_else(|| panic!("Adapter {} should exist", adapter_name));
 
-        let mut adapter_specific_config = zed_config.clone();
+        let mut adapter_specific_config = hawk_config.clone();
         adapter_specific_config.adapter = adapter_name.to_string().into();
 
         let debug_scenario = adapter
-            .config_from_zed_format(adapter_specific_config)
+            .config_from_hawk_format(adapter_specific_config)
             .await
             .unwrap_or_else(|_| {
                 panic!(

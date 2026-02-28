@@ -292,7 +292,7 @@ impl JsonSchema for LanguageModelProviderSetting {
                         "vercel",
                         "vercel_ai_gateway",
                         "x_ai",
-                        "zed.dev"
+                        "hawk.dev"
                     ]
                 },
                 {

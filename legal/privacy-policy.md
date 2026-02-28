@@ -3,7 +3,7 @@ title: Privacy Policy
 slug: privacy-policy
 ---
 
-At Zed Industries, Inc. ("Zed", "Company" or "we"), we take privacy and the security of data seriously. This Privacy Policy is established to help advise you about how we treat your personal data. By using or accessing our website located at zed.dev, or the Solution or services available pursuant the Zed End User Terms located at [https://zed.dev/terms](https://zed.dev/terms) (collectively, the "Services"), you acknowledge awareness of the practices and policies outlined below, and hereby consent that we will collect, use, and share your personal data as described in this Privacy Policy.
+At Zed Industries, Inc. ("Hawk", "Company" or "we"), we take privacy and the security of data seriously. This Privacy Policy is established to help advise you about how we treat your personal data. By using or accessing our website located at hawk.dev, or the Solution or services available pursuant the Zed End User Terms located at [https://hawk.dev/terms](https://hawk.dev/terms) (collectively, the "Services"), you acknowledge awareness of the practices and policies outlined below, and hereby consent that we will collect, use, and share your personal data as described in this Privacy Policy.
 
 As we grow and expand our Services, we may modify this Privacy Policy from time to time. When material modifications are made, we will alert you to any such changes by placing a notice on the Company website, by sending you an email and/or by some other means. Please note that if you've opted not to receive legal notice emails from us (or haven't provided us with a valid email address), those legal notices will still govern your use of the Services. If you use the Services after any changes to the Privacy Policy have been published on our website, you consent and agree to all of the changes.
 
@@ -142,13 +142,13 @@ It's worth noting that we avoid retaining data unless necessary to provide our S
 
 ## Personal Data of Children
 
-We do not knowingly collect or solicit Personal Data from children under 13 years of age; if you are a child under the age of 13, please do not attempt to register for or otherwise use the Services or send us any Personal Data. If we learn we have collected Personal Data from a child under 13 years of age, we will delete that information as quickly as possible. If you believe that a child under 13 years of age may have provided Personal Data to us, please contact us at hi@zed.dev.
+We do not knowingly collect or solicit Personal Data from children under 13 years of age; if you are a child under the age of 13, please do not attempt to register for or otherwise use the Services or send us any Personal Data. If we learn we have collected Personal Data from a child under 13 years of age, we will delete that information as quickly as possible. If you believe that a child under 13 years of age may have provided Personal Data to us, please contact us at hi@hawk.dev.
 
 ## California Resident Rights
 
 If you are a California resident, you have the rights set forth in this section. Please see the "Exercising Your Rights" section below for instructions regarding how to exercise these rights. Please note that we may process Personal Data of our customers' end users or employees in connection with our provision of certain services to our customers. If we are processing your Personal Data as a service provider, you may contact the entity that collected your Personal Data in the first instance to address your rights with respect to such data as desired.
 
-If there are any conflicts between this section and any other provision of this Privacy Policy and you are a California resident, the portion that is more protective of Personal Data shall control to the extent of such conflict. If you have any questions about this section or whether any of the following rights apply to you, please contact us at hi@zed.dev.
+If there are any conflicts between this section and any other provision of this Privacy Policy and you are a California resident, the portion that is more protective of Personal Data shall control to the extent of such conflict. If you have any questions about this section or whether any of the following rights apply to you, please contact us at hi@hawk.dev.
 
 ### Access
 
@@ -177,7 +177,7 @@ Consumers have certain rights over the processing of their sensitive information
 
 We will not sell your Personal Data, and have not done so over the last 12 months. To our knowledge, we do not sell the Personal Data of minors under 16 years of age. Under the CCPA, California residents have certain rights when a business "shares" Personal Data with third parties for purposes of cross-contextual behavioral advertising. We have shared the foregoing categories of Personal Data for the purposes of cross-contextual behavioral advertising, as applicable.
 
-Under California Civil Code Sections 1798.83-1798.84, California residents are entitled to contact us to prevent disclosure of Personal Data to third parties for such third parties' direct marketing purposes; in order to submit such a request, please contact us at hi@zed.dev.
+Under California Civil Code Sections 1798.83-1798.84, California residents are entitled to contact us to prevent disclosure of Personal Data to third parties for such third parties' direct marketing purposes; in order to submit such a request, please contact us at hi@hawk.dev.
 
 Your browser may offer you a "Do Not Track" option, which allows you to signal to operators of websites and web applications and services that you do not wish such operators to track certain of your online activities over time and across different websites. Our Services do not support Do Not Track requests at this time. To find out more about "Do Not Track," you can visit [www.allaboutdnt.com](https://www.allaboutdnt.com).
 
@@ -189,7 +189,7 @@ We are committed to respond to Valid Requests within the time frame required by 
 
 You may submit a Valid Request using the following methods:
 
-- Email us at: hi@zed.dev
+- Email us at: hi@hawk.dev
 
 If you are a California resident, you may also authorize an agent (an "Authorized Agent") to exercise your rights on your behalf.
 
@@ -203,7 +203,7 @@ We will not discriminate against you for exercising your rights under applicable
 
 If you are a resident of the European Union ("EU"), United Kingdom ("UK"), Lichtenstein, Norway or Iceland, you may have additional rights under the EU or UK General Data Protection Regulation (the "GDPR") with respect to your Personal Data, as outlined below.
 We use the terms "Personal Data" and "processing" as they are defined in the GDPR in this section, but "Personal Data" generally means information that can be used to individually identify a person, and "processing" generally covers actions that can be performed in connection with data such as collection, use, storage and disclosure. Company will be the controller of your Personal Data processed in connection with the Services.
-If there are any conflicts between this section and any other provision of this Privacy Policy, the policy or portion that is more protective of Personal Data shall control to the extent of such conflict. If you have any questions about this section or whether any of the following applies to you, please contact us at hi@zed.dev. Note that we may also process Personal Data of our customers' end users or employees in connection with our provision of certain services to you, in which case we are the processor of Personal Data. If we are the processor of your Personal Data, please contact the controller party in the first instance to address your rights with respect to such data.
+If there are any conflicts between this section and any other provision of this Privacy Policy, the policy or portion that is more protective of Personal Data shall control to the extent of such conflict. If you have any questions about this section or whether any of the following applies to you, please contact us at hi@hawk.dev. Note that we may also process Personal Data of our customers' end users or employees in connection with our provision of certain services to you, in which case we are the processor of Personal Data. If we are the processor of your Personal Data, please contact the controller party in the first instance to address your rights with respect to such data.
 
 ## Personal Data We Collect
 
@@ -237,7 +237,7 @@ The "How We Share Your Personal Data" section above details how we share your Pe
 
 ## EU Data Subject Rights
 
-For more information about these EU or UK personal data terms and your rights related thereto, or to submit a request for information, please email us at hi@zed.dev. Please note that in some circumstances, we may not be able to fully comply with your request, such as if it is frivolous or impractical, if it jeopardizes the rights of others, or if it is not required by law, but, in those circumstances, we are committed to respond to notify you of such a decision regardless. In some cases, we may also need you to provide us with additional information, which may include Personal Data, if necessary to verify your identity and the nature of your request.
+For more information about these EU or UK personal data terms and your rights related thereto, or to submit a request for information, please email us at hi@hawk.dev. Please note that in some circumstances, we may not be able to fully comply with your request, such as if it is frivolous or impractical, if it jeopardizes the rights of others, or if it is not required by law, but, in those circumstances, we are committed to respond to notify you of such a decision regardless. In some cases, we may also need you to provide us with additional information, which may include Personal Data, if necessary to verify your identity and the nature of your request.
 
 - Access: You can request more information about the Personal Data we hold about you and request a copy of such Personal Data. You can also access certain of your Personal Data by logging on to your account.
 - Rectification: If you believe that any Personal Data we are holding about you is incorrect or incomplete, you can request that we correct or supplement such data. You can also correct some of this information directly by logging on to your account.
@@ -256,8 +256,8 @@ The Services are hosted and operated in the United States ("U.S.") through Compa
 
 If you have additional questions about this Privacy Policy, the methods in which we collect and use your Personal Data or your choices and rights regarding such collection and use, please do not hesitate to contact us at:
 
-- Website: zed.dev
-- Email Address: hi@zed.dev
+- Website: hawk.dev
+- Email Address: hi@hawk.dev
 - Corporate Address:
   Zed Industries, Inc.
   2590 Welton St

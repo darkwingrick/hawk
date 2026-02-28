@@ -12,6 +12,7 @@ cfg-if.workspace = true
 crash-handler.workspace = true
 futures.workspace = true
 log.workspace = true
+feature_flags.workspace = true
 minidumper.workspace = true
 
 paths.workspace = true

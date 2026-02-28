@@ -16,12 +16,12 @@ pub fn after_release() -> Workflow {
     let prerelease = WorkflowInput::bool("prerelease", None);
     let body = WorkflowInput::string("body", Some(String::new()));
 
-    let refresh_zed_dev = rebuild_releases_page();
-    let post_to_discord = post_to_discord(&[&refresh_zed_dev]);
+    let refresh_hawk_dev = rebuild_releases_page();
+    let post_to_discord = post_to_discord(&[&refresh_hawk_dev]);
     let publish_winget = publish_winget();
     let create_sentry_release = create_sentry_release();
     let notify_on_failure = notify_on_failure(&[
-        &refresh_zed_dev,
+        &refresh_hawk_dev,
         &post_to_discord,
         &publish_winget,
         &create_sentry_release,
@@ -36,7 +36,7 @@ pub fn after_release() -> Workflow {
                     .add_input(prerelease.name, prerelease.input())
                     .add_input(body.name, body.input()),
             ))
-        .add_job(refresh_zed_dev.name, refresh_zed_dev.job)
+        .add_job(refresh_hawk_dev.name, refresh_hawk_dev.job)
         .add_job(post_to_discord.name, post_to_discord.job)
         .add_job(publish_winget.name, publish_winget.job)
         .add_job(create_sentry_release.name, create_sentry_release.job)
@@ -46,11 +46,11 @@ pub fn after_release() -> Workflow {
 fn rebuild_releases_page() -> NamedJob {
     fn refresh_cloud_releases() -> Step<Run> {
         named::bash(format!(
-            "curl -fX POST https://cloud.zed.dev/releases/refresh?expect_tag={TAG_NAME}"
+            "curl -fX POST https://cloud.hawk.dev/releases/refresh?expect_tag={TAG_NAME}"
         ))
     }
 
-    fn redeploy_zed_dev() -> Step<Run> {
+    fn redeploy_hawk_dev() -> Step<Run> {
         named::bash("./script/redeploy-vercel").add_env(("VERCEL_TOKEN", vars::VERCEL_TOKEN))
     }
 
@@ -60,7 +60,7 @@ fn rebuild_releases_page() -> NamedJob {
             .with_repository_owner_guard()
             .add_step(refresh_cloud_releases())
             .add_step(checkout_repo())
-            .add_step(redeploy_zed_dev()),
+            .add_step(redeploy_hawk_dev()),
     )
 }
 
@@ -68,9 +68,9 @@ fn post_to_discord(deps: &[&NamedJob]) -> NamedJob {
     fn get_release_url() -> Step<Run> {
         named::bash(format!(
             r#"if [ "{IS_PRERELEASE}" == "true" ]; then
-    URL="https://zed.dev/releases/preview"
+    URL="https://hawk.dev/releases/preview"
 else
-    URL="https://zed.dev/releases/stable"
+    URL="https://hawk.dev/releases/stable"
 fi
 
 echo "URL=$URL" >> "$GITHUB_OUTPUT"

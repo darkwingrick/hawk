@@ -18,7 +18,7 @@ fn register_web_search_providers(
     client: Arc<Client>,
     cx: &mut Context<WebSearchRegistry>,
 ) {
-    register_zed_web_search_provider(
+    register_hawk_web_search_provider(
         registry,
         client.clone(),
         &LanguageModelRegistry::global(cx),
@@ -29,28 +29,28 @@ fn register_web_search_providers(
         &LanguageModelRegistry::global(cx),
         move |this, registry, event, cx| {
             if let language_model::Event::DefaultModelChanged = event {
-                register_zed_web_search_provider(this, client.clone(), &registry, cx)
+                register_hawk_web_search_provider(this, client.clone(), &registry, cx)
             }
         },
     )
     .detach();
 }
 
-fn register_zed_web_search_provider(
+fn register_hawk_web_search_provider(
     registry: &mut WebSearchRegistry,
     client: Arc<Client>,
     language_model_registry: &Entity<LanguageModelRegistry>,
     cx: &mut Context<WebSearchRegistry>,
 ) {
-    let using_zed_provider = language_model_registry
+    let using_hawk_provider = language_model_registry
         .read(cx)
         .default_model()
         .is_some_and(|default| default.is_provided_by_zed());
-    if using_zed_provider {
+    if using_hawk_provider {
         registry.register_provider(cloud::CloudWebSearchProvider::new(client, cx), cx)
     } else {
         registry.unregister_provider(WebSearchProviderId(
-            cloud::ZED_WEB_SEARCH_PROVIDER_ID.into(),
+            cloud::HAWK_WEB_SEARCH_PROVIDER_ID.into(),
         ));
     }
 }

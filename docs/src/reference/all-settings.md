@@ -1767,7 +1767,7 @@ While other options may be changed at a runtime and should be placed under `sett
 ```json [settings]
 {
   "edit_predictions": {
-    "provider": "zed"
+    "provider": "hawk"
   }
 }
 ```
@@ -1776,7 +1776,7 @@ While other options may be changed at a runtime and should be placed under `sett
 
 - Description: Which edit prediction provider to use
 - Setting: `edit_prediction_provider`
-- Default: `"zed"`
+- Default: `"hawk"`
 
 **Options**
 
@@ -1785,7 +1785,7 @@ While other options may be changed at a runtime and should be placed under `sett
 ```json [settings]
 {
   "edit_predictions": {
-    "provider": "zed"
+    "provider": "hawk"
   }
 }
 ```
@@ -2626,10 +2626,10 @@ At this point, the server may or may not return hints depending on its implement
 
 The following languages have inlay hints preconfigured by Zed:
 
-- [Go](https://docs.zed.dev/languages/go)
-- [Rust](https://docs.zed.dev/languages/rust)
-- [Svelte](https://docs.zed.dev/languages/svelte)
-- [TypeScript](https://docs.zed.dev/languages/typescript)
+- [Go](https://docs.hawk.dev/languages/go)
+- [Rust](https://docs.hawk.dev/languages/rust)
+- [Svelte](https://docs.hawk.dev/languages/svelte)
+- [TypeScript](https://docs.hawk.dev/languages/typescript)
 
 Use the `lsp` section for the server configuration. Examples are provided in the corresponding language documentation.
 

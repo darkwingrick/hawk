@@ -82,7 +82,8 @@ pub enum EditPredictionProvider {
     #[default]
     Copilot,
     Supermaven,
-    Zed,
+    #[serde(alias = "zed")]
+    Hawk,
     Codestral,
     Ollama,
     OpenAiCompatibleApi,
@@ -104,7 +105,8 @@ impl<'de> Deserialize<'de> for EditPredictionProvider {
             None,
             Copilot,
             Supermaven,
-            Zed,
+            #[serde(alias = "zed")]
+            Hawk,
             Codestral,
             Ollama,
             OpenAiCompatibleApi,
@@ -117,7 +119,7 @@ impl<'de> Deserialize<'de> for EditPredictionProvider {
             Content::None => EditPredictionProvider::None,
             Content::Copilot => EditPredictionProvider::Copilot,
             Content::Supermaven => EditPredictionProvider::Supermaven,
-            Content::Zed => EditPredictionProvider::Zed,
+            Content::Hawk => EditPredictionProvider::Hawk,
             Content::Codestral => EditPredictionProvider::Codestral,
             Content::Ollama => EditPredictionProvider::Ollama,
             Content::OpenAiCompatibleApi => EditPredictionProvider::OpenAiCompatibleApi,
@@ -141,9 +143,9 @@ impl<'de> Deserialize<'de> for EditPredictionProvider {
 }
 
 impl EditPredictionProvider {
-    pub fn is_zed(&self) -> bool {
+    pub fn is_hawk(&self) -> bool {
         match self {
-            EditPredictionProvider::Zed => true,
+            EditPredictionProvider::Hawk => true,
             EditPredictionProvider::None
             | EditPredictionProvider::Copilot
             | EditPredictionProvider::Supermaven
@@ -158,7 +160,7 @@ impl EditPredictionProvider {
 
     pub fn display_name(&self) -> Option<&'static str> {
         match self {
-            EditPredictionProvider::Zed => Some("Zed AI"),
+            EditPredictionProvider::Hawk => Some("Hawk AI"),
             EditPredictionProvider::Copilot => Some("GitHub Copilot"),
             EditPredictionProvider::Supermaven => Some("Supermaven"),
             EditPredictionProvider::Codestral => Some("Codestral"),

@@ -53,14 +53,14 @@ fn publish_job() -> NamedJob {
 
 fn update_sha_in_zed(publish_job: &NamedJob) -> NamedJob {
     let (generate_token, generated_token) = generate_token(
-        vars::ZED_ZIPPY_APP_ID,
-        vars::ZED_ZIPPY_APP_PRIVATE_KEY,
+        vars::HAWK_ZIPPY_APP_ID,
+        vars::HAWK_ZIPPY_APP_PRIVATE_KEY,
         Some(RepositoryTarget::current()),
     );
 
     fn replace_sha() -> Step<Run> {
         named::bash(indoc! {r#"
-            sed -i "s/ZED_EXTENSION_CLI_SHA: &str = \"[a-f0-9]*\"/ZED_EXTENSION_CLI_SHA: \&str = \"${{ github.sha }}\"/" \
+            sed -i "s/HAWK_EXTENSION_CLI_SHA: &str = \"[a-f0-9]*\"/HAWK_EXTENSION_CLI_SHA: \&str = \"${{ github.sha }}\"/" \
                 tooling/xtask/src/tasks/workflows/extension_tests.rs
         "#})
     }
@@ -122,8 +122,8 @@ fn create_pull_request_zed(generated_token: &StepOutput, short_sha: &StepOutput)
 fn update_sha_in_extensions(publish_job: &NamedJob) -> NamedJob {
     let extensions_repo = RepositoryTarget::new("zed-industries", &["extensions"]);
     let (generate_token, generated_token) = generate_token(
-        vars::ZED_ZIPPY_APP_ID,
-        vars::ZED_ZIPPY_APP_PRIVATE_KEY,
+        vars::HAWK_ZIPPY_APP_ID,
+        vars::HAWK_ZIPPY_APP_PRIVATE_KEY,
         Some(extensions_repo),
     );
 
@@ -139,7 +139,7 @@ fn update_sha_in_extensions(publish_job: &NamedJob) -> NamedJob {
 
     fn replace_sha() -> Step<Run> {
         named::bash(indoc! {r#"
-            sed -i "s/ZED_EXTENSION_CLI_SHA: [a-f0-9]*/ZED_EXTENSION_CLI_SHA: ${{ github.sha }}/" \
+            sed -i "s/HAWK_EXTENSION_CLI_SHA: [a-f0-9]*/HAWK_EXTENSION_CLI_SHA: ${{ github.sha }}/" \
                 .github/workflows/ci.yml
         "#})
     }

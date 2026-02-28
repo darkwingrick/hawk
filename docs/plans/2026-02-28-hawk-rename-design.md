@@ -6,7 +6,7 @@
 
 ## Background
 
-Hawk is an open-source fork of [Zed](https://github.com/zed-industries/zed), a high-performance code editor. This document describes the strategy for safely and legally renaming the application from "Zed" to "Hawk" while maintaining full AGPL-3.0 compliance.
+Hawk is an open-source fork of [Zed](https://github.com/zed-industries/zed), a high-performance code editor. This document describes the strategy for safely and legally renaming the application from "Hawk" to "Hawk" while maintaining full AGPL-3.0 compliance.
 
 ---
 
@@ -53,9 +53,9 @@ Hawk is an open-source fork of [Zed](https://github.com/zed-industries/zed), a h
 
 | Service            | Old URL                | New URL                                                 |
 | ------------------ | ---------------------- | ------------------------------------------------------- |
-| Auto-update        | `api.zed.dev/releases` | `api.github.com/repos/darkwingrick/hawk/releases`       |
-| Extension registry | `zed.dev/extensions`   | Keep Zed's registry (WASM-compatible)                   |
-| Docs links         | `zed.dev/docs/*`       | `https://github.com/darkwingrick/hawk/tree/master/docs` |
+| Auto-update        | `api.hawk.dev/releases` | `api.github.com/repos/darkwingrick/hawk/releases`       |
+| Extension registry | `hawk.dev/extensions`   | Keep Zed's registry (WASM-compatible)                   |
+| Docs links         | `hawk.dev/docs/*`       | `https://github.com/darkwingrick/hawk/tree/master/docs` |
 
 > **Extension registry note**: Hawk is binary-compatible with Zed extensions (same WASM host). Pointing at Zed's public registry gives users immediate full extension access with no infrastructure cost. Can be replaced with a self-hosted registry later.
 
@@ -77,14 +77,14 @@ After renames, update the workspace `Cargo.toml` member list and all `[dependenc
 
 - Binary name: `zed` → `hawk` (`default-run` in `Cargo.toml`)
 - Bundle ID: `dev.zed.Zed` → `com.darkwingrick.hawk` (`.plist`, build scripts)
-- Cargo authors: `"Zed Team <hi@zed.dev>"` → `"darkwingrick"`
+- Cargo authors: `"Zed Team <hi@hawk.dev>"` → `"darkwingrick"`
 
 ### User-Facing Strings
 
 Targeted replacement of UI strings only (not Rust identifiers):
 
-- `"Zed"` → `"Hawk"` in display strings, window titles, notifications
-- `"zed.dev"` in user-visible messages → `"github.com/darkwingrick/hawk"`
+- `"Hawk"` → `"Hawk"` in display strings, window titles, notifications
+- `"hawk.dev"` in user-visible messages → `"github.com/darkwingrick/hawk"`
 
 ### Config Paths
 
@@ -127,7 +127,7 @@ Phases must be done sequentially with a `cargo check` between each to avoid an u
 
 ### Phase 3 — String & Metadata Pass _(cosmetic, low risk)_
 
-1. User-facing `"Zed"` → `"Hawk"` strings
+1. User-facing `"Hawk"` → `"Hawk"` strings
 2. Bundle ID, plist, Cargo metadata
 3. Config paths in `paths` crate
 4. `ZED_*` env vars → `HAWK_*`

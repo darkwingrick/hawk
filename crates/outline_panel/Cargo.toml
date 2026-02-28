@@ -37,7 +37,7 @@ ui.workspace = true
 util.workspace = true
 workspace.workspace = true
 worktree.workspace = true
-zed_actions.workspace = true
+hawk_actions.workspace = true
 
 [dev-dependencies]
 lsp.workspace = true

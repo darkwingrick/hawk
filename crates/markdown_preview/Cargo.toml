@@ -35,7 +35,7 @@ ui.workspace = true
 urlencoding.workspace = true
 util.workspace = true
 workspace.workspace = true
-zed_actions.workspace = true
+hawk_actions.workspace = true
 mermaid-rs-renderer.workspace = true
 
 [dev-dependencies]

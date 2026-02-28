@@ -3,8 +3,8 @@
 Thank you for helping us make Zed better!
 
 All activity in Zed forums is subject to our [Code of
-Conduct](https://zed.dev/code-of-conduct). Additionally, contributors must sign
-our [Contributor License Agreement](https://zed.dev/cla) before their
+Conduct](https://hawk.dev/code-of-conduct). Additionally, contributors must sign
+our [Contributor License Agreement](https://hawk.dev/cla) before their
 contributions can be merged.
 
 ## Contribution ideas
@@ -121,7 +121,7 @@ When your changes affect UI, consult this checklist:
 
 Although there are few hard and fast rules, typically we don't merge:
 
-- Anything that can be provided by an extension. For example a new language, or theme. For adding themes or support for a new language to Zed, check out our [docs on developing extensions](https://zed.dev/docs/extensions/developing-extensions).
+- Anything that can be provided by an extension. For example a new language, or theme. For adding themes or support for a new language to Zed, check out our [docs on developing extensions](https://hawk.dev/docs/extensions/developing-extensions).
 - New file icons. Zed's default icon theme consists of icons that are hand-designed to fit together in a cohesive manner, please don't submit PRs with off-the-shelf SVGs.
 - Features where (in our subjective opinion) the extra complexity isn't worth it for the number of people who will benefit.
 - Giant refactorings.
@@ -151,4 +151,4 @@ Zed is made up of several smaller crates - let's go over those you're most likel
 
 ## Packaging Zed
 
-Check our [notes for packaging Zed](https://zed.dev/docs/development/linux#notes-for-packaging-zed).
+Check our [notes for packaging Zed](https://hawk.dev/docs/development/linux#notes-for-packaging-zed).

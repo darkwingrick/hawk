@@ -193,14 +193,14 @@ Codex supports the same workflows as Zed's first-party agent. Add context by @-m
 <div class="warning">
 
 Starting from `v0.221.x`, [the ACP Registry](https://agentclientprotocol.com/registry) is the preferred way to install external agents in Zed.
-Learn more about it in [the release blog post](https://zed.dev/blog/acp-registry).
+Learn more about it in [the release blog post](https://hawk.dev/blog/acp-registry).
 At some point in the near future, Agent Server extensions will be deprecated.
 
 </div>
 
 Add more external agents to Zed by installing [Agent Server extensions](../extensions/agent-servers.md).
 
-See what agents are available by filtering for "Agent Servers" in the extensions page, which you can access via the command palette with `zed: extensions`, or the [Zed website](https://zed.dev/extensions?filter=agent-servers).
+See what agents are available by filtering for "Agent Servers" in the extensions page, which you can access via the command palette with `zed: extensions`, or the [Zed website](https://hawk.dev/extensions?filter=agent-servers).
 
 ### Via The ACP Registry
 
@@ -247,7 +247,7 @@ It's also possible to customize environment variables for registry-installed age
 When using external agents in Zed, you can access the debug view via with `dev: open acp logs` from the Command Palette.
 This lets you see the messages being sent and received between Zed and the agent.
 
-![The debug view for ACP logs.](https://zed.dev/img/acp/acp-logs.webp)
+![The debug view for ACP logs.](https://hawk.dev/img/acp/acp-logs.webp)
 
 It's helpful to attach data from this view if you're opening issues about problems with external agents like Claude Agent, Codex, OpenCode, etc.
 

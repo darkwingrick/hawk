@@ -49,7 +49,7 @@ use workspace::{
     notifications::NotifyTaskExt,
     searchable::SearchableItemHandle,
 };
-use zed_actions::agent::ReviewBranchDiff;
+use hawk_actions::agent::ReviewBranchDiff;
 use ztracing::instrument;
 
 actions!(
@@ -1590,7 +1590,7 @@ fn render_send_review_to_agent_button(review_count: usize, focus_handle: &FocusH
         "send-review",
         format!("Send Review to Agent ({})", review_count),
     )
-    .icon(IconName::ZedAssistant)
+    .icon(IconName::HawkAssistant)
     .icon_position(IconPosition::Start)
     .tooltip(Tooltip::for_action_title_in(
         "Send all review comments to the Agent panel",
@@ -1684,7 +1684,7 @@ impl Render for BranchDiffToolbar {
                 let focus_handle = focus_handle.clone();
                 this.child(Divider::vertical()).child(
                     Button::new("review-diff", "Review Diff")
-                        .icon(IconName::ZedAssistant)
+                        .icon(IconName::HawkAssistant)
                         .icon_position(IconPosition::Start)
                         .icon_size(IconSize::Small)
                         .icon_color(Color::Muted)

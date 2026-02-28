@@ -21,7 +21,7 @@ pub enum VectorName {
     ProTrialStamp,
     ProUserStamp,
     ZedLogo,
-    ZedXCopilot,
+    HawkXCopilot,
 }
 
 impl VectorName {
@@ -161,7 +161,7 @@ impl Component for Vector {
                         "Different Vectors",
                         vec![single_example(
                             "Zed X Copilot",
-                            Vector::square(VectorName::ZedXCopilot, rems_from_px(100.))
+                            Vector::square(VectorName::HawkXCopilot, rems_from_px(100.))
                                 .into_any_element(),
                         )],
                     ),
@@ -177,6 +177,6 @@ mod tests {
 
     #[test]
     fn vector_path() {
-        assert_eq!(VectorName::ZedLogo.path().as_ref(), "images/zed_logo.svg");
+        assert_eq!(VectorName::ZedLogo.path().as_ref(), "images/hawk_logo.svg");
     }
 }

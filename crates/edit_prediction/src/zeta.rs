@@ -489,7 +489,7 @@ pub(crate) fn edit_prediction_accepted(
     current_prediction: CurrentEditPrediction,
     cx: &App,
 ) {
-    let custom_accept_url = env::var("ZED_ACCEPT_PREDICTION_URL").ok();
+    let custom_accept_url = env::var("HAWK_ACCEPT_PREDICTION_URL").ok();
     if store.zeta2_raw_config().is_some() && custom_accept_url.is_none() {
         return;
     }
@@ -507,7 +507,7 @@ pub(crate) fn edit_prediction_accepted(
         } else {
             client
                 .http_client()
-                .build_zed_llm_url("/predict_edits/accept", &[])?
+                .build_hawk_llm_url("/predict_edits/accept", &[])?
         };
 
         let response = EditPredictionStore::send_api_request::<()>(

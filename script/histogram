@@ -14,7 +14,7 @@
 # Lines that do not contain a colon ':' are skipped.
 # The script takes one or more file paths as command-line arguments, parses each log file, and then combines the data into a single DataFrame.
 # It then converts all time measurements into milliseconds, discards the original time and unit columns, and creates histograms for each unique measurement type.
-# The histograms display the distribution of times for each measurement, separated by log file, and normalized to show density rather than count.
+# The histograms display the distribution of times for each measurement, separated by log file, and normalihawk to show density rather than count.
 # To use this script, run it from the command line with the log file paths as arguments, like so:
 # python this_script.py log1.txt log2.txt ...
 # The script will then parse the provided log files and display the histograms for each type of measurement found.

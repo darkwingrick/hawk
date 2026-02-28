@@ -2,7 +2,7 @@
 
 This is an example extension showcasing how to write slash commands.
 
-See: [Extensions: Slash Commands](https://zed.dev/docs/extensions/slash-commands) in the Zed Docs.
+See: [Extensions: Slash Commands](https://hawk.dev/docs/extensions/slash-commands) in the Zed Docs.
 
 ## Pre-requisites
 
@@ -76,9 +76,9 @@ Rebuild to see these changes reflected:
 
 ## Troubleshooting / Logs
 
-- [zed.dev docs: Troubleshooting](https://zed.dev/docs/troubleshooting)
+- [hawk.dev docs: Troubleshooting](https://hawk.dev/docs/troubleshooting)
 
 ## Documentation
 
-- [zed.dev docs: Extensions: Developing Extensions](https://zed.dev/docs/extensions/developing-extensions)
-- [zed.dev docs: Extensions: Slash Commands](https://zed.dev/docs/extensions/slash-commands)
+- [hawk.dev docs: Extensions: Developing Extensions](https://hawk.dev/docs/extensions/developing-extensions)
+- [hawk.dev docs: Extensions: Slash Commands](https://hawk.dev/docs/extensions/slash-commands)

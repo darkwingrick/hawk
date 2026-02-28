@@ -1,8 +1,9 @@
-//! See [Telemetry in Zed](https://zed.dev/docs/telemetry) for additional information.
+//! See [Telemetry in Zed](https://hawk.dev/docs/telemetry) for additional information.
 use futures::channel::mpsc;
 pub use serde_json;
 use std::sync::OnceLock;
 pub use telemetry_events::FlexibleEvent as Event;
+use feature_flags::FeatureFlag;
 
 /// Macro to create telemetry events and send them to the telemetry queue.
 ///
@@ -54,6 +55,10 @@ macro_rules! serialize_property {
 }
 
 pub fn send_event(event: Event) {
+    if !feature_flags::TelemetryFeatureFlag::enabled_for_all() {
+        return;
+    }
+
     if let Some(queue) = TELEMETRY_QUEUE.get() {
         queue.unbounded_send(event).ok();
     }

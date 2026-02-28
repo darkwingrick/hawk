@@ -8,7 +8,7 @@ use cloud_llm_client::predict_edits_v3::{
 use cloud_llm_client::{
     EditPredictionRejectReason, EditPredictionRejection,
     MAX_EDIT_PREDICTION_REJECTIONS_PER_REQUEST, MINIMUM_REQUIRED_VERSION_HEADER_NAME,
-    PredictEditsRequestTrigger, RejectEditPredictionsBodyRef, ZED_VERSION_HEADER_NAME,
+    PredictEditsRequestTrigger, RejectEditPredictionsBodyRef, HAWK_VERSION_HEADER_NAME,
 };
 use collections::{HashMap, HashSet};
 use copilot::{Copilot, Reinstall, SignIn, SignOut};
@@ -69,7 +69,7 @@ pub mod sweep_ai;
 pub mod udiff;
 
 mod capture_example;
-mod zed_edit_prediction_delegate;
+mod hawk_edit_prediction_delegate;
 pub mod zeta;
 
 #[cfg(test)]
@@ -77,7 +77,7 @@ mod edit_prediction_tests;
 
 use crate::license_detection::LicenseDetectionWatcher;
 use crate::mercury::Mercury;
-use crate::onboarding_modal::ZedPredictModal;
+use crate::onboarding_modal::HawkPredictModal;
 pub use crate::prediction::EditPrediction;
 pub use crate::prediction::EditPredictionId;
 use crate::prediction::EditPredictionResult;
@@ -85,7 +85,7 @@ pub use crate::sweep_ai::SweepAi;
 pub use capture_example::capture_example;
 pub use language_model::ApiKeyState;
 pub use telemetry_events::EditPredictionRating;
-pub use zed_edit_prediction_delegate::ZedEditPredictionDelegate;
+pub use hawk_edit_prediction_delegate::HawkEditPredictionDelegate;
 
 actions!(
     edit_prediction,
@@ -101,7 +101,7 @@ actions!(
 const EVENT_COUNT_MAX: usize = 6;
 const CHANGE_GROUPING_LINE_SPAN: u32 = 8;
 const LAST_CHANGE_GROUPING_TIME: Duration = Duration::from_secs(1);
-const ZED_PREDICT_DATA_COLLECTION_CHOICE: &str = "zed_predict_data_collection_choice";
+const HAWK_PREDICT_DATA_COLLECTION_CHOICE: &str = "hawk_predict_data_collection_choice";
 const REJECT_REQUEST_DEBOUNCE: Duration = Duration::from_secs(15);
 const EDIT_PREDICTION_SETTLED_EVENT: &str = "Edit Prediction Settled";
 const EDIT_PREDICTION_SETTLED_TTL: Duration = Duration::from_secs(60 * 5);
@@ -733,9 +733,9 @@ impl EditPredictionStore {
     }
 
     fn zeta2_raw_config_from_env() -> Option<Zeta2RawConfig> {
-        let version_str = env::var("ZED_ZETA_FORMAT").ok()?;
+        let version_str = env::var("HAWK_ZETA_FORMAT").ok()?;
         let format = ZetaFormat::parse(&version_str).ok()?;
-        let model_id = env::var("ZED_ZETA_MODEL").ok();
+        let model_id = env::var("HAWK_ZETA_MODEL").ok();
         Some(Zeta2RawConfig { model_id, format })
     }
 
@@ -765,11 +765,11 @@ impl EditPredictionStore {
                 edit_prediction_types::EditPredictionIconSet::new(IconName::Inception)
             }
             EditPredictionModel::Zeta1 | EditPredictionModel::Zeta2 => {
-                edit_prediction_types::EditPredictionIconSet::new(IconName::ZedPredict)
-                    .with_disabled(IconName::ZedPredictDisabled)
-                    .with_up(IconName::ZedPredictUp)
-                    .with_down(IconName::ZedPredictDown)
-                    .with_error(IconName::ZedPredictError)
+                edit_prediction_types::EditPredictionIconSet::new(IconName::HawkPredict)
+                    .with_disabled(IconName::HawkPredictDisabled)
+                    .with_up(IconName::HawkPredictUp)
+                    .with_down(IconName::HawkPredictDown)
+                    .with_error(IconName::HawkPredictError)
             }
             EditPredictionModel::Fim { .. } => {
                 let settings = &all_language_settings(None, cx).edit_predictions;
@@ -1384,7 +1384,7 @@ impl EditPredictionStore {
 
             let url = client
                 .http_client()
-                .build_zed_llm_url("/predict_edits/reject", &[])
+                .build_hawk_llm_url("/predict_edits/reject", &[])
                 .unwrap();
 
             let flush_count = batched
@@ -1828,7 +1828,7 @@ impl EditPredictionStore {
 
 fn is_ep_store_provider(provider: EditPredictionProvider) -> bool {
     match provider {
-        EditPredictionProvider::Zed
+        EditPredictionProvider::Hawk
         | EditPredictionProvider::Sweep
         | EditPredictionProvider::Mercury
         | EditPredictionProvider::Ollama
@@ -1869,7 +1869,7 @@ impl EditPredictionStore {
 
         let (needs_acceptance_tracking, max_pending_predictions) =
             match all_language_settings(None, cx).edit_predictions.provider {
-                EditPredictionProvider::Zed
+                EditPredictionProvider::Hawk
                 | EditPredictionProvider::Sweep
                 | EditPredictionProvider::Mercury
                 | EditPredictionProvider::Experimental(_) => (true, 2),
@@ -2266,7 +2266,7 @@ impl EditPredictionStore {
         } else {
             client
                 .http_client()
-                .build_zed_llm_url("/predict_edits/raw", &[])?
+                .build_hawk_llm_url("/predict_edits/raw", &[])?
         };
 
         Self::send_api_request(
@@ -2293,7 +2293,7 @@ impl EditPredictionStore {
     ) -> Result<(PredictEditsV3Response, Option<EditPredictionUsage>)> {
         let url = client
             .http_client()
-            .build_zed_llm_url("/predict_edits/v3", &[])?;
+            .build_hawk_llm_url("/predict_edits/v3", &[])?;
 
         let request = PredictEditsV3Request { input, trigger };
 
@@ -2348,7 +2348,7 @@ impl EditPredictionStore {
                             move |cx| {
                                 cx.new(|cx| {
                                     ErrorMessagePrompt::new(error_message.clone(), cx)
-                                        .with_link_button("Update Zed", "https://zed.dev/releases")
+                                        .with_link_button("Update Zed", "https://hawk.dev/releases")
                                 })
                             },
                         );
@@ -2383,7 +2383,7 @@ impl EditPredictionStore {
 
             let mut request_builder = request_builder
                 .header("Content-Type", "application/json")
-                .header(ZED_VERSION_HEADER_NAME, app_version.to_string());
+                .header(HAWK_VERSION_HEADER_NAME, app_version.to_string());
 
             // Only add Authorization header if we have a token
             if let Some(ref token_value) = token {
@@ -2493,7 +2493,7 @@ impl EditPredictionStore {
 
     fn load_data_collection_choice() -> DataCollectionChoice {
         let choice = KEY_VALUE_STORE
-            .read_kvp(ZED_PREDICT_DATA_COLLECTION_CHOICE)
+            .read_kvp(HAWK_PREDICT_DATA_COLLECTION_CHOICE)
             .log_err()
             .flatten();
 
@@ -2501,7 +2501,7 @@ impl EditPredictionStore {
             Some("true") => DataCollectionChoice::Enabled,
             Some("false") => DataCollectionChoice::Disabled,
             Some(_) => {
-                log::error!("unknown value in '{ZED_PREDICT_DATA_COLLECTION_CHOICE}'");
+                log::error!("unknown value in '{HAWK_PREDICT_DATA_COLLECTION_CHOICE}'");
                 DataCollectionChoice::NotAnswered
             }
             None => DataCollectionChoice::NotAnswered,
@@ -2514,7 +2514,7 @@ impl EditPredictionStore {
         let is_enabled = new_choice.is_enabled(cx);
         db::write_and_log(cx, move || {
             KEY_VALUE_STORE.write_kvp(
-                ZED_PREDICT_DATA_COLLECTION_CHOICE.into(),
+                HAWK_PREDICT_DATA_COLLECTION_CHOICE.into(),
                 is_enabled.to_string(),
             )
         });
@@ -2704,9 +2704,9 @@ impl From<bool> for DataCollectionChoice {
     }
 }
 
-struct ZedPredictUpsell;
+struct HawkPredictUpsell;
 
-impl Dismissable for ZedPredictUpsell {
+impl Dismissable for HawkPredictUpsell {
     const KEY: &'static str = "dismissed-edit-predict-upsell";
 
     fn dismissed() -> bool {
@@ -2715,7 +2715,7 @@ impl Dismissable for ZedPredictUpsell {
         // before, by checking the data collection choice which was written to
         // the database once the user clicked on "Accept and Enable"
         if KEY_VALUE_STORE
-            .read_kvp(ZED_PREDICT_DATA_COLLECTION_CHOICE)
+            .read_kvp(HAWK_PREDICT_DATA_COLLECTION_CHOICE)
             .log_err()
             .is_some_and(|s| s.is_some())
         {
@@ -2730,14 +2730,14 @@ impl Dismissable for ZedPredictUpsell {
 }
 
 pub fn should_show_upsell_modal() -> bool {
-    !ZedPredictUpsell::dismissed()
+    !HawkPredictUpsell::dismissed()
 }
 
 pub fn init(cx: &mut App) {
     cx.observe_new(move |workspace: &mut Workspace, _, _cx| {
         workspace.register_action(
-            move |workspace, _: &zed_actions::OpenZedPredictOnboarding, window, cx| {
-                ZedPredictModal::toggle(
+            move |workspace, _: &hawk_actions::OpenHawkPredictOnboarding, window, cx| {
+                HawkPredictModal::toggle(
                     workspace,
                     workspace.user_store().clone(),
                     workspace.client().clone(),

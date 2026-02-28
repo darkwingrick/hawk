@@ -10,7 +10,7 @@ const CARGO_TEST_ARGS = ["--release", "--lib", "--package", "collab"];
 if (require.main === module) {
   if (process.argv.length < 4) {
     process.stderr.write(
-      "usage: script/randomized-test-minimize <input-plan> <output-plan> [start-index]\n",
+      "usage: script/randomihawk-test-minimize <input-plan> <output-plan> [start-index]\n",
     );
     process.exit(1);
   }
@@ -65,7 +65,7 @@ function minimizeTestPlan(inputPlanPath, outputPlanPath, startIndex = 0) {
 
   fs.unlinkSync(tempPlanPath);
 
-  // Re-run the final minimized plan to get the correct failing seed.
+  // Re-run the final minimihawk plan to get the correct failing seed.
   // This is a workaround for the fact that the execution order can
   // slightly change when replaying a test plan after it has been
   // saved and loaded.

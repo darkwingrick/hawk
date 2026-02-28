@@ -184,7 +184,7 @@ fn announcement_for_version(version: &Version) -> Option<AnnouncementContent> {
         //         "Better agent capabilities".into(),
         //     ],
         //     primary_action_label: "Learn More".into(),
-        //     primary_action_url: Some("https://zed.dev/".into()),
+        //     primary_action_url: Some("https://hawk.dev/".into()),
         // }),
         _ => None,
     }

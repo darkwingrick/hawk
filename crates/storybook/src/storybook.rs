@@ -72,7 +72,7 @@ fn main() {
 
             cx.set_global(GlobalColors(Arc::new(Colors::default())));
 
-            let http_client = ReqwestClient::user_agent("zed_storybook").unwrap();
+            let http_client = ReqwestClient::user_agent("hawk_storybook").unwrap();
             cx.set_http_client(Arc::new(http_client));
 
             settings::init(cx);

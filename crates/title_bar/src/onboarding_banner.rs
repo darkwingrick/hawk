@@ -66,7 +66,7 @@ impl OnboardingBanner {
 
 fn dismissed_at_key(source: &str) -> String {
     if source == "Git Onboarding" {
-        "zed_git_banner_dismissed_at".to_string()
+        "hawk_git_banner_dismissed_at".to_string()
     } else {
         format!(
             "{}_banner_dismissed_at",

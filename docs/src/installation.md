@@ -9,7 +9,7 @@ description: Download and install Zed on macOS, Linux, or Windows. Includes Home
 
 ### macOS
 
-Get the latest stable builds via [the download page](https://zed.dev/download). If you want to download our preview build, you can find it on its [releases page](https://zed.dev/releases/preview). After the first manual installation, Zed will periodically check for install updates.
+Get the latest stable builds via [the download page](https://hawk.dev/download). If you want to download our preview build, you can find it on its [releases page](https://hawk.dev/releases/preview). After the first manual installation, Zed will periodically check for install updates.
 
 You can also install Zed stable via Homebrew:
 
@@ -25,7 +25,7 @@ brew install --cask zed@preview
 
 ### Windows
 
-Get the latest stable builds via [the download page](https://zed.dev/download). If you want to download our preview build, you can find it on its [releases page](https://zed.dev/releases/preview). After the first manual installation, Zed will periodically check for install updates.
+Get the latest stable builds via [the download page](https://hawk.dev/download). If you want to download our preview build, you can find it on its [releases page](https://hawk.dev/releases/preview). After the first manual installation, Zed will periodically check for install updates.
 
 Additionally, you can install Zed using winget:
 
@@ -38,23 +38,23 @@ winget install -e --id ZedIndustries.Zed
 For most Linux users, the easiest way to install Zed is through our installation script:
 
 ```sh
-curl -f https://zed.dev/install.sh | sh
+curl -f https://hawk.dev/install.sh | sh
 ```
 
 You can now optionally specify a **version** of Zed to install using the `ZED_VERSION` environment variable:
 
 ```sh
 # Install the latest stable version (default)
-curl -f https://zed.dev/install.sh | sh
+curl -f https://hawk.dev/install.sh | sh
 
 # Install a specific version
-curl -f https://zed.dev/install.sh | ZED_VERSION=0.216.0 sh
+curl -f https://hawk.dev/install.sh | ZED_VERSION=0.216.0 sh
 ```
 
 To install the preview build, which receives updates about a week ahead of stable:
 
 ```sh
-curl -f https://zed.dev/install.sh | ZED_CHANNEL=preview sh
+curl -f https://hawk.dev/install.sh | ZED_CHANNEL=preview sh
 ```
 
 This script supports `x86_64` and `AArch64`, as well as common Linux distributions: Ubuntu, Arch, Debian, RedHat, CentOS, Fedora, and more.

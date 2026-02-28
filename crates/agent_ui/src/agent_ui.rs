@@ -65,7 +65,7 @@ pub(crate) use model_selector::ModelSelector;
 pub(crate) use model_selector_popover::ModelSelectorPopover;
 pub use text_thread_editor::{AgentPanelDelegate, TextThreadEditor};
 pub(crate) use thread_history::*;
-use zed_actions;
+use hawk_actions;
 
 actions!(
     agent,
@@ -307,7 +307,7 @@ pub fn init(
     cx.observe_new(|workspace: &mut Workspace, _window, _cx| {
         workspace.register_action(
             move |workspace: &mut Workspace,
-                  _: &zed_actions::AcpRegistry,
+                  _: &hawk_actions::AcpRegistry,
                   window: &mut Window,
                   cx: &mut Context<Workspace>| {
                 let existing = workspace
@@ -384,11 +384,11 @@ fn update_command_palette_filter(cx: &mut App) {
             filter.hide_namespace("assistant");
             filter.hide_namespace("copilot");
             filter.hide_namespace("supermaven");
-            filter.hide_namespace("zed_predict_onboarding");
+            filter.hide_namespace("hawk_predict_onboarding");
             filter.hide_namespace("edit_prediction");
 
             filter.hide_action_types(&edit_prediction_actions);
-            filter.hide_action_types(&[TypeId::of::<zed_actions::OpenZedPredictOnboarding>()]);
+            filter.hide_action_types(&[TypeId::of::<hawk_actions::OpenHawkPredictOnboarding>()]);
         } else {
             if agent_enabled {
                 filter.show_namespace("agent");
@@ -419,7 +419,7 @@ fn update_command_palette_filter(cx: &mut App) {
                     filter.show_namespace("supermaven");
                     filter.show_action_types(edit_prediction_actions.iter());
                 }
-                EditPredictionProvider::Zed
+                EditPredictionProvider::Hawk
                 | EditPredictionProvider::Codestral
                 | EditPredictionProvider::Ollama
                 | EditPredictionProvider::OpenAiCompatibleApi
@@ -433,8 +433,8 @@ fn update_command_palette_filter(cx: &mut App) {
                 }
             }
 
-            filter.show_namespace("zed_predict_onboarding");
-            filter.show_action_types(&[TypeId::of::<zed_actions::OpenZedPredictOnboarding>()]);
+            filter.show_namespace("hawk_predict_onboarding");
+            filter.show_action_types(&[TypeId::of::<hawk_actions::OpenHawkPredictOnboarding>()]);
         }
 
         if agent_v2_enabled {

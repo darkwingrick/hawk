@@ -466,23 +466,23 @@ pub async fn run_until_first_tool_call(
     }
 }
 
-pub fn get_zed_path() -> PathBuf {
-    let mut zed_path = std::env::current_exe().unwrap();
+pub fn get_hawk_path() -> PathBuf {
+    let mut hawk_path = std::env::current_exe().unwrap();
 
-    while zed_path
+    while hawk_path
         .file_name()
         .is_none_or(|name| name.to_string_lossy() != "debug")
     {
-        if !zed_path.pop() {
+        if !hawk_path.pop() {
             panic!("Could not find target directory");
         }
     }
 
-    zed_path.push("zed");
+    hawk_path.push("hawk");
 
-    if !zed_path.exists() {
+    if !hawk_path.exists() {
         panic!("\n🚨 Run `cargo build` at least once before running e2e tests\n\n");
     }
 
-    zed_path
+    hawk_path
 }

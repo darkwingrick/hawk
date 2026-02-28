@@ -1,9 +1,9 @@
 {
-  "$schema": "zed://schemas/settings",
+  "$schema": "hawk://schemas/settings",
   /// The displayed name of this project. If not set or null, the root directory name
   /// will be displayed.
   "project_name": null,
-  // The name of the Zed theme to use for the UI.
+  // The name of the Hawk theme to use for the UI.
   //
   // `mode` is one of:
   // - "system": Use the theme that corresponds to the system's appearance
@@ -14,7 +14,7 @@
     "light": "One Light",
     "dark": "One Dark",
   },
-  "icon_theme": "Zed (Default)",
+  "icon_theme": "Hawk (Default)",
   // The name of a base set of key bindings to use.
   // This setting can take six values, each named after another
   // text editor:
@@ -27,9 +27,9 @@
   // 6. "TextMate"
   "base_keymap": "VSCode",
   // The name of a font to use for rendering text in the editor
-  // ".ZedMono" currently aliases to Lilex
+  // ".HawkMono" currently aliases to Lilex
   // but this may change in the future.
-  "buffer_font_family": ".ZedMono",
+  "buffer_font_family": ".HawkMono",
   // Set the buffer text's font fallbacks, this will be merged with
   // the platform's default fallbacks.
   "buffer_font_fallbacks": null,
@@ -55,9 +55,9 @@
   "buffer_line_height": "comfortable",
   // The name of a font to use for rendering text in the UI
   // You can set this to ".SystemUIFont" to use the system font
-  // ".ZedSans" currently aliases to "IBM Plex Sans", but this may
+  // ".HawkSans" currently aliases to "IBM Plex Sans", but this may
   // change in the future
-  "ui_font_family": ".ZedSans",
+  "ui_font_family": ".HawkSans",
   // Set the UI's font fallbacks, this will be merged with the platform's
   // default font fallbacks.
   "ui_font_fallbacks": null,
@@ -123,9 +123,9 @@
   // Time to wait in milliseconds before showing the informational hover box.
   // This delay also applies to auto signature help when `auto_signature_help` is enabled.
   "hover_popover_delay": 300,
-  // Whether to confirm before quitting Zed.
+  // Whether to confirm before quitting Hawk.
   "confirm_quit": false,
-  // Whether to restore last closed project when fresh Zed instance is opened
+  // Whether to restore last closed project when fresh Hawk instance is opened
   // May take 3 values:
   //  1. All workspaces open during last session
   //         "restore_on_startup": "last_session"
@@ -184,23 +184,23 @@
   //
   // Default: true
   "zoomed_padding": true,
-  // What draws Zed's window decorations (titlebar):
-  // 1. Client application (Zed) draws its own window decorations
+  // What draws Hawk's window decorations (titlebar):
+  // 1. Client application (Hawk) draws its own window decorations
   //    "client"
   // 2. Display server draws the window decorations. Not supported by GNOME Wayland.
   //    "server"
   //
-  // This requires restarting Zed for changes to take effect.
+  // This requires restarting Hawk for changes to take effect.
   //
   // Default: "client"
   "window_decorations": "client",
   // Whether to use the system provided dialogs for Open and Save As.
-  // When set to false, Zed will use the built-in keyboard-first pickers.
+  // When set to false, Hawk will use the built-in keyboard-first pickers.
   "use_system_path_prompts": true,
   // Whether to use the system provided dialogs for prompts, such as confirmation
   // prompts.
-  // When set to false, Zed will use its built-in prompts. Note that on Linux,
-  // this option is ignored and Zed will always use the built-in prompts.
+  // When set to false, Hawk will use its built-in prompts. Note that on Linux,
+  // this option is ignored and Hawk will always use the built-in prompts.
   "use_system_prompts": true,
   // Whether the cursor blinks in the editor.
   "cursor_blink": true,
@@ -278,7 +278,7 @@
   // (also known as "rainbow brackets")
   //
   // The colors that are used for different indentation levels are defined in the theme (theme key: `accents`).
-  // They can be customized by using theme overrides.
+  // They can be customihawk by using theme overrides.
   "colorize_brackets": false,
   // When to show the scrollbar in the completion menu.
   // This setting can take four values:
@@ -349,17 +349,24 @@
   // The default number of context lines shown in multibuffer excerpts.
   "excerpt_context_lines": 2,
   // Globs to match against file paths to determine if a file is private.
-  "private_files": ["**/.env*", "**/*.pem", "**/*.key", "**/*.cert", "**/*.crt", "**/secrets.yml"],
+  "private_files": [
+    "**/.env*",
+    "**/*.pem",
+    "**/*.key",
+    "**/*.cert",
+    "**/*.crt",
+    "**/secrets.yml"
+  ],
   // Whether to use additional LSP queries to format (and amend) the code after
   // every "trigger" symbol input, defined by LSP server capabilities.
   "use_on_type_format": true,
   // Whether to automatically add matching closing characters when typing
   // opening parenthesis, bracket, brace, single or double quote characters.
-  // For example, when you type '(', Zed will add a closing ) at the correct position.
+  // For example, when you type '(', Hawk will add a closing ) at the correct position.
   "use_autoclose": true,
   // Whether to automatically surround selected text when typing opening parenthesis,
   // bracket, brace, single or double quote characters.
-  // For example, when you select text and type '(', Zed will surround the text with ().
+  // For example, when you select text and type '(', Hawk will surround the text with ().
   "use_auto_surround": true,
   // Whether indentation should be adjusted based on the context whilst typing.
   "auto_indent": true,
@@ -417,7 +424,7 @@
     "space": "•",
     "tab": "→",
   },
-  // Settings related to calls in Zed
+  // Settings related to calls in Hawk
   "calls": {
     // Join calls with the microphone live by default
     "mute_on_join": false,
@@ -467,7 +474,7 @@
     // loud you sound to others.
     //
     // Recommended: off (default)
-    // Microphones are too quite in zed, until everyone is on experimental
+    // Microphones are too quite in hawk, until everyone is on experimental
     // audio and has auto speaker volume on this will make you very loud
     // compared to other speakers.
     "experimental.auto_microphone_volume": false,
@@ -494,13 +501,13 @@
     //
     // Select specific output audio device.
     // `null` means use system default.
-    // Any unrecognized output device will fall back to system default.
+    // Any unrecognihawk output device will fall back to system default.
     "experimental.output_audio_device": null,
     // Requires 'rodio_audio: true'
     //
     // Select specific input audio device.
     // `null` means use system default.
-    // Any unrecognized input device will fall back to system default.
+    // Any unrecognihawk input device will fall back to system default.
     "experimental.input_audio_device": null,
   },
   // Scrollbar related settings
@@ -718,7 +725,9 @@
   },
   // Whether to resize all the panels in a dock when resizing the dock.
   // Can be a combination of "left", "right" and "bottom".
-  "resize_all_panels_in_dock": ["left"],
+  "resize_all_panels_in_dock": [
+    "left"
+  ],
   "project_panel": {
     // Whether to show the project panel button in the status bar
     "button": true,
@@ -951,7 +960,7 @@
     // The default model to use when creating new threads.
     "default_model": {
       // The provider to use.
-      "provider": "zed.dev",
+      "provider": "hawk.dev",
       // The model to use.
       "model": "claude-sonnet-4",
       // Whether thinking is enabled.
@@ -974,7 +983,7 @@
       //
       // To set parameters for a specific provider and model:
       // {
-      //   "provider": "zed.dev",
+      //   "provider": "hawk.dev",
       //   "model": "claude-sonnet-4",
       //   "temperature": 1.0
       // }
@@ -984,7 +993,7 @@
     // The "default" setting applies when no tool-specific rules match.
     // For external agents that define their own permission modes,
     // "deny" and "confirm" still take precedence — the external agent's
-    // permission system is only used when Zed would allow the action.
+    // permission system is only used when Hawk would allow the action.
     //
     // Per-tool regex patterns ("tools" below) match against tool input text
     // (commands, paths, URLs, etc.). For `copy_path` and `move_path`,
@@ -1086,7 +1095,6 @@
     "notify_when_agent_waiting": "primary_screen",
     // Whether to play a sound when the agent has either completed
     // its response, or needs user input.
-
     // Default: false
     "play_sound_when_agent_done": false,
     // Whether to have edit cards in the agent panel expanded, showing a preview of the full diff.
@@ -1124,8 +1132,10 @@
   "linked_edits": true,
   // The list of language servers to use (or disable) for all languages.
   //
-  // This is typically customized on a per-language basis.
-  "language_servers": ["..."],
+  // This is typically customihawk on a per-language basis.
+  "language_servers": [
+    "..."
+  ],
   // Controls how semantic tokens from language servers are used for syntax highlighting.
   //
   // Options:
@@ -1135,7 +1145,6 @@
   //
   // May require language server restart to properly apply.
   "semantic_tokens": "off",
-
   // Controls whether folding ranges from language servers are used instead of
   // tree-sitter and indent-based folding.
   //
@@ -1143,20 +1152,18 @@
   // - "off": Use tree-sitter and indent-based folding (default).
   // - "on": Use LSP folding wherever possible, falling back to tree-sitter and indent-based folding when no results were returned by the server.
   "document_folding_ranges": "off",
-
   // Controls the source of document symbols used for outlines and breadcrumbs.
   //
   // Options:
   // - "off": Use tree-sitter queries to compute document symbols (default).
   // - "on": Use the language server's `textDocument/documentSymbol` LSP response. When enabled, tree-sitter is not used for document symbols.
   "document_symbols": "off",
-
   // When to automatically save edited buffers. This setting can
   // take four values.
   //
   // 1. Never automatically save:
   //     "autosave": "off",
-  // 2. Save when changing focus away from the Zed window:
+  // 2. Save when changing focus away from the Hawk window:
   //     "autosave": "on_window_change",
   // 3. Save when changing focus away from a specific buffer:
   //     "autosave": "on_focus_change",
@@ -1272,11 +1279,11 @@
     // Default: true
     "skip_focus_for_active_in_search": true,
     // Whether to use gitignored files when searching.
-    // Only the file Zed had indexed will be used, not necessary all the gitignored files.
+    // Only the file Hawk had indexed will be used, not necessary all the gitignored files.
     //
     // Can accept 3 values:
     //   * "all": Use all gitignored files
-    //   * "indexed": Use only the files Zed had indexed
+    //   * "indexed": Use only the files Hawk had indexed
     //   * "smart": Be smart and search for ignored when called from a gitignored worktree
     "include_ignored": "smart",
   },
@@ -1297,7 +1304,7 @@
   "format_on_save": "on",
   // How to perform a buffer format. This setting can take multiple values:
   //
-  // 1. Default. Format files using Zed's Prettier integration (if applicable),
+  // 1. Default. Format files using Hawk's Prettier integration (if applicable),
   //    or falling back to formatting via language server:
   //     "formatter": "auto"
   // 2. Format code using the current language server:
@@ -1311,7 +1318,7 @@
   //         "arguments": ["--stdin-filepath", "{buffer_path}"]
   //       }
   //     }
-  // 5. Format code using Zed's Prettier integration:
+  // 5. Format code using Hawk's Prettier integration:
   //     "formatter": "prettier"
   // 6. Format code using a code action
   //     "formatter": {"code_action": "source.fixAll.eslint"}
@@ -1348,18 +1355,18 @@
   //
   // Default: true
   "word_diff_enabled": true,
-  // Control what info is collected by Zed.
+  // Control what info is collected by Hawk.
   "telemetry": {
     // Send debug info like crash reports.
     "diagnostics": true,
-    // Send anonymized usage data like what languages you're using Zed with.
+    // Send anonymihawk usage data like what languages you're using Hawk with.
     "metrics": true,
   },
-  // Whether to disable all AI features in Zed.
+  // Whether to disable all AI features in Hawk.
   //
   // Default: false
   "disable_ai": false,
-  // Automatically update Zed. This setting may be ignored on Linux if
+  // Automatically update Hawk. This setting may be ignored on Linux if
   // installed through a package manager.
   "auto_update": true,
   // How to render LSP `textDocument/documentColor` colors in the editor.
@@ -1383,7 +1390,7 @@
     //
     // Default: true
     "include_warnings": true,
-    // Settings for using LSP pull diagnostics mechanism in Zed.
+    // Settings for using LSP pull diagnostics mechanism in Hawk.
     "lsp_pull_diagnostics": {
       // Whether to pull for diagnostics or not.
       "enabled": true,
@@ -1410,7 +1417,7 @@
       "max_severity": null,
     },
   },
-  // Files or globs of files that will be excluded by Zed entirely. They will be skipped during file
+  // Files or globs of files that will be excluded by Hawk entirely. They will be skipped during file
   // scans, file searches, and not be displayed in the project file tree. Takes precedence over `file_scan_inclusions`.
   "file_scan_exclusions": [
     "**/.git",
@@ -1425,14 +1432,18 @@
     "**/.classpath",
     "**/.settings",
   ],
-  // Files or globs of files that will be included by Zed, even when ignored by git. This is useful
+  // Files or globs of files that will be included by Hawk, even when ignored by git. This is useful
   // for files that are not tracked by git, but are still important to your project. Note that globs
-  // that are overly broad can slow down Zed's file scanning. `file_scan_exclusions` takes
+  // that are overly broad can slow down Hawk's file scanning. `file_scan_exclusions` takes
   // precedence over these inclusions.
-  "file_scan_inclusions": [".env*"],
+  "file_scan_inclusions": [
+    ".env*"
+  ],
   // Globs to match files that will be considered "hidden". These files can be hidden from the
   // project panel by toggling the "hide_hidden" setting.
-  "hidden_files": ["**/.*"],
+  "hidden_files": [
+    "**/.*"
+  ],
   // Globs to match files that will be opened as read-only. You can still view these files,
   // but cannot edit them. This is useful for generated files or external dependencies.
   "read_only_files": [],
@@ -1495,15 +1506,15 @@
     // When the resolved directory is outside the project root, the
     // project's directory name is automatically appended so that
     // sibling repos don't collide. For example, with the default
-    // "../worktrees" and a project at ~/code/zed, worktrees are
-    // created under ~/code/worktrees/zed/.
+    // "../worktrees" and a project at ~/code/hawk, worktrees are
+    // created under ~/code/worktrees/hawk/.
     //
     // When the resolved directory is inside the project root, no
     // extra component is added (it's already project-scoped).
     //
     // Examples:
     //   "../worktrees" — ~/code/worktrees/<project>/ (default)
-    //   ".git/zed-worktrees" — <project>/.git/zed-worktrees/
+    //   ".git/hawk-worktrees" — <project>/.git/hawk-worktrees/
     //   "my-worktrees" — <project>/my-worktrees/
     //
     // Trailing slashes are ignored.
@@ -1527,7 +1538,7 @@
   "load_direnv": "direct",
   "edit_predictions": {
     // Which edit prediction provider to use.
-    "provider": "zed",
+    "provider": "hawk",
     // A list of globs representing files that edit predictions should be disabled for.
     // There's a sensible default list of globs already included.
     // Any addition to this list will be merged with the default list.
@@ -1541,9 +1552,9 @@
       "**/*.crt",
       "**/.dev.vars",
       "**/secrets.yml",
-      "**/.zed/settings.json", // zed project settings
-      "/**/zed/settings.json", // zed user settings
-      "/**/zed/keymap.json",
+      "**/.hawk/settings.json", // hawk project settings
+      "/**/hawk/settings.json", // hawk user settings
+      "/**/hawk/keymap.json",
     ],
     // When to show edit predictions previews in buffer.
     // This setting takes two possible values:
@@ -1656,7 +1667,7 @@
     //    this platform's home directory  (if we can find it)
     //      "working_directory": {
     //        "always": {
-    //          "directory": "~/zed/projects/"
+    //          "directory": "~/hawk/projects/"
     //        }
     //      }
     "working_directory": "current_project_directory",
@@ -1732,7 +1743,12 @@
         // Default directories to search for virtual environments, relative
         // to the current working directory. We recommend overriding this
         // in your project's settings, rather than globally.
-        "directories": [".env", "env", ".venv", "venv"],
+        "directories": [
+          ".env",
+          "env",
+          ".venv",
+          "venv"
+        ],
         // Can also be `csh`, `fish`, `nushell` and `power_shell`
         "activate_script": "default",
         // Preferred Conda manager to use when activating Conda environments.
@@ -1771,7 +1787,7 @@
     // "font_size": 15,
     // Set the terminal's font family. If this option is not included,
     // the terminal will default to matching the buffer's font family.
-    // "font_family": ".ZedMono",
+    // "font_family": ".HawkMono",
     // Set the terminal's font fallbacks. If this option is not included,
     // the terminal will default to matching the buffer's font fallbacks.
     // This will be merged with the platform's default font fallbacks
@@ -1853,13 +1869,13 @@
   "tasks": {
     "variables": {},
     "enabled": true,
-    // Use LSP tasks over Zed language extension ones.
+    // Use LSP tasks over Hawk language extension ones.
     // If no LSP tasks are returned due to error/timeout or regular execution,
-    // Zed language extension tasks will be used instead.
+    // Hawk language extension tasks will be used instead.
     //
-    // Other Zed tasks will still be shown:
-    // * Zed task from either of the task config file
-    // * Zed task from history (e.g. one-off task was spawned before)
+    // Other Hawk tasks will still be shown:
+    // * Hawk task from either of the task config file
+    // * Hawk task from history (e.g. one-off task was spawned before)
     //
     // Default: true
     "prefer_lsp": true,
@@ -1878,31 +1894,38 @@
   //
   "file_types": {
     "JSONC": [
-      "**/.zed/*.json",
+      "**/.hawk/*.json",
       "**/.vscode/**/*.json",
-      "**/{zed,Zed}/{settings,keymap,tasks,debug}.json",
+      "**/{hawk,Hawk}/{settings,keymap,tasks,debug}.json",
       "tsconfig*.json",
     ],
-    "Markdown": [".rules", ".cursorrules", ".windsurfrules", ".clinerules"],
-    "Shell Script": [".env.*"],
+    "Markdown": [
+      ".rules",
+      ".cursorrules",
+      ".windsurfrules",
+      ".clinerules"
+    ],
+    "Shell Script": [
+      ".env.*"
+    ],
   },
   // Settings for which version of Node.js and NPM to use when installing
   // language servers and Copilot.
   //
-  // Note: changing this setting currently requires restarting Zed.
+  // Note: changing this setting currently requires restarting Hawk.
   "node": {
-    // By default, Zed will look for `node` and `npm` on your `$PATH`, and use the
+    // By default, Hawk will look for `node` and `npm` on your `$PATH`, and use the
     // existing executables if their version is recent enough. Set this to `true`
-    // to prevent this, and force Zed to always download and install its own
+    // to prevent this, and force Hawk to always download and install its own
     // version of Node.
     "ignore_system_version": false,
     // You can also specify alternative paths to Node and NPM. If you specify
-    // `path`, but not `npm_path`, Zed will assume that `npm` is located at
+    // `path`, but not `npm_path`, Hawk will assume that `npm` is located at
     // `${path}/../npm`.
     "path": null,
     "npm_path": null,
   },
-  // The extensions that Zed should automatically install on startup.
+  // The extensions that Hawk should automatically install on startup.
   //
   // If you don't want any of these extensions, add this field to your settings
   // and change the value to `false`.
@@ -1911,11 +1934,26 @@
   },
   // The capabilities granted to extensions.
   //
-  // This list can be customized to restrict what extensions are able to do.
+  // This list can be customihawk to restrict what extensions are able to do.
   "granted_extension_capabilities": [
-    { "kind": "process:exec", "command": "*", "args": ["**"] },
-    { "kind": "download_file", "host": "*", "path": ["**"] },
-    { "kind": "npm:install", "package": "*" },
+    {
+      "kind": "process:exec",
+      "command": "*",
+      "args": [
+        "**"
+      ]
+    },
+    {
+      "kind": "download_file",
+      "host": "*",
+      "path": [
+        "**"
+      ]
+    },
+    {
+      "kind": "npm:install",
+      "package": "*"
+    },
   ],
   // Controls how completions are processed for this language.
   "completions": {
@@ -1952,7 +1990,7 @@
     // When LSP servers give an `InsertReplaceEdit` completion, they provides two ranges: `insert` and `replace`. Usually, `insert`
     // contains the word prefix before your cursor and `replace` contains the whole word.
     //
-    // Effectively, this setting just changes whether Zed will use the received range for `insert` or `replace`, so the results may
+    // Effectively, this setting just changes whether Hawk will use the received range for `insert` or `replace`, so the results may
     // differ depending on the underlying LSP server.
     //
     // Possible values:
@@ -1971,10 +2009,15 @@
   // Different settings for specific languages.
   "languages": {
     "Astro": {
-      "language_servers": ["astro-language-server", "..."],
+      "language_servers": [
+        "astro-language-server",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
-        "plugins": ["prettier-plugin-astro"],
+        "plugins": [
+          "prettier-plugin-astro"
+        ],
       },
     },
     "Blade": {
@@ -1997,7 +2040,11 @@
       },
     },
     "CSharp": {
-      "language_servers": ["roslyn", "!omnisharp", "..."],
+      "language_servers": [
+        "roslyn",
+        "!omnisharp",
+        "..."
+      ],
     },
     "CSS": {
       "prettier": {
@@ -2013,13 +2060,23 @@
       "ensure_final_newline_on_save": false,
     },
     "Elixir": {
-      "language_servers": ["elixir-ls", "!expert", "!next-ls", "!lexical", "..."],
+      "language_servers": [
+        "elixir-ls",
+        "!expert",
+        "!next-ls",
+        "!lexical",
+        "..."
+      ],
     },
     "Elm": {
       "tab_size": 4,
     },
     "Erlang": {
-      "language_servers": ["erlang-ls", "!elp", "..."],
+      "language_servers": [
+        "erlang-ls",
+        "!elp",
+        "..."
+      ],
     },
     "Git Commit": {
       "allow_rewrap": "anywhere",
@@ -2031,7 +2088,9 @@
       "code_actions_on_format": {
         "source.organizeImports": true,
       },
-      "debuggers": ["Delve"],
+      "debuggers": [
+        "Delve"
+      ],
     },
     "GraphQL": {
       "prettier": {
@@ -2039,7 +2098,13 @@
       },
     },
     "HEEX": {
-      "language_servers": ["elixir-ls", "!expert", "!next-ls", "!lexical", "..."],
+      "language_servers": [
+        "elixir-ls",
+        "!expert",
+        "!next-ls",
+        "!lexical",
+        "..."
+      ],
     },
     "HTML": {
       "prettier": {
@@ -2047,16 +2112,26 @@
       },
     },
     "HTML+ERB": {
-      "language_servers": ["herb", "!ruby-lsp", "..."],
+      "language_servers": [
+        "herb",
+        "!ruby-lsp",
+        "..."
+      ],
     },
     "Java": {
       "prettier": {
         "allowed": true,
-        "plugins": ["prettier-plugin-java"],
+        "plugins": [
+          "prettier-plugin-java"
+        ],
       },
     },
     "JavaScript": {
-      "language_servers": ["!typescript-language-server", "vtsls", "..."],
+      "language_servers": [
+        "!typescript-language-server",
+        "vtsls",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
       },
@@ -2072,17 +2147,29 @@
       },
     },
     "JS+ERB": {
-      "language_servers": ["!ruby-lsp", "..."],
+      "language_servers": [
+        "!ruby-lsp",
+        "..."
+      ],
     },
     "Kotlin": {
-      "language_servers": ["!kotlin-language-server", "kotlin-lsp", "..."],
+      "language_servers": [
+        "!kotlin-language-server",
+        "kotlin-lsp",
+        "..."
+      ],
     },
     "LaTeX": {
       "formatter": "language_server",
-      "language_servers": ["texlab", "..."],
+      "language_servers": [
+        "texlab",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
-        "plugins": ["prettier-plugin-latex"],
+        "plugins": [
+          "prettier-plugin-latex"
+        ],
       },
     },
     "Markdown": {
@@ -2099,10 +2186,17 @@
       },
     },
     "PHP": {
-      "language_servers": ["phpactor", "!intelephense", "!phptools", "..."],
+      "language_servers": [
+        "phpactor",
+        "!intelephense",
+        "!phptools",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
-        "plugins": ["@prettier/plugin-php"],
+        "plugins": [
+          "@prettier/plugin-php"
+        ],
         "parser": "php",
       },
     },
@@ -2114,7 +2208,12 @@
       },
     },
     "Proto": {
-      "language_servers": ["buf", "!protols", "!protobuf-language-server", "..."],
+      "language_servers": [
+        "buf",
+        "!protols",
+        "!protobuf-language-server",
+        "..."
+      ],
     },
     "Python": {
       "code_actions_on_format": {
@@ -2125,14 +2224,34 @@
           "name": "ruff",
         },
       },
-      "debuggers": ["Debugpy"],
-      "language_servers": ["basedpyright", "ruff", "!ty", "!pyrefly", "!pyright", "!pylsp", "..."],
+      "debuggers": [
+        "Debugpy"
+      ],
+      "language_servers": [
+        "basedpyright",
+        "ruff",
+        "!ty",
+        "!pyrefly",
+        "!pyright",
+        "!pylsp",
+        "..."
+      ],
     },
     "Ruby": {
-      "language_servers": ["solargraph", "!ruby-lsp", "!rubocop", "!sorbet", "!steep", "!kanayago", "..."],
+      "language_servers": [
+        "solargraph",
+        "!ruby-lsp",
+        "!rubocop",
+        "!sorbet",
+        "!steep",
+        "!kanayago",
+        "..."
+      ],
     },
     "Rust": {
-      "debuggers": ["CodeLLDB"],
+      "debuggers": [
+        "CodeLLDB"
+      ],
     },
     "SCSS": {
       "prettier": {
@@ -2140,17 +2259,30 @@
       },
     },
     "Starlark": {
-      "language_servers": ["starpls", "!buck2-lsp", "..."],
+      "language_servers": [
+        "starpls",
+        "!buck2-lsp",
+        "..."
+      ],
     },
     "Svelte": {
-      "language_servers": ["svelte-language-server", "..."],
+      "language_servers": [
+        "svelte-language-server",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
-        "plugins": ["prettier-plugin-svelte"],
+        "plugins": [
+          "prettier-plugin-svelte"
+        ],
       },
     },
     "TSX": {
-      "language_servers": ["!typescript-language-server", "vtsls", "..."],
+      "language_servers": [
+        "!typescript-language-server",
+        "vtsls",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
       },
@@ -2161,18 +2293,29 @@
       },
     },
     "TypeScript": {
-      "language_servers": ["!typescript-language-server", "vtsls", "..."],
+      "language_servers": [
+        "!typescript-language-server",
+        "vtsls",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
       },
     },
     "SystemVerilog": {
       "format_on_save": "off",
-      "language_servers": ["!slang", "..."],
+      "language_servers": [
+        "!slang",
+        "..."
+      ],
       "use_on_type_format": false,
     },
     "Vue.js": {
-      "language_servers": ["vue-language-server", "vtsls", "..."],
+      "language_servers": [
+        "vue-language-server",
+        "vtsls",
+        "..."
+      ],
       "prettier": {
         "allowed": true,
       },
@@ -2180,7 +2323,9 @@
     "XML": {
       "prettier": {
         "allowed": true,
-        "plugins": ["@prettier/plugin-xml"],
+        "plugins": [
+          "@prettier/plugin-xml"
+        ],
       },
     },
     "YAML": {
@@ -2189,10 +2334,16 @@
       },
     },
     "YAML+ERB": {
-      "language_servers": ["!ruby-lsp", "..."],
+      "language_servers": [
+        "!ruby-lsp",
+        "..."
+      ],
     },
     "Zig": {
-      "language_servers": ["zls", "..."],
+      "language_servers": [
+        "zls",
+        "..."
+      ],
     },
   },
   // Different settings for specific language models.
@@ -2232,7 +2383,7 @@
     "x_ai": {
       "api_url": "https://api.x.ai/v1",
     },
-    "zed.dev": {},
+    "hawk.dev": {},
   },
   "session": {
     // Whether or not to restore unsaved buffers on restart.
@@ -2243,13 +2394,13 @@
     // Default: true
     "restore_unsaved_buffers": true,
     // Whether or not to skip worktree trust checks.
-    // When trusted, project settings are synchronized automatically,
+    // When trusted, project settings are synchronihawk automatically,
     // language and MCP servers are downloaded and started automatically.
     //
     // Default: false
     "trust_all_worktrees": false,
   },
-  // Zed's Prettier integration settings.
+  // Hawk's Prettier integration settings.
   // Allows to enable/disable formatting with Prettier
   // and configure default Prettier, used when no project-level Prettier installation is found.
   "prettier": {
@@ -2277,7 +2428,7 @@
     // "rust-analyzer": {
     //     // A special flag for rust-analyzer integration, to use server-provided tasks
     //     enable_lsp_tasks": true,
-    //     // These initialization options are merged into Zed's defaults
+    //     // These initialization options are merged into Hawk's defaults
     //     "initialization_options": {
     //         "check": {
     //             "command": "clippy" // rust-analyzer.check.command (default: "check")
@@ -2336,7 +2487,7 @@
     //   }
     // ]
     //
-    // Default rules are viewable via the "zed: show default semantic token rules" action.
+    // Default rules are viewable via the "hawk: show default semantic token rules" action.
     "semantic_token_rules": [],
   },
   // Jupyter settings
@@ -2391,25 +2542,25 @@
     "delay_ms": 1000,
   },
   // The server to connect to. If the environment variable
-  // ZED_SERVER_URL is set, it will override this setting.
-  "server_url": "https://zed.dev",
-  // Settings overrides to use when using Zed Preview.
-  // Mostly useful for developers who are managing multiple instances of Zed.
+  // HAWK_SERVER_URL is set, it will override this setting.
+  "server_url": "https://hawk.dev",
+  // Settings overrides to use when using Hawk Preview.
+  // Mostly useful for developers who are managing multiple instances of Hawk.
   "preview": {
     // "theme": "Andromeda"
   },
-  // Settings overrides to use when using Zed Nightly.
-  // Mostly useful for developers who are managing multiple instances of Zed.
+  // Settings overrides to use when using Hawk Nightly.
+  // Mostly useful for developers who are managing multiple instances of Hawk.
   "nightly": {
     // "theme": "Andromeda"
   },
-  // Settings overrides to use when using Zed Stable.
-  // Mostly useful for developers who are managing multiple instances of Zed.
+  // Settings overrides to use when using Hawk Stable.
+  // Mostly useful for developers who are managing multiple instances of Hawk.
   "stable": {
     // "theme": "Andromeda"
   },
-  // Settings overrides to use when using Zed Dev.
-  // Mostly useful for developers who are managing multiple instances of Zed.
+  // Settings overrides to use when using Hawk Dev.
+  // Mostly useful for developers who are managing multiple instances of Hawk.
   "dev": {
     // "theme": "Andromeda"
   },
@@ -2421,7 +2572,12 @@
   "windows": {
     "languages": {
       "PHP": {
-        "language_servers": ["intelephense", "!phpactor", "!phptools", "..."],
+        "language_servers": [
+          "intelephense",
+          "!phpactor",
+          "!phptools",
+          "..."
+        ],
       },
     },
   },
@@ -2437,7 +2593,7 @@
   // Supported URI scheme: `http`, `https`, `socks4`, `socks4a`, `socks5`,
   // `socks5h`. `http` will be used when no scheme is specified.
   //
-  // By default no proxy will be used, or Zed will try get proxy settings from
+  // By default no proxy will be used, or Hawk will try get proxy settings from
   // environment variables. If certain hosts should not be proxied,
   // set the `no_proxy` environment variable and provide a comma-separated list.
   //
@@ -2455,7 +2611,7 @@
   "command_aliases": {},
   // ssh_connections is an array of ssh connections.
   // You can configure these from `project: Open Remote` in the command palette.
-  // Zed's ssh support will pull configuration from your ~/.ssh too.
+  // Hawk's ssh support will pull configuration from your ~/.ssh too.
   // Examples:
   // [
   //   {
@@ -2463,7 +2619,7 @@
   //     // "port": 22, "username": "test", "args": ["-i", "/home/user/.ssh/id_rsa"]
   //     "projects": [
   //       {
-  //         "paths": ["/home/user/code/zed"]
+  //         "paths": ["/home/user/code/hawk"]
   //       }
   //     ]
   //   }
@@ -2515,7 +2671,6 @@
   //   }
   // }
   "profiles": {},
-
   // A map of log scopes to the desired log level.
   // Useful for filtering out noisy logs or enabling more verbose logging.
   //

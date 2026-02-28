@@ -2,6 +2,7 @@ use crash_handler::{CrashEventResult, CrashHandler};
 use futures::future::BoxFuture;
 use log::info;
 use minidumper::{Client, LoopAction, MinidumpBinary};
+use feature_flags::FeatureFlag;
 use release_channel::{RELEASE_CHANNEL, ReleaseChannel};
 use serde::{Deserialize, Serialize};
 use std::cell::Cell;
@@ -63,11 +64,15 @@ const CRASH_HANDLER_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 static PANIC_THREAD_ID: AtomicU32 = AtomicU32::new(0);
 
 fn should_install_crash_handler() -> bool {
-    if let Ok(value) = env::var("ZED_GENERATE_MINIDUMPS") {
+    if let Ok(value) = env::var("HAWK_GENERATE_MINIDUMPS") {
         return value == "true" || value == "1";
     }
 
     if *RELEASE_CHANNEL == ReleaseChannel::Dev {
+        return false;
+    }
+
+    if !feature_flags::CrashReportingFeatureFlag::enabled_for_all() {
         return false;
     }
 
@@ -134,8 +139,8 @@ pub fn init(crash_init: InitCrashHandler, spawn: impl FnOnce(BoxFuture<'static, 
 /// keepalive ping loop. Called on a background executor by [`init`].
 async fn connect_and_keepalive(crash_init: InitCrashHandler, handler: CrashHandler) {
     let exe = env::current_exe().expect("unable to find ourselves");
-    let zed_pid = process::id();
-    let socket_name = paths::temp_dir().join(format!("zed-crash-handler-{zed_pid}"));
+    let hawk_pid = process::id();
+    let socket_name = paths::temp_dir().join(format!("zed-crash-handler-{hawk_pid}"));
     #[cfg(not(target_os = "windows"))]
     let _crash_handler = Command::new(exe)
         .arg("--crash-handler")
@@ -224,7 +229,7 @@ pub struct CrashInfo {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct InitCrashHandler {
     pub session_id: String,
-    pub zed_version: String,
+    pub hawk_version: String,
     pub binary: String,
     pub release_channel: String,
     pub commit_sha: String,

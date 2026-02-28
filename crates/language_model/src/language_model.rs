@@ -39,7 +39,7 @@ pub use crate::request::*;
 pub use crate::role::*;
 pub use crate::telemetry::*;
 pub use crate::tool_schema::LanguageModelToolSchemaFormat;
-pub use zed_env_vars::{EnvVar, env_var};
+pub use hawk_env_vars::{EnvVar, env_var};
 
 pub const ANTHROPIC_PROVIDER_ID: LanguageModelProviderId =
     LanguageModelProviderId::new("anthropic");
@@ -57,9 +57,9 @@ pub const OPEN_AI_PROVIDER_NAME: LanguageModelProviderName =
 pub const X_AI_PROVIDER_ID: LanguageModelProviderId = LanguageModelProviderId::new("x_ai");
 pub const X_AI_PROVIDER_NAME: LanguageModelProviderName = LanguageModelProviderName::new("xAI");
 
-pub const ZED_CLOUD_PROVIDER_ID: LanguageModelProviderId = LanguageModelProviderId::new("zed.dev");
-pub const ZED_CLOUD_PROVIDER_NAME: LanguageModelProviderName =
-    LanguageModelProviderName::new("Zed");
+pub const HAWK_CLOUD_PROVIDER_ID: LanguageModelProviderId = LanguageModelProviderId::new("hawk.dev");
+pub const HAWK_CLOUD_PROVIDER_NAME: LanguageModelProviderName =
+    LanguageModelProviderName::new("Hawk");
 
 pub fn init(client: Arc<Client>, cx: &mut App) {
     init_settings(cx);
@@ -267,7 +267,7 @@ impl LanguageModelCompletionError {
             .strip_prefix("http_")
             .and_then(|code| StatusCode::from_str(code).ok())
         {
-            Self::from_http_status(ZED_CLOUD_PROVIDER_NAME, status_code, message, retry_after)
+            Self::from_http_status(HAWK_CLOUD_PROVIDER_NAME, status_code, message, retry_after)
         } else {
             anyhow!("completion request failed, code: {code}, message: {message}").into()
         }
@@ -822,7 +822,7 @@ pub enum IconOrSvg {
 
 impl Default for IconOrSvg {
     fn default() -> Self {
-        Self::Icon(IconName::ZedAssistant)
+        Self::Icon(IconName::HawkAssistant)
     }
 }
 
@@ -852,7 +852,7 @@ pub trait LanguageModelProvider: 'static {
 #[derive(Default, Clone, PartialEq, Eq)]
 pub enum ConfigurationViewTargetAgent {
     #[default]
-    ZedAgent,
+    HawkAgent,
     Other(SharedString),
 }
 

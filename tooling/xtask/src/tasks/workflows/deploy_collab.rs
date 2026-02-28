@@ -124,40 +124,40 @@ fn deploy(deps: &[&NamedJob]) -> NamedJob {
         named::bash(indoc! {r#"
             set -eu
             if [[ $GITHUB_REF_NAME = "collab-production" ]]; then
-              export ZED_KUBE_NAMESPACE=production
-              export ZED_COLLAB_LOAD_BALANCER_SIZE_UNIT=10
-              export ZED_API_LOAD_BALANCER_SIZE_UNIT=2
+              export HAWK_KUBE_NAMESPACE=production
+              export HAWK_COLLAB_LOAD_BALANCER_SIZE_UNIT=10
+              export HAWK_API_LOAD_BALANCER_SIZE_UNIT=2
             elif [[ $GITHUB_REF_NAME = "collab-staging" ]]; then
-              export ZED_KUBE_NAMESPACE=staging
-              export ZED_COLLAB_LOAD_BALANCER_SIZE_UNIT=1
-              export ZED_API_LOAD_BALANCER_SIZE_UNIT=1
+              export HAWK_KUBE_NAMESPACE=staging
+              export HAWK_COLLAB_LOAD_BALANCER_SIZE_UNIT=1
+              export HAWK_API_LOAD_BALANCER_SIZE_UNIT=1
             else
               echo "cowardly refusing to deploy from an unknown branch"
               exit 1
             fi
 
-            echo "Deploying collab:$GITHUB_SHA to $ZED_KUBE_NAMESPACE"
+            echo "Deploying collab:$GITHUB_SHA to $HAWK_KUBE_NAMESPACE"
 
             source script/lib/deploy-helpers.sh
-            export_vars_for_environment $ZED_KUBE_NAMESPACE
+            export_vars_for_environment $HAWK_KUBE_NAMESPACE
 
-            ZED_DO_CERTIFICATE_ID="$(doctl compute certificate list --format ID --no-header)"
-            export ZED_DO_CERTIFICATE_ID
-            export ZED_IMAGE_ID="registry.digitalocean.com/zed/collab:${GITHUB_SHA}"
+            HAWK_DO_CERTIFICATE_ID="$(doctl compute certificate list --format ID --no-header)"
+            export HAWK_DO_CERTIFICATE_ID
+            export HAWK_IMAGE_ID="registry.digitalocean.com/zed/collab:${GITHUB_SHA}"
 
-            export ZED_SERVICE_NAME=collab
-            export ZED_LOAD_BALANCER_SIZE_UNIT=$ZED_COLLAB_LOAD_BALANCER_SIZE_UNIT
+            export HAWK_SERVICE_NAME=collab
+            export HAWK_LOAD_BALANCER_SIZE_UNIT=$HAWK_COLLAB_LOAD_BALANCER_SIZE_UNIT
             export DATABASE_MAX_CONNECTIONS=850
             envsubst < crates/collab/k8s/collab.template.yml | kubectl apply -f -
-            kubectl -n "$ZED_KUBE_NAMESPACE" rollout status deployment/$ZED_SERVICE_NAME --watch
-            echo "deployed ${ZED_SERVICE_NAME} to ${ZED_KUBE_NAMESPACE}"
+            kubectl -n "$HAWK_KUBE_NAMESPACE" rollout status deployment/$HAWK_SERVICE_NAME --watch
+            echo "deployed ${HAWK_SERVICE_NAME} to ${HAWK_KUBE_NAMESPACE}"
 
-            export ZED_SERVICE_NAME=api
-            export ZED_LOAD_BALANCER_SIZE_UNIT=$ZED_API_LOAD_BALANCER_SIZE_UNIT
+            export HAWK_SERVICE_NAME=api
+            export HAWK_LOAD_BALANCER_SIZE_UNIT=$HAWK_API_LOAD_BALANCER_SIZE_UNIT
             export DATABASE_MAX_CONNECTIONS=60
             envsubst < crates/collab/k8s/collab.template.yml | kubectl apply -f -
-            kubectl -n "$ZED_KUBE_NAMESPACE" rollout status deployment/$ZED_SERVICE_NAME --watch
-            echo "deployed ${ZED_SERVICE_NAME} to ${ZED_KUBE_NAMESPACE}"
+            kubectl -n "$HAWK_KUBE_NAMESPACE" rollout status deployment/$HAWK_SERVICE_NAME --watch
+            echo "deployed ${HAWK_SERVICE_NAME} to ${HAWK_KUBE_NAMESPACE}"
         "#})
     }
 

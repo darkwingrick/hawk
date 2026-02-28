@@ -50,11 +50,11 @@ impl State {
     }
 }
 
-pub const ZED_WEB_SEARCH_PROVIDER_ID: &str = "zed.dev";
+pub const HAWK_WEB_SEARCH_PROVIDER_ID: &str = "hawk.dev";
 
 impl WebSearchProvider for CloudWebSearchProvider {
     fn id(&self) -> WebSearchProviderId {
-        WebSearchProviderId(ZED_WEB_SEARCH_PROVIDER_ID.into())
+        WebSearchProviderId(HAWK_WEB_SEARCH_PROVIDER_ID.into())
     }
 
     fn search(&self, query: String, cx: &mut App) -> Task<Result<WebSearchResponse>> {
@@ -86,7 +86,7 @@ async fn perform_web_search(
 
         let request = http_client::Request::builder()
             .method(Method::POST)
-            .uri(http_client.build_zed_llm_url("/web_search", &[])?.as_ref())
+            .uri(http_client.build_hawk_llm_url("/web_search", &[])?.as_ref())
             .header("Content-Type", "application/json")
             .header("Authorization", format!("Bearer {token}"))
             .body(serde_json::to_string(&body)?.into())?;

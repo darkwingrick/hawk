@@ -1534,7 +1534,7 @@ impl ThreadView {
                 })
                 .await?;
 
-            let share_url = client::zed_urls::shared_agent_thread_url(&session_id);
+            let share_url = client::hawk_urls::shared_agent_thread_url(&session_id);
 
             cx.update(|cx| {
                 if let Some(workspace) = workspace.upgrade() {
@@ -3487,7 +3487,7 @@ impl ThreadView {
                         .handler({
                             move |window, cx| {
                                 window.dispatch_action(
-                                    zed_actions::agent::AddSelectionToThread.boxed_clone(),
+                                    hawk_actions::agent::AddSelectionToThread.boxed_clone(),
                                     cx,
                                 );
                             }
@@ -6998,7 +6998,7 @@ impl ThreadView {
             .on_click(cx.listener({
                 move |this, _, _, cx| {
                     this.clear_thread_error(cx);
-                    cx.open_url(&zed_urls::upgrade_to_zed_pro_url(cx));
+                    cx.open_url(&hawk_urls::upgrade_to_hawk_pro_url(cx));
                 }
             }))
     }
@@ -7248,7 +7248,7 @@ impl ThreadView {
                         move |_, _, _window, cx| {
                             #[cfg(windows)]
                             _window.dispatch_action(
-                                zed_actions::wsl_actions::OpenWsl::default().boxed_clone(),
+                                hawk_actions::wsl_actions::OpenWsl::default().boxed_clone(),
                                 cx,
                             );
                             cx.notify();

@@ -24,7 +24,7 @@ static KEYMAP_WINDOWS: LazyLock<KeymapFile> = LazyLock::new(|| {
 
 static ALL_ACTIONS: LazyLock<ActionManifest> = LazyLock::new(load_all_actions);
 
-const FRONT_MATTER_COMMENT: &str = "<!-- ZED_META {} -->";
+const FRONT_MATTER_COMMENT: &str = "<!-- HAWK_META {} -->";
 
 fn main() -> Result<()> {
     zlog::init();
@@ -564,14 +564,14 @@ fn handle_postprocessing() -> Result<()> {
         .expect("has output")
         .as_table_mut()
         .expect("output is table");
-    let zed_html = output.remove("zed-html").expect("zed-html output defined");
-    let default_description = zed_html
+    let hawk_html = output.remove("zed-html").expect("zed-html output defined");
+    let default_description = hawk_html
         .get("default-description")
         .expect("Default description not found")
         .as_str()
         .expect("Default description not a string")
         .to_string();
-    let default_title = zed_html
+    let default_title = hawk_html
         .get("default-title")
         .expect("Default title not found")
         .as_str()
@@ -579,7 +579,7 @@ fn handle_postprocessing() -> Result<()> {
         .to_string();
     let amplitude_key = std::env::var("DOCS_AMPLITUDE_API_KEY").unwrap_or_default();
 
-    output.insert("html".to_string(), zed_html);
+    output.insert("html".to_string(), hawk_html);
     mdbook::Renderer::render(&mdbook::renderer::HtmlHandlebars::new(), &ctx)?;
     let ignore_list = ["toc.html"];
 

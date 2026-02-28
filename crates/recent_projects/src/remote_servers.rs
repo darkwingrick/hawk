@@ -2116,7 +2116,7 @@ impl RemoteServerProjects {
                                             .icon_size(IconSize::XSmall)
                                             .on_click(|_, _, cx| {
                                                 cx.open_url(
-                                                    "https://zed.dev/docs/remote-development",
+                                                    "https://hawk.dev/docs/remote-development",
                                                 );
                                             }),
                                     ),

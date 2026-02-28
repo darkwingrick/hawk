@@ -49,7 +49,7 @@ pub(crate) fn call_bump_version(
         )
         .uses(
             "zed-industries",
-            "zed",
+            "hawk",
             ".github/workflows/extension_bump.yml",
             "main",
         )

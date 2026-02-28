@@ -181,7 +181,7 @@ async fn test_channel_guest_promotion(cx_a: &mut TestAppContext, cx_b: &mut Test
 }
 
 #[gpui::test]
-async fn test_channel_requires_zed_cla(cx_a: &mut TestAppContext, cx_b: &mut TestAppContext) {
+async fn test_channel_requires_hawk_cla(cx_a: &mut TestAppContext, cx_b: &mut TestAppContext) {
     let mut server = TestServer::start(cx_a.executor()).await;
 
     server
@@ -203,7 +203,7 @@ async fn test_channel_requires_zed_cla(cx_a: &mut TestAppContext, cx_b: &mut Tes
     server
         .app_state
         .db
-        .set_channel_requires_zed_cla(ChannelId::from_proto(parent_channel_id.0), true)
+        .set_channel_requires_hawk_cla(ChannelId::from_proto(parent_channel_id.0), true)
         .await
         .unwrap();
 

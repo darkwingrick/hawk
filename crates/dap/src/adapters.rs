@@ -349,7 +349,7 @@ pub async fn download_adapter_from_github(
 pub trait DebugAdapter: 'static + Send + Sync {
     fn name(&self) -> DebugAdapterName;
 
-    async fn config_from_zed_format(&self, zed_scenario: ZedDebugConfig) -> Result<DebugScenario>;
+    async fn config_from_hawk_format(&self, hawk_scenario: ZedDebugConfig) -> Result<DebugScenario>;
 
     async fn get_binary(
         &self,
@@ -439,12 +439,12 @@ impl DebugAdapter for FakeAdapter {
         None
     }
 
-    async fn config_from_zed_format(&self, zed_scenario: ZedDebugConfig) -> Result<DebugScenario> {
-        let config = serde_json::to_value(zed_scenario.request).unwrap();
+    async fn config_from_hawk_format(&self, hawk_scenario: ZedDebugConfig) -> Result<DebugScenario> {
+        let config = serde_json::to_value(hawk_scenario.request).unwrap();
 
         Ok(DebugScenario {
-            adapter: zed_scenario.adapter,
-            label: zed_scenario.label,
+            adapter: hawk_scenario.adapter,
+            label: hawk_scenario.label,
             build: None,
             config,
             tcp_connection: None,

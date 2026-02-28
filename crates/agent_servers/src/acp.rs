@@ -289,7 +289,7 @@ impl AcpConnection {
                             ])),
                     )
                     .client_info(
-                        acp::Implementation::new("zed", version)
+                        acp::Implementation::new("hawk", version)
                             .title(release_channel.map(ToOwned::to_owned)),
                     ),
             )

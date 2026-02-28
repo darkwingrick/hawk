@@ -617,7 +617,7 @@ impl PickerDelegate for WorkspacePickerDelegate {
                     .icon(
                         thread_info
                             .as_ref()
-                            .map_or(IconName::ZedAgent, |info| info.icon),
+                            .map_or(IconName::HawkAgent, |info| info.icon),
                     )
                     .running(running)
                     .generation_done(has_notification)
@@ -847,7 +847,7 @@ impl Sidebar {
             AgentThreadInfo {
                 title,
                 status,
-                icon: IconName::ZedAgent,
+                icon: IconName::HawkAgent,
             },
         );
     }

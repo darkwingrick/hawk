@@ -18,8 +18,8 @@ use release_channel::ReleaseChannel;
 ///
 /// Only works in development. Setting this environment variable in other
 /// release channels is a no-op.
-static ZED_DEVELOPMENT_USE_KEYCHAIN: LazyLock<bool> = LazyLock::new(|| {
-    std::env::var("ZED_DEVELOPMENT_USE_KEYCHAIN").is_ok_and(|value| !value.is_empty())
+static HAWK_DEVELOPMENT_USE_KEYCHAIN: LazyLock<bool> = LazyLock::new(|| {
+    std::env::var("HAWK_DEVELOPMENT_USE_KEYCHAIN").is_ok_and(|value| !value.is_empty())
 });
 
 /// A provider for credentials.
@@ -67,9 +67,9 @@ impl dyn CredentialsProvider {
                 // credentials provider to avoid getting spammed by relentless
                 // keychain access prompts.
                 //
-                // However, if the `ZED_DEVELOPMENT_USE_KEYCHAIN` environment
+                // However, if the `HAWK_DEVELOPMENT_USE_KEYCHAIN` environment
                 // variable is set, we will use the actual keychain.
-                !*ZED_DEVELOPMENT_USE_KEYCHAIN
+                !*HAWK_DEVELOPMENT_USE_KEYCHAIN
             }
             Some(ReleaseChannel::Nightly | ReleaseChannel::Preview | ReleaseChannel::Stable)
             | None => false,

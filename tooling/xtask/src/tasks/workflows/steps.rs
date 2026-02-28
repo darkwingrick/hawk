@@ -509,8 +509,8 @@ pub fn authenticate_as_zippy() -> (Step<Use>, StepOutput) {
         "create-github-app-token",
         "bef1eaf1c0ac2b148ee2a0a74c65fbe6db0631f1",
     )
-    .add_with(("app-id", vars::ZED_ZIPPY_APP_ID))
-    .add_with(("private-key", vars::ZED_ZIPPY_APP_PRIVATE_KEY))
+    .add_with(("app-id", vars::HAWK_ZIPPY_APP_ID))
+    .add_with(("private-key", vars::HAWK_ZIPPY_APP_PRIVATE_KEY))
     .id("get-app-token");
     let output = StepOutput::new(&step, "token");
     (step, output)

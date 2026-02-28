@@ -7,7 +7,7 @@ use std::{
     sync::Arc,
 };
 use util::ResultExt as _;
-use zed_env_vars::EnvVar;
+use hawk_env_vars::EnvVar;
 
 use crate::AuthenticateError;
 

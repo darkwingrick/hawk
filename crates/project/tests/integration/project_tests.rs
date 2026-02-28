@@ -1198,7 +1198,7 @@ async fn test_invalid_local_tasks_shows_toast_with_doc_link(cx: &mut gpui::TestA
     // later assert that the `Event::Toast` even is emitted.
     fs.save(
         path!("/dir/.zed/tasks.json").as_ref(),
-        &r#"[{ "label": "test $ZED_FOO", "command": "echo" }]"#.into(),
+        &r#"[{ "label": "test $HAWK_FOO", "command": "echo" }]"#.into(),
         Default::default(),
     )
     .await
@@ -1214,8 +1214,8 @@ async fn test_invalid_local_tasks_shows_toast_with_doc_link(cx: &mut gpui::TestA
                 link: Some(ToastLink { url, .. }),
             } => {
                 assert!(notification_id.starts_with("local-tasks-"));
-                assert!(message.contains("ZED_FOO"));
-                assert_eq!(*url, "https://zed.dev/docs/tasks");
+                assert!(message.contains("HAWK_FOO"));
+                assert_eq!(*url, "https://hawk.dev/docs/tasks");
                 *saw_toast.borrow_mut() = true;
             }
             _ => {}
@@ -1242,7 +1242,7 @@ async fn test_fallback_to_single_worktree_tasks(cx: &mut gpui::TestAppContext) {
             ".zed": {
                 "tasks.json": r#"[{
                     "label": "test worktree root",
-                    "command": "echo $ZED_WORKTREE_ROOT"
+                    "command": "echo $HAWK_WORKTREE_ROOT"
                 }]"#,
             },
             "a": {
@@ -1279,7 +1279,7 @@ async fn test_fallback_to_single_worktree_tasks(cx: &mut gpui::TestAppContext) {
         .await;
     assert!(
         active_non_worktree_item_tasks.is_empty(),
-        "A task can not be resolved with context with no ZED_WORKTREE_ROOT data"
+        "A task can not be resolved with context with no HAWK_WORKTREE_ROOT data"
     );
 
     let active_worktree_tasks = cx
@@ -11460,7 +11460,7 @@ fn git_remove_index(path: &Path, repo: &git2::Repository) {
 fn git_commit(msg: &'static str, repo: &git2::Repository) {
     use git2::Signature;
 
-    let signature = Signature::now("test", "test@zed.dev").unwrap();
+    let signature = Signature::now("test", "test@hawk.dev").unwrap();
     let oid = repo.index().unwrap().write_tree().unwrap();
     let tree = repo.find_tree(oid).unwrap();
     if let Ok(head) = repo.head() {
@@ -11493,7 +11493,7 @@ fn git_cherry_pick(commit: &git2::Commit<'_>, repo: &git2::Repository) {
 fn git_stash(repo: &mut git2::Repository) {
     use git2::Signature;
 
-    let signature = Signature::now("test", "test@zed.dev").unwrap();
+    let signature = Signature::now("test", "test@hawk.dev").unwrap();
     repo.stash_save(&signature, "N/A", None)
         .expect("Failed to stash");
 }

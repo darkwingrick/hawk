@@ -303,7 +303,7 @@ fn check_style() -> NamedJob {
             ./ts_query_ls format --check . || {{
                 echo "Found unformatted queries, please format them with ts_query_ls."
                 echo "For easy use, install the Tree-sitter query extension:"
-                echo "zed://extension/tree-sitter-query"
+                echo "hawk://extension/tree-sitter-query"
                 false
             }}"#
         ))
@@ -542,9 +542,9 @@ pub(crate) fn check_postgres_and_protobuf_migrations() -> NamedJob {
         release_job(&[])
             .runs_on(runners::LINUX_DEFAULT)
             .add_env(("GIT_AUTHOR_NAME", "Protobuf Action"))
-            .add_env(("GIT_AUTHOR_EMAIL", "ci@zed.dev"))
+            .add_env(("GIT_AUTHOR_EMAIL", "ci@hawk.dev"))
             .add_env(("GIT_COMMITTER_NAME", "Protobuf Action"))
-            .add_env(("GIT_COMMITTER_EMAIL", "ci@zed.dev"))
+            .add_env(("GIT_COMMITTER_EMAIL", "ci@hawk.dev"))
             .add_step(steps::checkout_repo().with_full_history())
             .add_step(ensure_fresh_merge())
             .add_step(bufbuild_setup_action())

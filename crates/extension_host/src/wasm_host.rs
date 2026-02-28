@@ -65,7 +65,7 @@ pub struct WasmExtension {
     pub manifest: Arc<ExtensionManifest>,
     pub work_dir: Arc<Path>,
     #[allow(unused)]
-    pub zed_api_version: Version,
+    pub hawk_api_version: Version,
     _task: Arc<Task<Result<(), gpui_tokio::JoinError>>>,
 }
 
@@ -605,15 +605,15 @@ impl WasmHost {
             let engine = this.engine.clone();
 
             executor.spawn(async move {
-                let zed_api_version = parse_wasm_extension_version(&manifest_id, &wasm_bytes)?;
+                let hawk_api_version = parse_wasm_extension_version(&manifest_id, &wasm_bytes)?;
                 let component = Component::from_binary(&engine, &wasm_bytes)
                     .context("failed to compile wasm component")?;
 
-                anyhow::Ok((zed_api_version, component))
+                anyhow::Ok((hawk_api_version, component))
             })
         };
 
-        let load_extension = |zed_api_version: Version, component| async move {
+        let load_extension = |hawk_api_version: Version, component| async move {
             let wasi_ctx = this.build_wasi_ctx(&manifest).await?;
             let mut store = wasmtime::Store::new(
                 &this.engine,
@@ -636,7 +636,7 @@ impl WasmHost {
                 &executor,
                 &mut store,
                 this.release_channel,
-                zed_api_version.clone(),
+                hawk_api_version.clone(),
                 &component,
             )
             .await?;
@@ -658,17 +658,17 @@ impl WasmHost {
                 manifest.clone(),
                 this.work_dir.join(manifest.id.as_ref()).into(),
                 tx,
-                zed_api_version,
+                hawk_api_version,
             ))
         };
 
         cx.spawn(async move |cx| {
-            let (zed_api_version, component) = compile_task.await?;
+            let (hawk_api_version, component) = compile_task.await?;
 
             // Run wasi-dependent operations on tokio.
             // wasmtime_wasi internally uses tokio for I/O operations.
-            let (extension_task, manifest, work_dir, tx, zed_api_version) =
-                gpui_tokio::Tokio::spawn(cx, load_extension(zed_api_version, component)).await??;
+            let (extension_task, manifest, work_dir, tx, hawk_api_version) =
+                gpui_tokio::Tokio::spawn(cx, load_extension(hawk_api_version, component)).await??;
 
             // Run the extension message loop on tokio since extension
             // calls may invoke wasi functions that require a tokio runtime.
@@ -678,7 +678,7 @@ impl WasmHost {
                 manifest,
                 work_dir,
                 tx,
-                zed_api_version,
+                hawk_api_version,
                 _task: task,
             })
         })

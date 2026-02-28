@@ -38,12 +38,12 @@ secret!(GITHUB_TOKEN);
 secret!(MACOS_CERTIFICATE);
 secret!(MACOS_CERTIFICATE_PASSWORD);
 secret!(SENTRY_AUTH_TOKEN);
-secret!(ZED_CLIENT_CHECKSUM_SEED);
-secret!(ZED_CLOUD_PROVIDER_ADDITIONAL_MODELS_JSON);
-secret!(ZED_SENTRY_MINIDUMP_ENDPOINT);
-secret!(SLACK_APP_ZED_UNIT_EVALS_BOT_TOKEN);
-secret!(ZED_ZIPPY_APP_ID);
-secret!(ZED_ZIPPY_APP_PRIVATE_KEY);
+secret!(HAWK_CLIENT_CHECKSUM_SEED);
+secret!(HAWK_CLOUD_PROVIDER_ADDITIONAL_MODELS_JSON);
+secret!(HAWK_SENTRY_MINIDUMP_ENDPOINT);
+secret!(SLACK_APP_HAWK_UNIT_EVALS_BOT_TOKEN);
+secret!(HAWK_ZIPPY_APP_ID);
+secret!(HAWK_ZIPPY_APP_PRIVATE_KEY);
 secret!(DISCORD_WEBHOOK_RELEASE_NOTES);
 secret!(WINGET_TOKEN);
 secret!(VERCEL_TOKEN);
@@ -60,8 +60,8 @@ var!(AZURE_SIGNING_ENDPOINT);
 pub fn bundle_envs(platform: Platform) -> Env {
     let env = Env::default()
         .add("CARGO_INCREMENTAL", 0)
-        .add("ZED_CLIENT_CHECKSUM_SEED", ZED_CLIENT_CHECKSUM_SEED)
-        .add("ZED_MINIDUMP_ENDPOINT", ZED_SENTRY_MINIDUMP_ENDPOINT);
+        .add("HAWK_CLIENT_CHECKSUM_SEED", HAWK_CLIENT_CHECKSUM_SEED)
+        .add("HAWK_MINIDUMP_ENDPOINT", HAWK_SENTRY_MINIDUMP_ENDPOINT);
 
     match platform {
         Platform::Linux => env,
@@ -330,7 +330,7 @@ impl serde::Serialize for WorkflowSecret {
 }
 
 pub mod assets {
-    // NOTE: these asset names also exist in the zed.dev codebase.
+    // NOTE: these asset names also exist in the hawk.dev codebase.
     pub const MAC_AARCH64: &str = "Zed-aarch64.dmg";
     pub const MAC_X86_64: &str = "Zed-x86_64.dmg";
     pub const LINUX_AARCH64: &str = "zed-linux-aarch64.tar.gz";

@@ -388,7 +388,7 @@ async fn test_language_for_file_with_custom_file_types(cx: &mut TestAppContext) 
 fn file(path: &str) -> Arc<dyn File> {
     Arc::new(TestFile {
         path: Arc::from(rel_path(path)),
-        root_name: "zed".into(),
+        root_name: "hawk".into(),
         local_root: None,
     })
 }

@@ -23,7 +23,7 @@ use itertools::Itertools;
 use language::LanguageRegistry;
 use language_model::{
     IconOrSvg, LanguageModelProvider, LanguageModelProviderId, LanguageModelRegistry,
-    ZED_CLOUD_PROVIDER_ID,
+    HAWK_CLOUD_PROVIDER_ID,
 };
 use language_models::AllLanguageModelSettings;
 use notifications::status_toast::{StatusToast, ToastIcon};
@@ -39,7 +39,7 @@ use ui::{
 };
 use util::ResultExt as _;
 use workspace::{Workspace, create_and_open_local_file};
-use zed_actions::{ExtensionCategoryFilter, OpenBrowser};
+use hawk_actions::{ExtensionCategoryFilter, OpenBrowser};
 
 pub(crate) use configure_context_server_modal::ConfigureContextServerModal;
 pub(crate) use configure_context_server_tools_modal::ConfigureContextServerToolsModal;
@@ -134,7 +134,7 @@ impl AgentConfiguration {
         cx: &mut Context<Self>,
     ) {
         let configuration_view = provider.configuration_view(
-            language_model::ConfigurationViewTargetAgent::ZedAgent,
+            language_model::ConfigurationViewTargetAgent::HawkAgent,
             window,
             cx,
         );
@@ -211,8 +211,8 @@ impl AgentConfiguration {
             .copied()
             .unwrap_or(false);
 
-        let is_zed_provider = provider.id() == ZED_CLOUD_PROVIDER_ID;
-        let current_plan = if is_zed_provider {
+        let is_hawk_provider = provider.id() == HAWK_CLOUD_PROVIDER_ID;
+        let current_plan = if is_hawk_provider {
             self.workspace
                 .upgrade()
                 .and_then(|workspace| workspace.read(cx).user_store().read(cx).plan())
@@ -273,9 +273,9 @@ impl AgentConfiguration {
                                             .gap_1()
                                             .child(Label::new(provider_name.clone()))
                                             .map(|this| {
-                                                if is_zed_provider && is_signed_in {
+                                                if is_hawk_provider && is_signed_in {
                                                     this.child(
-                                                        self.render_zed_plan_info(current_plan, cx),
+                                                        self.render_hawk_plan_info(current_plan, cx),
                                                     )
                                                 } else {
                                                     this.when(
@@ -478,7 +478,7 @@ impl AgentConfiguration {
             )
     }
 
-    fn render_zed_plan_info(&self, plan: Option<Plan>, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_hawk_plan_info(&self, plan: Option<Plan>, cx: &mut Context<Self>) -> impl IntoElement {
         if let Some(plan) = plan {
             let free_chip_bg = cx
                 .theme()
@@ -538,7 +538,7 @@ impl AgentConfiguration {
                         .entry("Install from Extensions", None, {
                             |window, cx| {
                                 window.dispatch_action(
-                                    zed_actions::Extensions {
+                                    hawk_actions::Extensions {
                                         category_filter: Some(
                                             ExtensionCategoryFilter::ContextServers,
                                         ),
@@ -646,12 +646,12 @@ impl AgentConfiguration {
 
         let (source_icon, source_tooltip) = if provided_by_extension {
             (
-                IconName::ZedSrcExtension,
+                IconName::HawkSrcExtension,
                 "This MCP server was installed from an extension.",
             )
         } else {
             (
-                IconName::ZedSrcCustom,
+                IconName::HawkSrcCustom,
                 "This custom MCP server was installed directly.",
             )
         };
@@ -973,7 +973,7 @@ impl AgentConfiguration {
                     Some(ContextMenu::build(window, cx, |menu, _window, _cx| {
                         menu.entry("Install from Registry", None, {
                             |window, cx| {
-                                window.dispatch_action(Box::new(zed_actions::AcpRegistry), cx)
+                                window.dispatch_action(Box::new(hawk_actions::AcpRegistry), cx)
                             }
                         })
                         .entry("Add Custom Agent", None, {
@@ -1076,7 +1076,7 @@ impl AgentConfiguration {
                     "The {} agent was installed from an extension.",
                     display_name
                 )),
-                IconName::ZedSrcExtension,
+                IconName::HawkSrcExtension,
             )),
             ExternalAgentSource::Registry => Some((
                 SharedString::new(format!("agent-source-{}", id)),

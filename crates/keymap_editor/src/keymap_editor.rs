@@ -43,7 +43,7 @@ use workspace::{
 };
 
 pub use ui_components::*;
-use zed_actions::{ChangeKeybinding, OpenKeymap};
+use hawk_actions::{ChangeKeybinding, OpenKeymap};
 
 use crate::{
     action_completion_provider::ActionCompletionProvider,
@@ -719,7 +719,7 @@ impl KeymapEditor {
 
     fn process_bindings(
         json_language: Arc<Language>,
-        zed_keybind_context_language: Arc<Language>,
+        hawk_keybind_context_language: Arc<Language>,
         humanized_action_names: &HumanizedActionNameCache,
         cx: &mut App,
     ) -> (
@@ -756,7 +756,7 @@ impl KeymapEditor {
                 .map(|predicate| {
                     KeybindContextString::Local(
                         predicate.to_string().into(),
-                        zed_keybind_context_language.clone(),
+                        hawk_keybind_context_language.clone(),
                     )
                 })
                 .unwrap_or(KeybindContextString::Global);
@@ -814,14 +814,14 @@ impl KeymapEditor {
         let workspace = self.workspace.clone();
         cx.spawn_in(window, async move |this, cx| {
             let json_language = load_json_language(workspace.clone(), cx).await;
-            let zed_keybind_context_language =
+            let hawk_keybind_context_language =
                 load_keybind_context_language(workspace.clone(), cx).await;
 
             let (action_query, keystroke_query) = this.update(cx, |this, cx| {
                 let (key_bindings, string_match_candidates, actions_with_schemas) =
                     Self::process_bindings(
                         json_language,
-                        zed_keybind_context_language,
+                        hawk_keybind_context_language,
                         &this.humanized_action_names,
                         cx,
                     );
@@ -1832,12 +1832,12 @@ impl Render for KeymapEditor {
                                                             menu.header("View Default...")
                                                                 .action(
                                                                     "Zed Key Bindings",
-                                                                    zed_actions::OpenDefaultKeymap
+                                                                    hawk_actions::OpenDefaultKeymap
                                                                         .boxed_clone(),
                                                                 )
                                                                 .action(
                                                                     "Vim Bindings",
-                                                                    zed_actions::vim::OpenDefaultKeymap.boxed_clone(),
+                                                                    hawk_actions::vim::OpenDefaultKeymap.boxed_clone(),
                                                                 )
                                                         }))
                                                     })
@@ -1857,7 +1857,7 @@ impl Render for KeymapEditor {
                                                             move |_window, cx| {
                                                                 Tooltip::for_action_in(
                                                                     "View Default...",
-                                                                    &zed_actions::OpenKeymapFile,
+                                                                    &hawk_actions::OpenKeymapFile,
                                                                     &focus_handle,
                                                                     cx,
                                                                 )
@@ -1869,12 +1869,12 @@ impl Render for KeymapEditor {
                                                 Button::new("edit-in-json", "Edit in JSON")
                                                     .style(ButtonStyle::Subtle)
                                                     .key_binding(
-                                                        ui::KeyBinding::for_action_in(&zed_actions::OpenKeymapFile, &focus_handle, cx)
+                                                        ui::KeyBinding::for_action_in(&hawk_actions::OpenKeymapFile, &focus_handle, cx)
                                                             .map(|kb| kb.size(rems_from_px(10.))),
                                                     )
                                                     .on_click(|_, window, cx| {
                                                         window.dispatch_action(
-                                                            zed_actions::OpenKeymapFile.boxed_clone(),
+                                                            hawk_actions::OpenKeymapFile.boxed_clone(),
                                                             cx,
                                                         );
                                                     })

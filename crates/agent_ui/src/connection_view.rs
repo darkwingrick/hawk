@@ -14,7 +14,7 @@ use anyhow::{Result, anyhow};
 use arrayvec::ArrayVec;
 use audio::{Audio, Sound};
 use buffer_diff::BufferDiff;
-use client::zed_urls;
+use client::hawk_urls;
 use collections::{HashMap, HashSet, IndexMap};
 use editor::scroll::Autoscroll;
 use editor::{
@@ -57,8 +57,8 @@ use util::{debug_panic, defer};
 use workspace::{
     CollaboratorId, MultiWorkspace, NewTerminal, Toast, Workspace, notifications::NotificationId,
 };
-use zed_actions::agent::{Chat, ToggleModelSelector};
-use zed_actions::assistant::OpenRulesLibrary;
+use hawk_actions::agent::{Chat, ToggleModelSelector};
+use hawk_actions::assistant::OpenRulesLibrary;
 
 use super::config_options::ConfigOptionsView;
 use super::entry_view_state::EntryViewState;
@@ -1220,7 +1220,7 @@ impl ConnectionView {
                     } else {
                         "New message"
                     },
-                    IconName::ZedAssistant,
+                    IconName::HawkAssistant,
                     window,
                     cx,
                 );

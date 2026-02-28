@@ -741,7 +741,7 @@ impl ManageProfilesModal {
                                         .inset(true)
                                         .spacing(ListItemSpacing::Sparse)
                                         .start_slot(
-                                            Icon::new(IconName::ZedAssistant)
+                                            Icon::new(IconName::HawkAssistant)
                                                 .size(IconSize::Small)
                                                 .color(Color::Muted),
                                         )

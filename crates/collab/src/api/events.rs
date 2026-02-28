@@ -29,8 +29,8 @@ pub struct ZedChecksumHeader(Vec<u8>);
 
 impl Header for ZedChecksumHeader {
     fn name() -> &'static HeaderName {
-        static ZED_CHECKSUM_HEADER: OnceLock<HeaderName> = OnceLock::new();
-        ZED_CHECKSUM_HEADER.get_or_init(|| HeaderName::from_static("x-zed-checksum"))
+        static HAWK_CHECKSUM_HEADER: OnceLock<HeaderName> = OnceLock::new();
+        HAWK_CHECKSUM_HEADER.get_or_init(|| HeaderName::from_static("x-zed-checksum"))
     }
 
     fn decode<'i, I>(values: &mut I) -> Result<Self, axum::headers::Error>
@@ -119,7 +119,7 @@ pub async fn post_events(
 }
 
 pub fn calculate_json_checksum(app: Arc<AppState>, json: &impl AsRef<[u8]>) -> Option<Vec<u8>> {
-    let checksum_seed = app.config.zed_client_checksum_seed.as_ref()?;
+    let checksum_seed = app.config.hawk_client_checksum_seed.as_ref()?;
 
     let mut summer = Sha256::new();
     summer.update(checksum_seed);

@@ -25,7 +25,7 @@ use ui::{Divider, ListItem, ListItemSpacing, ListSubHeader, Tooltip, prelude::*}
 use ui_input::ErasedEditor;
 use util::{ResultExt, TryFutureExt};
 use workspace::{MultiWorkspace, Workspace, WorkspaceSettings, client_side_decorations};
-use zed_actions::assistant::InlineAssist;
+use hawk_actions::assistant::InlineAssist;
 
 use prompt_store::*;
 
@@ -112,7 +112,7 @@ pub fn open_rules_library(
         cx.update(|cx| {
             let app_id = ReleaseChannel::global(cx).app_id();
             let bounds = Bounds::centered(None, size(px(1024.0), px(768.0)), cx);
-            let window_decorations = match std::env::var("ZED_WINDOW_DECORATIONS") {
+            let window_decorations = match std::env::var("HAWK_WINDOW_DECORATIONS") {
                 Ok(val) if val == "server" => gpui::WindowDecorations::Server,
                 Ok(val) if val == "client" => gpui::WindowDecorations::Client,
                 _ => match WorkspaceSettings::get_global(cx).window_decorations {
@@ -988,7 +988,7 @@ impl RulesLibrary {
 
     fn move_down_from_title(
         &mut self,
-        _: &zed_actions::editor::MoveDown,
+        _: &hawk_actions::editor::MoveDown,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
@@ -1001,7 +1001,7 @@ impl RulesLibrary {
 
     fn move_up_from_body(
         &mut self,
-        _: &zed_actions::editor::MoveUp,
+        _: &hawk_actions::editor::MoveUp,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {

@@ -26,7 +26,7 @@ const EDIT_PREDICTION_RATED_EVENT: &str = "Edit Prediction Rated";
 
 /// Minimum Zed version for filtering captured examples.
 /// For example, `MinCaptureVersion { minor: 224, patch: 1 }` means only pull examples
-/// where `zed_version >= 0.224.1`.
+/// where `hawk_version >= 0.224.1`.
 #[derive(Clone, Copy, Debug)]
 pub struct MinCaptureVersion {
     pub minor: u32,
@@ -326,7 +326,7 @@ pub async fn fetch_rejected_examples_after(
                 req.event_properties:output::string AS output,
                 rej.event_properties:was_shown::boolean AS was_shown,
                 rej.event_properties:reason::string AS reason,
-                req.event_properties:zed_version::string AS zed_version
+                req.event_properties:hawk_version::string AS hawk_version
             FROM events req
             INNER JOIN events rej
                 ON req.event_properties:request_id = rej.event_properties:request_id
@@ -337,10 +337,10 @@ pub async fn fetch_rejected_examples_after(
                 AND req.event_properties:input:can_collect_data = true
                 AND req.time > TRY_TO_TIMESTAMP_NTZ(?)
                 AND (? IS NULL OR (
-                    TRY_CAST(SPLIT_PART(req.event_properties:zed_version::string, '.', 2) AS INTEGER) > ?
+                    TRY_CAST(SPLIT_PART(req.event_properties:hawk_version::string, '.', 2) AS INTEGER) > ?
                     OR (
-                        TRY_CAST(SPLIT_PART(req.event_properties:zed_version::string, '.', 2) AS INTEGER) = ?
-                        AND TRY_CAST(SPLIT_PART(SPLIT_PART(req.event_properties:zed_version::string, '.', 3), '+', 1) AS INTEGER) >= ?
+                        TRY_CAST(SPLIT_PART(req.event_properties:hawk_version::string, '.', 2) AS INTEGER) = ?
+                        AND TRY_CAST(SPLIT_PART(SPLIT_PART(req.event_properties:hawk_version::string, '.', 3), '+', 1) AS INTEGER) >= ?
                     )
                 ))
             ORDER BY req.time ASC
@@ -409,7 +409,7 @@ pub async fn fetch_rejected_examples_after(
                 "output",
                 "was_shown",
                 "reason",
-                "zed_version",
+                "hawk_version",
             ],
         );
 
@@ -484,17 +484,17 @@ pub async fn fetch_requested_examples_after(
                 req.device_id::string AS device_id,
                 req.time::string AS time,
                 req.event_properties:input AS input,
-                req.event_properties:zed_version::string AS zed_version
+                req.event_properties:hawk_version::string AS hawk_version
             FROM events req
             WHERE req.event_type = ?
                 AND req.event_properties:version = 'V3'
                 AND req.event_properties:input:can_collect_data = true
                 AND req.time > TRY_TO_TIMESTAMP_NTZ(?)
                 AND (? IS NULL OR (
-                    TRY_CAST(SPLIT_PART(req.event_properties:zed_version::string, '.', 2) AS INTEGER) > ?
+                    TRY_CAST(SPLIT_PART(req.event_properties:hawk_version::string, '.', 2) AS INTEGER) > ?
                     OR (
-                        TRY_CAST(SPLIT_PART(req.event_properties:zed_version::string, '.', 2) AS INTEGER) = ?
-                        AND TRY_CAST(SPLIT_PART(SPLIT_PART(req.event_properties:zed_version::string, '.', 3), '+', 1) AS INTEGER) >= ?
+                        TRY_CAST(SPLIT_PART(req.event_properties:hawk_version::string, '.', 2) AS INTEGER) = ?
+                        AND TRY_CAST(SPLIT_PART(SPLIT_PART(req.event_properties:hawk_version::string, '.', 3), '+', 1) AS INTEGER) >= ?
                     )
                 ))
             ORDER BY req.time ASC
@@ -553,7 +553,7 @@ pub async fn fetch_requested_examples_after(
 
         let column_indices = get_column_indices(
             &response.result_set_meta_data,
-            &["request_id", "device_id", "time", "input", "zed_version"],
+            &["request_id", "device_id", "time", "input", "hawk_version"],
         );
 
         all_examples.extend(requested_examples_from_response(
@@ -645,7 +645,7 @@ pub async fn fetch_rated_examples_after(
                 rated.time::string AS time,
                 deploy.event_properties:experiment_name::string AS experiment_name,
                 deploy.event_properties:environment::string AS environment,
-                rated.event_properties:zed_version::string AS zed_version
+                rated.event_properties:hawk_version::string AS hawk_version
             FROM events rated
             LEFT JOIN events req
                 ON rated.event_properties:request_id::string = req.event_properties:request_id::string
@@ -725,7 +725,7 @@ pub async fn fetch_rated_examples_after(
                 "time",
                 "experiment_name",
                 "environment",
-                "zed_version",
+                "hawk_version",
             ],
         );
 
@@ -826,7 +826,7 @@ fn rated_examples_from_response<'a>(
             let time = get_string("time");
             let experiment_name = get_string("experiment_name");
             let environment = get_string("environment");
-            let zed_version = get_string("zed_version");
+            let hawk_version = get_string("hawk_version");
 
             match (inputs, output.clone(), rating.clone(), device_id.clone(), time.clone()) {
                 (Some(inputs), Some(output), Some(rating), Some(device_id), Some(time)) => {
@@ -840,7 +840,7 @@ fn rated_examples_from_response<'a>(
                         feedback,
                         experiment_name,
                         environment,
-                        zed_version,
+                        hawk_version,
                     ))
                 }
                 _ => {
@@ -870,7 +870,7 @@ fn build_rated_example(
     feedback: String,
     experiment_name: Option<String>,
     environment: Option<String>,
-    zed_version: Option<String>,
+    hawk_version: Option<String>,
 ) -> Example {
     let parsed_rating = if rating == "Positive" {
         EditPredictionRating::Positive
@@ -894,7 +894,7 @@ fn build_rated_example(
     }
 
     let mut example =
-        build_example_from_snowflake(request_id, device_id, time, input, tags, None, zed_version);
+        build_example_from_snowflake(request_id, device_id, time, input, tags, None, hawk_version);
 
     example.spec.rating = Some(parsed_rating);
 
@@ -959,7 +959,7 @@ fn requested_examples_from_response<'a>(
             let input_json = get_json("input");
             let input: Option<ZetaPromptInput> =
                 input_json.clone().and_then(|v| serde_json::from_value(v).ok());
-            let zed_version = get_string("zed_version");
+            let hawk_version = get_string("hawk_version");
 
             match (request_id_str.clone(), device_id.clone(), time.clone(), input) {
                 (Some(request_id), Some(device_id), Some(time), Some(input)) => {
@@ -970,7 +970,7 @@ fn requested_examples_from_response<'a>(
                         input,
                         vec!["requested".to_string()],
                         None,
-                        zed_version,
+                        hawk_version,
                     ))
                 }
                 _ => {
@@ -1046,7 +1046,7 @@ fn rejected_examples_from_response<'a>(
             let output = get_string("output");
             let was_shown = get_bool("was_shown");
             let reason = get_string("reason");
-            let zed_version = get_string("zed_version");
+            let hawk_version = get_string("hawk_version");
 
             match (request_id_str.clone(), device_id.clone(), time.clone(), input, output.clone(), was_shown, reason.clone()) {
                 (Some(request_id), Some(device_id), Some(time), Some(input), Some(output), Some(was_shown), Some(reason)) => {
@@ -1058,7 +1058,7 @@ fn rejected_examples_from_response<'a>(
                         output,
                         was_shown,
                         reason,
-                        zed_version,
+                        hawk_version,
                     ))
                 }
                 _ => {
@@ -1088,7 +1088,7 @@ fn build_rejected_example(
     output: String,
     was_shown: bool,
     reason: String,
-    zed_version: Option<String>,
+    hawk_version: Option<String>,
 ) -> Example {
     let rejected_patch = build_output_patch(
         &input.cursor_path,
@@ -1103,7 +1103,7 @@ fn build_rejected_example(
         input,
         vec![format!("rejection:{}", reason.to_lowercase())],
         Some(RejectionInfo { reason, was_shown }),
-        zed_version,
+        hawk_version,
     );
     example.spec.rejected_patch = Some(rejected_patch);
     example
@@ -1121,7 +1121,7 @@ fn build_example_from_snowflake(
     input: ZetaPromptInput,
     tags: Vec<String>,
     rejection: Option<RejectionInfo>,
-    zed_version: Option<String>,
+    hawk_version: Option<String>,
 ) -> Example {
     let cursor_excerpt = input.cursor_excerpt.as_ref();
     let cursor_offset = input.cursor_offset_in_excerpt;
@@ -1162,7 +1162,7 @@ fn build_example_from_snowflake(
 
     Example {
         spec,
-        zed_version,
+        hawk_version,
         prompt_inputs: Some(input),
         prompt: None,
         predictions: Vec::new(),

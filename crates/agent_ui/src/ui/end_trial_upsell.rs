@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use ai_onboarding::{AgentPanelOnboardingCard, PlanDefinitions};
-use client::zed_urls;
+use client::hawk_urls;
 use gpui::{AnyElement, App, IntoElement, RenderOnce, Window};
 use ui::{Divider, Tooltip, prelude::*};
 
@@ -38,7 +38,7 @@ impl RenderOnce for EndTrialUpsell {
                     .style(ButtonStyle::Tinted(ui::TintColor::Accent))
                     .on_click(move |_, _window, cx| {
                         telemetry::event!("Upgrade To Pro Clicked", state = "end-of-trial");
-                        cx.open_url(&zed_urls::upgrade_to_zed_pro_url(cx))
+                        cx.open_url(&hawk_urls::upgrade_to_hawk_pro_url(cx))
                     }),
             );
 

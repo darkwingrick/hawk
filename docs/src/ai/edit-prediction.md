@@ -20,7 +20,7 @@ You can confirm that Zeta is properly configured either by verifying whether you
 ```json [settings]
 {
   "edit_predictions": {
-    "provider": "zed"
+    "provider": "hawk"
   }
 }
 ```
@@ -29,7 +29,7 @@ The Z icon in the status bar also indicates Zeta is active.
 
 ### Pricing and Plans
 
-The free plan includes 2,000 Zeta predictions per month. The [Pro plan](../ai/plans-and-usage.md) removes this limit. See [Zed's pricing page](https://zed.dev/pricing) for details.
+The free plan includes 2,000 Zeta predictions per month. The [Pro plan](../ai/plans-and-usage.md) removes this limit. See [Zed's pricing page](https://hawk.dev/pricing) for details.
 
 ### Switching Modes {#switching-modes}
 
@@ -48,7 +48,7 @@ Toggle between them via the `mode` key:
 
 Or directly via the UI through the status bar menu:
 
-![Edit Prediction status bar menu, with the modes toggle.](https://zed.dev/img/edit-prediction/status-bar-menu.webp)
+![Edit Prediction status bar menu, with the modes toggle.](https://hawk.dev/img/edit-prediction/status-bar-menu.webp)
 
 > Note that edit prediction modes work with any prediction provider.
 

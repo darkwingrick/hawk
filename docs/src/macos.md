@@ -9,9 +9,9 @@ Zed is developed primarily on macOS, making it a first-class platform with full 
 
 ## Installing Zed
 
-Download Zed from the [download page](https://zed.dev/download). The download is a `.dmg` file—open it and drag Zed to your Applications folder.
+Download Zed from the [download page](https://hawk.dev/download). The download is a `.dmg` file—open it and drag Zed to your Applications folder.
 
-For the preview build, which receives updates about a week ahead of stable, visit the [preview releases page](https://zed.dev/releases/preview).
+For the preview build, which receives updates about a week ahead of stable, visit the [preview releases page](https://hawk.dev/releases/preview).
 
 After installation, Zed checks for updates automatically and prompts you when a new version is available.
 

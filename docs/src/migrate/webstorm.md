@@ -11,13 +11,13 @@ This guide covers how to set up Zed if you're coming from WebStorm, including ke
 
 Zed is available on macOS, Windows, and Linux.
 
-For macOS, you can download it from zed.dev/download, or install via Homebrew:
+For macOS, you can download it from hawk.dev/download, or install via Homebrew:
 
 ```sh
 brew install --cask zed
 ```
 
-For Windows, download the installer from zed.dev/download, or install via winget:
+For Windows, download the installer from hawk.dev/download, or install via winget:
 
 ```sh
 winget install Zed.Zed
@@ -26,7 +26,7 @@ winget install Zed.Zed
 For most Linux users, the easiest way to install Zed is through our installation script:
 
 ```sh
-curl -f https://zed.dev/install.sh | sh
+curl -f https://hawk.dev/install.sh | sh
 ```
 
 After installation, you can launch Zed from your Applications folder (macOS), Start menu (Windows), or directly from the terminal using:
@@ -348,8 +348,8 @@ To set expectations clearly, here's what WebStorm offers that Zed doesn't have:
 WebStorm offers Code With Me as a separate feature for collaboration. Zed has collaboration built into the core experience.
 
 - Open the Collab Panel in the left dock
-- Create a channel and [invite your collaborators](https://zed.dev/docs/collaboration#inviting-a-collaborator) to join
-- [Share your screen or your codebase](https://zed.dev/docs/collaboration#share-a-project) directly
+- Create a channel and [invite your collaborators](https://hawk.dev/docs/collaboration#inviting-a-collaborator) to join
+- [Share your screen or your codebase](https://hawk.dev/docs/collaboration#share-a-project) directly
 
 Once connected, you'll see each other's cursors, selections, and edits in real time. Voice chat is included. There's no need for separate tools or third-party logins.
 
@@ -370,9 +370,9 @@ Once signed in, just start typing. Zed will offer suggestions inline for you to 
 
 To use other AI models in Zed, you have several options:
 
-- Use Zed's hosted models, with higher rate limits. Requires [authentication](https://zed.dev/docs/authentication) and subscription to [Zed Pro](https://zed.dev/docs/ai/subscription.html).
-- Bring your own [API keys](https://zed.dev/docs/ai/llm-providers.html), no authentication needed
-- Use [external agents like Claude Agent](https://zed.dev/docs/ai/external-agents.html)
+- Use Zed's hosted models, with higher rate limits. Requires [authentication](https://hawk.dev/docs/authentication) and subscription to [Zed Pro](https://hawk.dev/docs/ai/subscription.html).
+- Bring your own [API keys](https://hawk.dev/docs/ai/llm-providers.html), no authentication needed
+- Use [external agents like Claude Agent](https://hawk.dev/docs/ai/external-agents.html)
 
 ## Advanced Config and Productivity Tweaks
 

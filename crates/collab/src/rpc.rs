@@ -467,7 +467,7 @@ impl Server {
                 app_state
                     .db
                     .delete_stale_channel_chat_participants(
-                        &app_state.config.zed_environment,
+                        &app_state.config.hawk_environment,
                         server_id,
                     )
                     .await
@@ -475,7 +475,7 @@ impl Server {
 
                 if let Some((room_ids, channel_ids)) = app_state
                     .db
-                    .stale_server_resource_ids(&app_state.config.zed_environment, server_id)
+                    .stale_server_resource_ids(&app_state.config.hawk_environment, server_id)
                     .await
                     .trace_err()
                 {
@@ -597,7 +597,7 @@ impl Server {
                 app_state
                     .db
                     .delete_stale_channel_chat_participants(
-                        &app_state.config.zed_environment,
+                        &app_state.config.hawk_environment,
                         server_id,
                     )
                     .await
@@ -611,7 +611,7 @@ impl Server {
 
                 app_state
                     .db
-                    .delete_stale_servers(&app_state.config.zed_environment, server_id)
+                    .delete_stale_servers(&app_state.config.hawk_environment, server_id)
                     .await
                     .trace_err();
             }
@@ -737,7 +737,7 @@ impl Server {
         connection: Connection,
         address: String,
         principal: Principal,
-        zed_version: ZedVersion,
+        hawk_version: ZedVersion,
         release_channel: Option<String>,
         user_agent: Option<String>,
         geoip_country_code: Option<String>,
@@ -798,7 +798,7 @@ impl Server {
             if let Err(error) = this
                 .send_initial_client_update(
                     connection_id,
-                    zed_version,
+                    hawk_version,
                     send_connection_id,
                     &session,
                 )
@@ -906,7 +906,7 @@ impl Server {
     async fn send_initial_client_update(
         &self,
         connection_id: ConnectionId,
-        zed_version: ZedVersion,
+        hawk_version: ZedVersion,
         mut send_connection_id: Option<oneshot::Sender<ConnectionId>>,
         session: &Session,
     ) -> Result<()> {
@@ -935,14 +935,14 @@ impl Server {
 
                 {
                     let mut pool = self.connection_pool.lock();
-                    pool.add_connection(connection_id, user.id, user.admin, zed_version.clone());
+                    pool.add_connection(connection_id, user.id, user.admin, hawk_version.clone());
                     self.peer.send(
                         connection_id,
                         build_initial_contacts_update(contacts, &pool),
                     )?;
                 }
 
-                if should_auto_subscribe_to_channels(&zed_version) {
+                if should_auto_subscribe_to_channels(&hawk_version) {
                     subscribe_user_to_channels(user.id, session).await?;
                 }
 
@@ -1001,8 +1001,8 @@ pub struct ProtocolVersion(u32);
 
 impl Header for ProtocolVersion {
     fn name() -> &'static HeaderName {
-        static ZED_PROTOCOL_VERSION: OnceLock<HeaderName> = OnceLock::new();
-        ZED_PROTOCOL_VERSION.get_or_init(|| HeaderName::from_static("x-zed-protocol-version"))
+        static HAWK_PROTOCOL_VERSION: OnceLock<HeaderName> = OnceLock::new();
+        HAWK_PROTOCOL_VERSION.get_or_init(|| HeaderName::from_static("x-zed-protocol-version"))
     }
 
     fn decode<'i, I>(values: &mut I) -> Result<Self, axum::headers::Error>
@@ -1028,8 +1028,8 @@ impl Header for ProtocolVersion {
 pub struct AppVersionHeader(Version);
 impl Header for AppVersionHeader {
     fn name() -> &'static HeaderName {
-        static ZED_APP_VERSION: OnceLock<HeaderName> = OnceLock::new();
-        ZED_APP_VERSION.get_or_init(|| HeaderName::from_static("x-zed-app-version"))
+        static HAWK_APP_VERSION: OnceLock<HeaderName> = OnceLock::new();
+        HAWK_APP_VERSION.get_or_init(|| HeaderName::from_static("x-zed-app-version"))
     }
 
     fn decode<'i, I>(values: &mut I) -> Result<Self, axum::headers::Error>
@@ -1057,8 +1057,8 @@ pub struct ReleaseChannelHeader(String);
 
 impl Header for ReleaseChannelHeader {
     fn name() -> &'static HeaderName {
-        static ZED_RELEASE_CHANNEL: OnceLock<HeaderName> = OnceLock::new();
-        ZED_RELEASE_CHANNEL.get_or_init(|| HeaderName::from_static("x-zed-release-channel"))
+        static HAWK_RELEASE_CHANNEL: OnceLock<HeaderName> = OnceLock::new();
+        HAWK_RELEASE_CHANNEL.get_or_init(|| HeaderName::from_static("x-zed-release-channel"))
     }
 
     fn decode<'i, I>(values: &mut I) -> Result<Self, axum::headers::Error>

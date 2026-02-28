@@ -5,7 +5,7 @@ use crate::{
 use anyhow::Result;
 use assistant_slash_command::{SlashCommand, SlashCommandOutputSection, SlashCommandWorkingSet};
 use assistant_slash_commands::{DefaultSlashCommand, FileSlashCommand, selections_creases};
-use client::{proto, zed_urls};
+use client::{proto, hawk_urls};
 use collections::{BTreeSet, HashMap, HashSet, hash_map};
 use editor::{
     Anchor, Editor, EditorEvent, MenuEditPredictionsPolicy, MultiBuffer, MultiBufferOffset,
@@ -71,7 +71,7 @@ use workspace::{
     pane,
     searchable::{SearchEvent, SearchableItem},
 };
-use zed_actions::agent::{AddSelectionToThread, PasteRaw, ToggleModelSelector};
+use hawk_actions::agent::{AddSelectionToThread, PasteRaw, ToggleModelSelector};
 
 use crate::CycleFavoriteModels;
 
@@ -2358,7 +2358,7 @@ impl TextThreadEditor {
                     .child(Button::new("subscribe", "Subscribe").on_click(cx.listener(
                         |this, _, _window, cx| {
                             this.last_error = None;
-                            cx.open_url(&zed_urls::account_url(cx));
+                            cx.open_url(&hawk_urls::account_url(cx));
                             cx.notify();
                         },
                     )))

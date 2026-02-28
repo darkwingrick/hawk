@@ -258,4 +258,4 @@ After you submit your first message in a text thread, a name for your context is
 
 You can access and load previous contexts by clicking on the history button in the top-left corner of the agent panel.
 
-![Viewing assistant history](https://zed.dev/img/assistant/assistant-history.png)
+![Viewing assistant history](https://hawk.dev/img/assistant/assistant-history.png)

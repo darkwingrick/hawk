@@ -27,12 +27,12 @@ Zed, including AI features, works without sharing data with us and without authe
 
 - [Accounts](../authentication.md): When and why you'd need to authenticate into Zed, how to do so, and what scope we need from you.
 
-- [Collab](https://zed.dev/faq#data-and-privacy): How Zed's live collaboration works, and how data flows to provide the experience (we don't store your code).
+- [Collab](https://hawk.dev/faq#data-and-privacy): How Zed's live collaboration works, and how data flows to provide the experience (we don't store your code).
 
 ## Legal Links
 
-- [Terms of Service](https://zed.dev/terms-of-service)
-- [Terms of Use](https://zed.dev/terms)
-- [Privacy Policy](https://zed.dev/privacy-policy)
-- [Zed's Contributor License and Feedback Agreement](https://zed.dev/cla)
-- [Subprocessors](https://zed.dev/subprocessors)
+- [Terms of Service](https://hawk.dev/terms-of-service)
+- [Terms of Use](https://hawk.dev/terms)
+- [Privacy Policy](https://hawk.dev/privacy-policy)
+- [Zed's Contributor License and Feedback Agreement](https://hawk.dev/cla)
+- [Subprocessors](https://hawk.dev/subprocessors)

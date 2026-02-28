@@ -21,13 +21,13 @@ fn process_settings(cx: &mut App) {
     if settings.use_system_prompts && cfg!(not(any(target_os = "linux", target_os = "freebsd"))) {
         cx.reset_prompt_builder();
     } else {
-        cx.set_prompt_builder(zed_prompt_renderer);
+        cx.set_prompt_builder(hawk_prompt_renderer);
     }
 }
 
 /// Use this function in conjunction with [App::set_prompt_builder] to force
 /// GPUI to use the internal prompt system.
-fn zed_prompt_renderer(
+fn hawk_prompt_renderer(
     level: PromptLevel,
     message: &str,
     detail: Option<&str>,

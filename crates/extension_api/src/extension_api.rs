@@ -1,4 +1,4 @@
-//! The Zed Rust Extension API allows you write extensions for [Zed](https://zed.dev/) in Rust.
+//! The Zed Rust Extension API allows you write extensions for [Zed](https://hawk.dev/) in Rust.
 
 pub mod http_client;
 pub mod process;
@@ -328,7 +328,7 @@ static mut EXTENSION: Option<Box<dyn Extension>> = None;
 #[cfg(target_arch = "wasm32")]
 #[unsafe(link_section = "zed:api-version")]
 #[doc(hidden)]
-pub static ZED_API_VERSION: [u8; 6] = *include_bytes!(concat!(env!("OUT_DIR"), "/version_bytes"));
+pub static HAWK_API_VERSION: [u8; 6] = *include_bytes!(concat!(env!("OUT_DIR"), "/version_bytes"));
 
 mod wit {
     wit_bindgen::generate!({

@@ -82,7 +82,7 @@ You can inspect this exclusion list by opening `zed: open default settings` from
 }
 ```
 
-Users may explicitly exclude additional paths and/or file extensions by adding them to [`edit_predictions.disabled_globs`](https://zed.dev/docs/reference/all-settings#edit-predictions) in their Zed settings file ([how to edit](../configuring-zed.md#settings-files)):
+Users may explicitly exclude additional paths and/or file extensions by adding them to [`edit_predictions.disabled_globs`](https://hawk.dev/docs/reference/all-settings#edit-predictions) in their Zed settings file ([how to edit](../configuring-zed.md#settings-files)):
 
 ```json [settings]
 {
@@ -115,4 +115,4 @@ We then use this training dataset to fine-tune [Qwen2.5-Coder-7B](https://huggin
 
 ## Applicable terms
 
-Please see the [Zed Terms of Service](https://zed.dev/terms-of-service) for more.
+Please see the [Zed Terms of Service](https://hawk.dev/terms-of-service) for more.

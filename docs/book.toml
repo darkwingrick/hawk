@@ -3,7 +3,7 @@ authors = ["The Zed Team"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Zed"
+title = "Hawk"
 site-url = "/docs/"
 
 [build]
@@ -35,7 +35,7 @@ enable = false
 # 1. Not start with `/docs`
 # 2. End in `.html`
 #
-# The destination URLs are interpreted relative to `https://zed.dev`.
+# The destination URLs are interpreted relative to `https://hawk.dev`.
 # - Redirects to other docs pages should end in `.html`
 # - You can link to pages on the Zed site by omitting the `/docs` in front of it.
 [output.zed-html.redirect]

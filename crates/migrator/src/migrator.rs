@@ -659,7 +659,7 @@ mod tests {
             &r#"
             {
                 "features": {
-                    "inline_completion_provider": "zed"
+                    "inline_completion_provider": "hawk"
                 },
             }
             "#
@@ -668,7 +668,7 @@ mod tests {
                 &r#"
                 {
                     "edit_predictions": {
-                        "provider": "zed"
+                        "provider": "hawk"
                     }
                 }
                 "#
@@ -1243,7 +1243,7 @@ mod tests {
         "default_width": 640,
         "default_height": 320,
         "default_model": {
-            "provider": "zed.dev",
+            "provider": "hawk.dev",
             "model": "claude-sonnet-4"
         }
     }
@@ -1265,7 +1265,7 @@ mod tests {
         "default_width": 640,
         "default_height": 320,
         "default_model": {
-            "provider": "zed.dev",
+            "provider": "hawk.dev",
             "model": "claude-sonnet-4"
         }
     }
@@ -2647,7 +2647,7 @@ mod tests {
             &r#"
             {
                 "features": {
-                    "edit_prediction_provider": "zed"
+                    "edit_prediction_provider": "hawk"
                 },
                 "edit_predictions": {
                     "mode": "eager"
@@ -2659,7 +2659,7 @@ mod tests {
                 &r#"
                 {
                     "edit_predictions": {
-                        "provider": "zed",
+                        "provider": "hawk",
                         "mode": "eager"
                     }
                 }
@@ -2702,7 +2702,7 @@ mod tests {
             &r#"
             {
                 "edit_predictions": {
-                    "provider": "zed"
+                    "provider": "hawk"
                 }
             }
             "#
@@ -2809,7 +2809,7 @@ mod tests {
                 },
                 "macos": {
                     "features": {
-                        "edit_prediction_provider": "zed"
+                        "edit_prediction_provider": "hawk"
                     }
                 },
                 "profiles": {
@@ -2830,7 +2830,7 @@ mod tests {
                     },
                     "macos": {
                         "edit_predictions": {
-                            "provider": "zed"
+                            "provider": "hawk"
                         }
                     },
                     "profiles": {
@@ -2942,7 +2942,7 @@ mod tests {
             &r#"
             {
                 "edit_predictions": {
-                    "provider": "zed"
+                    "provider": "hawk"
                 }
             }
             "#

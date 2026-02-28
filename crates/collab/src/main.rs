@@ -86,7 +86,7 @@ async fn main() -> Result<()> {
                 if mode.is_collab() {
                     let epoch = state
                         .db
-                        .create_server(&state.config.zed_environment)
+                        .create_server(&state.config.hawk_environment)
                         .await?;
                     let rpc_server = collab::rpc::Server::new(epoch, state.clone());
                     rpc_server.start().await?;

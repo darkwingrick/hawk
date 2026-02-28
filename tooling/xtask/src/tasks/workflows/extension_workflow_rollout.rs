@@ -71,11 +71,11 @@ fn fetch_extension_repos() -> NamedJob {
 }
 
 fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
-    fn checkout_zed_repo() -> CheckoutStep {
+    fn checkout_hawk_repo() -> CheckoutStep {
         steps::checkout_repo()
             .with_full_history()
-            .with_path("zed")
-            .with_custom_name("checkout_zed_repo")
+            .with_path("hawk")
+            .with_custom_name("checkout_hawk_repo")
     }
 
     fn checkout_extension_repo(token: &StepOutput) -> CheckoutStep {
@@ -97,7 +97,7 @@ fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
             echo "prev_commit=$PREV_COMMIT" >> "$GITHUB_OUTPUT"
         "#})
         .id("prev-tag")
-        .working_directory("zed");
+        .working_directory("hawk");
 
         let step_output = StepOutput::new(&step, "prev_commit");
 
@@ -129,7 +129,7 @@ fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
             echo "removed_files=$REMOVED_FILES" >> "$GITHUB_OUTPUT"
         "#})
         .id("calc-changes")
-        .working_directory("zed");
+        .working_directory("hawk");
 
         let removed_files = StepOutput::new(&step, "removed_files");
 
@@ -166,7 +166,7 @@ fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
             echo "sha_short=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
         "#})
         .id("short-sha")
-        .working_directory("zed");
+        .working_directory("hawk");
 
         let step_output = StepOutput::new(&step, "sha_short");
 
@@ -215,8 +215,8 @@ fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
     }
 
     let (authenticate, token) = generate_token(
-        vars::ZED_ZIPPY_APP_ID,
-        vars::ZED_ZIPPY_APP_PRIVATE_KEY,
+        vars::HAWK_ZIPPY_APP_ID,
+        vars::HAWK_ZIPPY_APP_PRIVATE_KEY,
         Some(
             RepositoryTarget::new("zed-extensions", &["${{ matrix.repo }}"]).permissions([
                 ("permission-pull-requests".to_owned(), Level::Write),
@@ -246,7 +246,7 @@ fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
                 })),
         )
         .add_step(authenticate)
-        .add_step(checkout_zed_repo())
+        .add_step(checkout_hawk_repo())
         .add_step(checkout_extension_repo(&token))
         .add_step(get_prev_tag)
         .add_step(calc_changes)
@@ -259,7 +259,7 @@ fn rollout_workflows_to_extension(fetch_repos_job: &NamedJob) -> NamedJob {
 }
 
 fn create_rollout_tag(rollout_job: &NamedJob) -> NamedJob {
-    fn checkout_zed_repo(token: &StepOutput) -> CheckoutStep {
+    fn checkout_hawk_repo(token: &StepOutput) -> CheckoutStep {
         steps::checkout_repo().with_full_history().with_token(token)
     }
 
@@ -284,8 +284,8 @@ fn create_rollout_tag(rollout_job: &NamedJob) -> NamedJob {
     }
 
     let (authenticate, token) = generate_token(
-        vars::ZED_ZIPPY_APP_ID,
-        vars::ZED_ZIPPY_APP_PRIVATE_KEY,
+        vars::HAWK_ZIPPY_APP_ID,
+        vars::HAWK_ZIPPY_APP_PRIVATE_KEY,
         Some(
             RepositoryTarget::current()
                 .permissions([("permission-contents".to_owned(), Level::Write)]),
@@ -297,7 +297,7 @@ fn create_rollout_tag(rollout_job: &NamedJob) -> NamedJob {
         .runs_on(runners::LINUX_SMALL)
         .timeout_minutes(1u32)
         .add_step(authenticate)
-        .add_step(checkout_zed_repo(&token))
+        .add_step(checkout_hawk_repo(&token))
         .add_step(configure_git())
         .add_step(update_rollout_tag());
 

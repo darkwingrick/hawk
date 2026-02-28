@@ -8,11 +8,11 @@ If you are looking for the Zed extension registry, see the [`zed-industries/exte
 
 Currently, Zed includes support for a number of languages without requiring installing an extension. Those languages can be found under [`crates/languages/src`](https://github.com/zed-industries/zed/tree/main/crates/languages/src).
 
-Support for all other languages is done via extensions. This directory ([extensions/](https://github.com/zed-industries/zed/tree/main/extensions/)) contains a number of officially maintained extensions. These extensions use the same [zed_extension_api](https://docs.rs/zed_extension_api/latest/zed_extension_api/) available to all [Zed Extensions](https://zed.dev/extensions) for providing [language servers](https://zed.dev/docs/extensions/languages#language-servers), [tree-sitter grammars](https://zed.dev/docs/extensions/languages#grammar) and [tree-sitter queries](https://zed.dev/docs/extensions/languages#tree-sitter-queries).
+Support for all other languages is done via extensions. This directory ([extensions/](https://github.com/zed-industries/zed/tree/main/extensions/)) contains a number of officially maintained extensions. These extensions use the same [zed_extension_api](https://docs.rs/zed_extension_api/latest/zed_extension_api/) available to all [Zed Extensions](https://hawk.dev/extensions) for providing [language servers](https://hawk.dev/docs/extensions/languages#language-servers), [tree-sitter grammars](https://hawk.dev/docs/extensions/languages#grammar) and [tree-sitter queries](https://hawk.dev/docs/extensions/languages#tree-sitter-queries).
 
 ## Dev Extensions
 
-See the docs for [Developing an Extension Locally](https://zed.dev/docs/extensions/developing-extensions#developing-an-extension-locally) for how to work with one of these extensions.
+See the docs for [Developing an Extension Locally](https://hawk.dev/docs/extensions/developing-extensions#developing-an-extension-locally) for how to work with one of these extensions.
 
 ## Updating
 

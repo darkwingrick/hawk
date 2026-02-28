@@ -72,3 +72,73 @@ impl FeatureFlag for StreamingEditFileToolFeatureFlag {
         false
     }
 }
+
+pub struct CollabFeatureFlag;
+
+impl FeatureFlag for CollabFeatureFlag {
+    const NAME: &'static str = "collab";
+
+    fn enabled_for_staff() -> bool {
+        true
+    }
+
+    fn enabled_for_all() -> bool {
+        true
+    }
+}
+
+pub struct RemotesFeatureFlag;
+
+impl FeatureFlag for RemotesFeatureFlag {
+    const NAME: &'static str = "remotes";
+
+    fn enabled_for_staff() -> bool {
+        false
+    }
+
+    fn enabled_for_all() -> bool {
+        false
+    }
+}
+
+pub struct TelemetryFeatureFlag;
+
+impl FeatureFlag for TelemetryFeatureFlag {
+    const NAME: &'static str = "telemetry";
+
+    fn enabled_for_staff() -> bool {
+        false
+    }
+
+    fn enabled_for_all() -> bool {
+        false
+    }
+}
+
+pub struct CrashReportingFeatureFlag;
+
+impl FeatureFlag for CrashReportingFeatureFlag {
+    const NAME: &'static str = "crash-reporting";
+
+    fn enabled_for_staff() -> bool {
+        false
+    }
+
+    fn enabled_for_all() -> bool {
+        false
+    }
+}
+
+pub struct GoogleAuthFeatureFlag;
+
+impl FeatureFlag for GoogleAuthFeatureFlag {
+    const NAME: &'static str = "google-auth";
+
+    fn enabled_for_staff() -> bool {
+        false
+    }
+
+    fn enabled_for_all() -> bool {
+        false
+    }
+}

@@ -26,15 +26,15 @@ pub use crate::repl_settings::ReplSettings;
 pub use crate::repl_store::ReplStore;
 pub use crate::session::Session;
 
-pub const KERNEL_DOCS_URL: &str = "https://zed.dev/docs/repl#changing-kernels";
+pub const KERNEL_DOCS_URL: &str = "https://hawk.dev/docs/repl#changing-kernels";
 
 pub fn init(fs: Arc<dyn Fs>, cx: &mut App) {
-    set_dispatcher(zed_dispatcher(cx));
+    set_dispatcher(hawk_dispatcher(cx));
     repl_sessions_ui::init(cx);
     ReplStore::init(fs, cx);
 }
 
-fn zed_dispatcher(cx: &mut App) -> impl Dispatcher {
+fn hawk_dispatcher(cx: &mut App) -> impl Dispatcher {
     struct ZedDispatcher {
         dispatcher: Arc<dyn PlatformDispatcher>,
     }

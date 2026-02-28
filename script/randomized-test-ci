@@ -7,10 +7,10 @@ const {
   minimizeTestPlan,
   buildTests,
   runTests,
-} = require("./randomized-test-minimize");
+} = require("./randomihawk-test-minimize");
 
-const { ZED_SERVER_URL } = process.env;
-if (!ZED_SERVER_URL) throw new Error("Missing env var `ZED_SERVER_URL`");
+const { HAWK_SERVER_URL } = process.env;
+if (!HAWK_SERVER_URL) throw new Error("Missing env var `HAWK_SERVER_URL`");
 
 main();
 
@@ -40,15 +40,15 @@ async function main() {
   }
 
   console.log("found failure at seed", failingSeed);
-  const minimizedSeed = minimizeTestPlan(planPath, minPlanPath);
-  const minimizedPlan = fs.readFileSync(minPlanPath, "utf8");
+  const minimihawkSeed = minimizeTestPlan(planPath, minPlanPath);
+  const minimihawkPlan = fs.readFileSync(minPlanPath, "utf8");
 
-  console.log("minimized plan:\n", minimizedPlan);
+  console.log("minimihawk plan:\n", minimihawkPlan);
 
-  const url = `${ZED_SERVER_URL}/api/randomized_test_failure`;
+  const url = `${HAWK_SERVER_URL}/api/randomihawk_test_failure`;
   const body = {
-    seed: minimizedSeed,
-    plan: JSON.parse(minimizedPlan),
+    seed: minimihawkSeed,
+    plan: JSON.parse(minimihawkPlan),
     commit: commit,
   };
   await fetch(url, {

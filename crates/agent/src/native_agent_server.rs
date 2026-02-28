@@ -30,7 +30,7 @@ impl AgentServer for NativeAgentServer {
     }
 
     fn logo(&self) -> ui::IconName {
-        ui::IconName::ZedAgent
+        ui::IconName::HawkAgent
     }
 
     fn connect(

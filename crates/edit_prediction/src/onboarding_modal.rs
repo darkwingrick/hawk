@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{EditPredictionStore, ZedPredictUpsell};
+use crate::{EditPredictionStore, HawkPredictUpsell};
 use ai_onboarding::EditPredictionOnboarding;
 use client::{Client, UserStore};
 use db::kvp::Dismissable;
@@ -25,7 +25,7 @@ macro_rules! onboarding_event {
 }
 
 /// Introduces user to Zed's Edit Prediction feature
-pub struct ZedPredictModal {
+pub struct HawkPredictModal {
     onboarding: Entity<EditPredictionOnboarding>,
     focus_handle: FocusHandle,
 }
@@ -42,7 +42,7 @@ pub(crate) fn set_edit_prediction_provider(provider: EditPredictionProvider, cx:
     });
 }
 
-impl ZedPredictModal {
+impl HawkPredictModal {
     pub fn toggle(
         workspace: &mut Workspace,
         user_store: Entity<UserStore>,
@@ -66,15 +66,15 @@ impl ZedPredictModal {
                         Arc::new({
                             let this = weak_entity.clone();
                             move |_window, cx| {
-                                ZedPredictUpsell::set_dismissed(true, cx);
-                                set_edit_prediction_provider(EditPredictionProvider::Zed, cx);
+                                HawkPredictUpsell::set_dismissed(true, cx);
+                                set_edit_prediction_provider(EditPredictionProvider::Hawk, cx);
                                 this.update(cx, |_, cx| cx.emit(DismissEvent)).ok();
                             }
                         }),
                         Arc::new({
                             let this = weak_entity.clone();
                             move |window, cx| {
-                                ZedPredictUpsell::set_dismissed(true, cx);
+                                HawkPredictUpsell::set_dismissed(true, cx);
                                 set_edit_prediction_provider(EditPredictionProvider::Copilot, cx);
                                 this.update(cx, |_, cx| cx.emit(DismissEvent)).ok();
                                 if let Some(copilot) = copilot.clone() {
@@ -91,38 +91,38 @@ impl ZedPredictModal {
     }
 
     fn cancel(&mut self, _: &menu::Cancel, _: &mut Window, cx: &mut Context<Self>) {
-        ZedPredictUpsell::set_dismissed(true, cx);
+        HawkPredictUpsell::set_dismissed(true, cx);
         cx.emit(DismissEvent);
     }
 }
 
-impl EventEmitter<DismissEvent> for ZedPredictModal {}
+impl EventEmitter<DismissEvent> for HawkPredictModal {}
 
-impl Focusable for ZedPredictModal {
+impl Focusable for HawkPredictModal {
     fn focus_handle(&self, _cx: &App) -> FocusHandle {
         self.focus_handle.clone()
     }
 }
 
-impl ModalView for ZedPredictModal {
+impl ModalView for HawkPredictModal {
     fn on_before_dismiss(
         &mut self,
         _window: &mut Window,
         cx: &mut Context<Self>,
     ) -> workspace::DismissDecision {
-        ZedPredictUpsell::set_dismissed(true, cx);
+        HawkPredictUpsell::set_dismissed(true, cx);
         workspace::DismissDecision::Dismiss(true)
     }
 }
 
-impl Render for ZedPredictModal {
+impl Render for HawkPredictModal {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let window_height = window.viewport_size().height;
         let max_height = window_height - px(200.);
 
         v_flex()
             .id("edit-prediction-onboarding")
-            .key_context("ZedPredictModal")
+            .key_context("HawkPredictModal")
             .relative()
             .w(px(550.))
             .h_full()

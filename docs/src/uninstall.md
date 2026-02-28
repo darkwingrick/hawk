@@ -87,7 +87,7 @@ If the uninstall command fails or Zed was installed to a custom location, you ca
 1. Quit Zed if it's running
 2. Open Settings (Windows key + I)
 3. Go to "Apps" > "Installed apps" (or "Apps & features" on Windows 10)
-4. Search for "Zed"
+4. Search for "Hawk"
 5. Click the three dots menu next to Zed and select "Uninstall"
 6. Follow the prompts to complete the uninstallation
 
@@ -115,4 +115,4 @@ If you encounter issues during uninstallation:
 - **Linux**: If the uninstall script fails, check the error message and consider manual removal of the directories listed above.
 - **All platforms**: If you want to start fresh while keeping Zed installed, you can delete the configuration directories instead of uninstalling the application entirely.
 
-For additional help, see our [Linux-specific documentation](./linux.md) or visit the [Zed community](https://zed.dev/community-links).
+For additional help, see our [Linux-specific documentation](./linux.md) or visit the [Zed community](https://hawk.dev/community-links).

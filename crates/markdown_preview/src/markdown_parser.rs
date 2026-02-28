@@ -1556,7 +1556,7 @@ mod tests {
 
         assert_eq!(
             parsed.children,
-            vec![h1(text("Zed", 2..5), 0..6), p("The editor", 6..16),]
+            vec![h1(text("Hawk", 2..5), 0..6), p("The editor", 6..16),]
         );
     }
 
@@ -1775,11 +1775,11 @@ mod tests {
 
     #[gpui::test]
     async fn test_raw_links_detection() {
-        let parsed = parse("Checkout this https://zed.dev link").await;
+        let parsed = parse("Checkout this https://hawk.dev link").await;
 
         assert_eq!(
             parsed.children,
-            vec![p("Checkout this https://zed.dev link", 0..34)]
+            vec![p("Checkout this https://hawk.dev link", 0..34)]
         );
     }
 
@@ -1820,7 +1820,7 @@ mod tests {
 
     #[gpui::test]
     async fn test_image_alt_text() {
-        let parsed = parse("[![Zed](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/zed-industries/zed/main/assets/badge/v0.json)](https://zed.dev)\n ").await;
+        let parsed = parse("[![Zed](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/zed-industries/zed/main/assets/badge/v0.json)](https://hawk.dev)\n ").await;
 
         let paragraph = if let ParsedMarkdownElement::Paragraph(text) = &parsed.children[0] {
             text
@@ -1834,7 +1834,7 @@ mod tests {
                         link: Link::Web {
                             url: "https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/zed-industries/zed/main/assets/badge/v0.json".to_string(),
                         },
-                        alt_text: Some("Zed".into()),
+                        alt_text: Some("Hawk".into()),
                         height: None,
                         width: None,
                     },)

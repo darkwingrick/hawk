@@ -17,7 +17,7 @@ pub use young_account_banner::YoungAccountBanner;
 
 use std::sync::Arc;
 
-use client::{Client, UserStore, zed_urls};
+use client::{Client, UserStore, hawk_urls};
 use gpui::{AnyElement, Entity, IntoElement, ParentElement};
 use ui::{Divider, RegisterComponent, Tooltip, prelude::*};
 
@@ -45,7 +45,7 @@ pub struct ZedAiOnboarding {
     pub sign_in_status: SignInStatus,
     pub plan: Option<Plan>,
     pub account_too_young: bool,
-    pub continue_with_zed_ai: Arc<dyn Fn(&mut Window, &mut App)>,
+    pub continue_with_hawk_ai: Arc<dyn Fn(&mut Window, &mut App)>,
     pub sign_in: Arc<dyn Fn(&mut Window, &mut App)>,
     pub dismiss_onboarding: Option<Arc<dyn Fn(&mut Window, &mut App)>>,
 }
@@ -54,7 +54,7 @@ impl ZedAiOnboarding {
     pub fn new(
         client: Arc<Client>,
         user_store: &Entity<UserStore>,
-        continue_with_zed_ai: Arc<dyn Fn(&mut Window, &mut App)>,
+        continue_with_hawk_ai: Arc<dyn Fn(&mut Window, &mut App)>,
         cx: &mut App,
     ) -> Self {
         let store = user_store.read(cx);
@@ -64,7 +64,7 @@ impl ZedAiOnboarding {
             sign_in_status: status.into(),
             plan: store.plan(),
             account_too_young: store.account_too_young(),
-            continue_with_zed_ai,
+            continue_with_hawk_ai,
             sign_in: Arc::new(move |_window, cx| {
                 cx.spawn({
                     let client = client.clone();
@@ -168,7 +168,7 @@ impl ZedAiOnboarding {
                                         "Upgrade To Pro Clicked",
                                         state = "young-account"
                                     );
-                                    cx.open_url(&zed_urls::upgrade_to_zed_pro_url(cx))
+                                    cx.open_url(&hawk_urls::upgrade_to_hawk_pro_url(cx))
                                 }),
                         ),
                 )
@@ -229,7 +229,7 @@ impl ZedAiOnboarding {
                                         "Start Trial Clicked",
                                         state = "post-sign-in"
                                     );
-                                    cx.open_url(&zed_urls::start_trial_url(cx))
+                                    cx.open_url(&hawk_urls::start_trial_url(cx))
                                 }),
                         ),
                 )
@@ -320,7 +320,7 @@ impl Component for ZedAiOnboarding {
                 sign_in_status,
                 plan,
                 account_too_young,
-                continue_with_zed_ai: Arc::new(|_, _| {}),
+                continue_with_hawk_ai: Arc::new(|_, _| {}),
                 sign_in: Arc::new(|_, _| {}),
                 dismiss_onboarding: None,
             }

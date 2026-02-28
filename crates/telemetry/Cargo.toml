@@ -15,4 +15,5 @@ path = "src/telemetry.rs"
 serde.workspace = true
 serde_json.workspace = true
 telemetry_events.workspace = true
+feature_flags.workspace = true
 futures.workspace = true

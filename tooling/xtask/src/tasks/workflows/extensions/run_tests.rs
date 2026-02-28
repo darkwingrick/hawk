@@ -20,7 +20,7 @@ pub(crate) fn call_extension_tests() -> NamedJob<UsesJob> {
         .permissions(Permissions::default().contents(Level::Read))
         .uses(
             "zed-industries",
-            "zed",
+            "hawk",
             ".github/workflows/extension_tests.yml",
             "main",
         );

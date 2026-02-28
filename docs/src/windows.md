@@ -7,9 +7,9 @@ description: "Get the latest stable builds via the download page. If you want to
 
 ## Installing Zed
 
-Get the latest stable builds via [the download page](https://zed.dev/download). If you want to download our preview build, you can find it on its [releases page](https://zed.dev/releases/preview). After the first manual installation, Zed will periodically check for install updates.
+Get the latest stable builds via [the download page](https://hawk.dev/download). If you want to download our preview build, you can find it on its [releases page](https://hawk.dev/releases/preview). After the first manual installation, Zed will periodically check for install updates.
 
-You can also build zed from source, see [these docs](https://zed.dev/docs/development/windows) for instructions.
+You can also build zed from source, see [these docs](https://hawk.dev/docs/development/windows) for instructions.
 
 ### Package managers
 

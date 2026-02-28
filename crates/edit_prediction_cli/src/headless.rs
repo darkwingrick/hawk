@@ -25,11 +25,11 @@ pub struct EpAppState {
 }
 
 pub fn init(cx: &mut App) -> EpAppState {
-    let app_commit_sha = option_env!("ZED_COMMIT_SHA").map(|s| AppCommitSha::new(s.to_owned()));
+    let app_commit_sha = option_env!("HAWK_COMMIT_SHA").map(|s| AppCommitSha::new(s.to_owned()));
 
     let app_version = AppVersion::load(
-        env!("ZED_PKG_VERSION"),
-        option_env!("ZED_BUILD_ID"),
+        env!("HAWK_PKG_VERSION"),
+        option_env!("HAWK_BUILD_ID"),
         app_commit_sha,
     );
     release_channel::init(app_version.clone(), cx);

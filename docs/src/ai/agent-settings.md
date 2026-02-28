@@ -36,7 +36,7 @@ You can assign distinct and specific models for the following AI-powered feature
 {
   "agent": {
     "default_model": {
-      "provider": "zed.dev",
+      "provider": "hawk.dev",
       "model": "claude-sonnet-4-5"
     },
     "inline_assistant_model": {
@@ -67,12 +67,12 @@ Here's how you can customize your settings file ([how to edit](../configuring-ze
 {
   "agent": {
     "default_model": {
-      "provider": "zed.dev",
+      "provider": "hawk.dev",
       "model": "claude-sonnet-4-5"
     },
     "inline_alternatives": [
       {
-        "provider": "zed.dev",
+        "provider": "hawk.dev",
         "model": "gpt-5-mini"
       }
     ]
@@ -91,16 +91,16 @@ One with Claude Sonnet 4.5 (the default model), another with GPT-5-mini, and ano
 {
   "agent": {
     "default_model": {
-      "provider": "zed.dev",
+      "provider": "hawk.dev",
       "model": "claude-sonnet-4-5"
     },
     "inline_alternatives": [
       {
-        "provider": "zed.dev",
+        "provider": "hawk.dev",
         "model": "gpt-5-mini"
       },
       {
-        "provider": "zed.dev",
+        "provider": "hawk.dev",
         "model": "gemini-3-flash"
       }
     ]
@@ -127,7 +127,7 @@ Specify a custom temperature for a provider and/or model:
       },
       // To set parameters for a specific provider and model:
       {
-        "provider": "zed.dev",
+        "provider": "hawk.dev",
         "model": "claude-sonnet-4-5",
         "temperature": 1.0
       }

@@ -22,7 +22,7 @@ use project::{
 use serde::{Deserialize, Serialize};
 use settings::{LanguageModelProviderSetting, LanguageModelSelection};
 
-use zed_actions::agent::{OpenClaudeAgentOnboardingModal, ReauthenticateAgent, ReviewBranchDiff};
+use hawk_actions::agent::{OpenClaudeAgentOnboardingModal, ReauthenticateAgent, ReviewBranchDiff};
 
 use crate::ui::{AcpOnboardingModal, ClaudeCodeOnboardingModal};
 use crate::{
@@ -77,7 +77,7 @@ use workspace::{
     WorkspaceId,
     dock::{DockPosition, Panel, PanelEvent},
 };
-use zed_actions::{
+use hawk_actions::{
     DecreaseBufferFontSize, IncreaseBufferFontSize, ResetBufferFontSize,
     agent::{OpenAcpOnboardingModal, OpenSettings, ResetAgentZoom, ResetOnboarding},
     assistant::{OpenRulesLibrary, Toggle, ToggleFocus},
@@ -1962,7 +1962,7 @@ impl Panel for AgentPanel {
     }
 
     fn icon(&self, _window: &Window, cx: &App) -> Option<IconName> {
-        (self.enabled(cx) && AgentSettings::get_global(cx).button).then_some(IconName::ZedAssistant)
+        (self.enabled(cx) && AgentSettings::get_global(cx).button).then_some(IconName::HawkAssistant)
     }
 
     fn icon_tooltip(&self, _window: &Window, _cx: &App) -> Option<&'static str> {
@@ -2250,9 +2250,9 @@ impl AgentPanel {
                             .header("MCP Servers")
                             .action(
                                 "View Server Extensions",
-                                Box::new(zed_actions::Extensions {
+                                Box::new(hawk_actions::Extensions {
                                     category_filter: Some(
-                                        zed_actions::ExtensionCategoryFilter::ContextServers,
+                                        hawk_actions::ExtensionCategoryFilter::ContextServers,
                                     ),
                                     id: None,
                                 }),
@@ -2423,7 +2423,7 @@ impl AgentPanel {
                                             }))
                                         },
                                     )
-                                    .icon(IconName::ZedAgent)
+                                    .icon(IconName::HawkAgent)
                                     .icon_color(Color::Muted)
                                     .handler({
                                         let workspace = workspace.clone();
@@ -2671,7 +2671,7 @@ impl AgentPanel {
                                     .handler({
                                         move |window, cx| {
                                             window.dispatch_action(
-                                                Box::new(zed_actions::AcpRegistry),
+                                                Box::new(hawk_actions::AcpRegistry),
                                                 cx,
                                             )
                                         }
@@ -2771,7 +2771,7 @@ impl AgentPanel {
                     .read(cx)
                     .default_model()
                     .is_some_and(|model| {
-                        model.provider.id() != language_model::ZED_CLOUD_PROVIDER_ID
+                        model.provider.id() != language_model::HAWK_CLOUD_PROVIDER_ID
                     })
                 {
                     return false;
@@ -2820,15 +2820,15 @@ impl AgentPanel {
             _ => {
                 let history_is_empty = self.acp_history.read(cx).is_empty();
 
-                let has_configured_non_zed_providers = LanguageModelRegistry::read_global(cx)
+                let has_configured_non_hawk_providers = LanguageModelRegistry::read_global(cx)
                     .visible_providers()
                     .iter()
                     .any(|provider| {
                         provider.is_authenticated(cx)
-                            && provider.id() != language_model::ZED_CLOUD_PROVIDER_ID
+                            && provider.id() != language_model::HAWK_CLOUD_PROVIDER_ID
                     });
 
-                history_is_empty || !has_configured_non_zed_providers
+                history_is_empty || !has_configured_non_hawk_providers
             }
         }
     }
@@ -2916,12 +2916,12 @@ impl AgentPanel {
         focus_handle: &FocusHandle,
         cx: &mut App,
     ) -> impl IntoElement {
-        let zed_provider_configured = AgentSettings::get_global(cx)
+        let hawk_provider_configured = AgentSettings::get_global(cx)
             .default_model
             .as_ref()
-            .is_some_and(|selection| selection.provider.0.as_str() == "zed.dev");
+            .is_some_and(|selection| selection.provider.0.as_str() == "hawk.dev");
 
-        let callout = if zed_provider_configured {
+        let callout = if hawk_provider_configured {
             Callout::new()
                 .icon(IconName::Warning)
                 .severity(Severity::Warning)

@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
 use std::sync::OnceLock;
 
-use client::zed_urls;
+use client::hawk_urls;
 use collections::HashMap;
 use editor::{Editor, EditorElement, EditorStyle};
 use fs::Fs;
@@ -325,15 +325,15 @@ impl AgentRegistryPage {
             let banner = match feature {
                 BuiltInAgent::Claude => self.render_feature_upsell_banner(
                     "Claude Agent support is built-in to Zed!".into(),
-                    "https://zed.dev/docs/ai/external-agents#claude-agent".into(),
+                    "https://hawk.dev/docs/ai/external-agents#claude-agent".into(),
                 ),
                 BuiltInAgent::Codex => self.render_feature_upsell_banner(
                     "Codex CLI support is built-in to Zed!".into(),
-                    "https://zed.dev/docs/ai/external-agents#codex-cli".into(),
+                    "https://hawk.dev/docs/ai/external-agents#codex-cli".into(),
                 ),
                 BuiltInAgent::Gemini => self.render_feature_upsell_banner(
                     "Gemini CLI support is built-in to Zed!".into(),
-                    "https://zed.dev/docs/ai/external-agents#gemini-cli".into(),
+                    "https://hawk.dev/docs/ai/external-agents#gemini-cli".into(),
                 ),
             };
             container = container.child(banner);
@@ -649,7 +649,7 @@ impl Render for AgentRegistryPage {
                                     .icon_color(Color::Muted)
                                     .icon_size(IconSize::Small)
                                     .on_click(move |_, _, cx| {
-                                        cx.open_url(&zed_urls::acp_registry_blog(cx))
+                                        cx.open_url(&hawk_urls::acp_registry_blog(cx))
                                     }),
                             ),
                     )

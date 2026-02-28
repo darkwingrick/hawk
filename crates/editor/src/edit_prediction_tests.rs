@@ -317,11 +317,11 @@ async fn test_edit_prediction_invalidation_range(cx: &mut gpui::TestAppContext) 
 }
 
 #[gpui::test]
-async fn test_edit_prediction_jump_disabled_for_non_zed_providers(cx: &mut gpui::TestAppContext) {
+async fn test_edit_prediction_jump_disabled_for_non_hawk_providers(cx: &mut gpui::TestAppContext) {
     init_test(cx, |_| {});
 
     let mut cx = EditorTestContext::new(cx).await;
-    let provider = cx.new(|_| FakeNonZedEditPredictionDelegate::default());
+    let provider = cx.new(|_| FakeNonHawkEditPredictionDelegate::default());
     assign_editor_completion_provider_non_zed(provider.clone(), &mut cx);
 
     // Cursor is 2+ lines above the proposed edit
@@ -533,7 +533,7 @@ fn assign_editor_completion_provider(
 }
 
 fn propose_edits_non_zed<T: ToOffset>(
-    provider: &Entity<FakeNonZedEditPredictionDelegate>,
+    provider: &Entity<FakeNonHawkEditPredictionDelegate>,
     edits: Vec<(Range<T>, &str)>,
     cx: &mut EditorTestContext,
 ) {
@@ -556,7 +556,7 @@ fn propose_edits_non_zed<T: ToOffset>(
 }
 
 fn assign_editor_completion_provider_non_zed(
-    provider: Entity<FakeNonZedEditPredictionDelegate>,
+    provider: Entity<FakeNonHawkEditPredictionDelegate>,
     cx: &mut EditorTestContext,
 ) {
     cx.update_editor(|editor, window, cx| {
@@ -596,7 +596,7 @@ impl EditPredictionDelegate for FakeEditPredictionDelegate {
     }
 
     fn icons(&self, _cx: &gpui::App) -> EditPredictionIconSet {
-        EditPredictionIconSet::new(IconName::ZedPredict)
+        EditPredictionIconSet::new(IconName::HawkPredict)
     }
 
     fn is_enabled(
@@ -641,11 +641,11 @@ impl EditPredictionDelegate for FakeEditPredictionDelegate {
 }
 
 #[derive(Default, Clone)]
-pub struct FakeNonZedEditPredictionDelegate {
+pub struct FakeNonHawkEditPredictionDelegate {
     pub completion: Option<edit_prediction_types::EditPrediction>,
 }
 
-impl FakeNonZedEditPredictionDelegate {
+impl FakeNonHawkEditPredictionDelegate {
     pub fn set_edit_prediction(
         &mut self,
         completion: Option<edit_prediction_types::EditPrediction>,
@@ -654,7 +654,7 @@ impl FakeNonZedEditPredictionDelegate {
     }
 }
 
-impl EditPredictionDelegate for FakeNonZedEditPredictionDelegate {
+impl EditPredictionDelegate for FakeNonHawkEditPredictionDelegate {
     fn name() -> &'static str {
         "fake-non-zed-provider"
     }
@@ -672,7 +672,7 @@ impl EditPredictionDelegate for FakeNonZedEditPredictionDelegate {
     }
 
     fn icons(&self, _cx: &gpui::App) -> EditPredictionIconSet {
-        EditPredictionIconSet::new(IconName::ZedPredict)
+        EditPredictionIconSet::new(IconName::HawkPredict)
     }
 
     fn is_enabled(

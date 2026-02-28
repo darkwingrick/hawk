@@ -120,5 +120,5 @@ Open `.etl` files with [Windows Performance Analyzer](https://learn.microsoft.co
 
 - [CONTRIBUTING.md](https://github.com/zed-industries/zed/blob/main/CONTRIBUTING.md)
 - [Debugging Crashes](./development/debugging-crashes.md)
-- [Code of Conduct](https://zed.dev/code-of-conduct)
-- [Zed Contributor License](https://zed.dev/cla)
+- [Code of Conduct](https://hawk.dev/code-of-conduct)
+- [Zed Contributor License](https://hawk.dev/cla)

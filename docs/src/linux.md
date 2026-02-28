@@ -7,16 +7,16 @@ description: "The installation script on the download page is the fastest way to
 
 ## Standard Installation
 
-The installation script on the [download](https://zed.dev/download) page is the fastest way to install Zed:
+The installation script on the [download](https://hawk.dev/download) page is the fastest way to install Zed:
 
 ```sh
-curl -f https://zed.dev/install.sh | sh
+curl -f https://hawk.dev/install.sh | sh
 ```
 
 We also offer a preview build of Zed which receives updates about a week ahead of stable. You can install it with:
 
 ```sh
-curl -f https://zed.dev/install.sh | ZED_CHANNEL=preview sh
+curl -f https://hawk.dev/install.sh | ZED_CHANNEL=preview sh
 ```
 
 The Zed installed by the script works best on systems that:
@@ -78,10 +78,10 @@ If you'd prefer, you can install Zed by downloading our pre-built .tar.gz. This 
 
 Download the `.tar.gz` file:
 
-- [zed-linux-x86_64.tar.gz](https://cloud.zed.dev/releases/stable/latest/download?asset=zed&arch=x86_64&os=linux&source=docs)
-  ([preview](https://cloud.zed.dev/releases/preview/latest/download?asset=zed&arch=x86_64&os=linux&source=docs))
-- [zed-linux-aarch64.tar.gz](https://cloud.zed.dev/releases/stable/latest/download?asset=zed&arch=aarch64&os=linux&source=docs)
-  ([preview](https://cloud.zed.dev/releases/preview/latest/download?asset=zed&arch=aarch64&os=linux&source=docs))
+- [zed-linux-x86_64.tar.gz](https://cloud.hawk.dev/releases/stable/latest/download?asset=zed&arch=x86_64&os=linux&source=docs)
+  ([preview](https://cloud.hawk.dev/releases/preview/latest/download?asset=zed&arch=x86_64&os=linux&source=docs))
+- [zed-linux-aarch64.tar.gz](https://cloud.hawk.dev/releases/stable/latest/download?asset=zed&arch=aarch64&os=linux&source=docs)
+  ([preview](https://cloud.hawk.dev/releases/preview/latest/download?asset=zed&arch=aarch64&os=linux&source=docs))
 
 Then ensure that the `zed` binary in the tarball is on your path. The easiest way is to unpack the tarball and create a symlink:
 

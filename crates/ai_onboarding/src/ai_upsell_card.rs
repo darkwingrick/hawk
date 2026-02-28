@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use client::{Client, UserStore, zed_urls};
+use client::{Client, UserStore, hawk_urls};
 use cloud_api_types::Plan;
 use gpui::{AnyElement, App, Entity, IntoElement, RenderOnce, Window};
 use ui::{CommonAnimationExt, Divider, Vector, VectorName, prelude::*};
@@ -195,7 +195,7 @@ impl RenderOnce for AiUpsellCard {
                                                     "Upgrade To Pro Clicked",
                                                     state = "young-account"
                                                 );
-                                                cx.open_url(&zed_urls::upgrade_to_zed_pro_url(cx))
+                                                cx.open_url(&hawk_urls::upgrade_to_hawk_pro_url(cx))
                                             }),
                                     ),
                             )
@@ -221,7 +221,7 @@ impl RenderOnce for AiUpsellCard {
                                                     "Start Trial Clicked",
                                                     state = "post-sign-in"
                                                 );
-                                                cx.open_url(&zed_urls::start_trial_url(cx))
+                                                cx.open_url(&hawk_urls::start_trial_url(cx))
                                             }),
                                     )
                                     .child(

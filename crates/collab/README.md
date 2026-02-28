@@ -1,8 +1,8 @@
 # Zed Server
 
-This crate is what we run at https://collab.zed.dev.
+This crate is what we run at https://collab.hawk.dev.
 
-It contains our back-end logic for collaboration, to which we connect from the Zed client via a websocket after authenticating via https://zed.dev, which is a separate repo running on Vercel.
+It contains our back-end logic for collaboration, to which we connect from the Zed client via a websocket after authenticating via https://hawk.dev, which is a separate repo running on Vercel.
 
 # Local Development
 
@@ -28,7 +28,7 @@ To use a different set of admin users, create `crates/collab/seed.json`.
 ```json
 {
   "admins": ["yourgithubhere"],
-  "channels": ["zed"]
+  "channels": ["hawk"]
 }
 ```
 
@@ -52,8 +52,8 @@ This script starts one to four instances of Zed, depending on the `-2`, `-3` or 
 
 We run two instances of collab:
 
-- Staging (https://staging-collab.zed.dev)
-- Production (https://collab.zed.dev)
+- Staging (https://staging-collab.hawk.dev)
+- Production (https://collab.hawk.dev)
 
 Both of these run on the Kubernetes cluster hosted in Digital Ocean.
 

@@ -662,7 +662,7 @@ impl Copilot {
 
             let editor_info = request::SetEditorInfoParams {
                 editor_info: request::EditorInfo {
-                    name: "zed".into(),
+                    name: "hawk".into(),
                     version: env!("CARGO_PKG_VERSION").into(),
                 },
                 editor_plugin_info: request::EditorPluginInfo {
@@ -713,9 +713,9 @@ impl Copilot {
         this.update(cx, |this, cx| {
             cx.notify();
 
-            if env::var("ZED_FORCE_COPILOT_ERROR").is_ok() {
+            if env::var("HAWK_FORCE_COPILOT_ERROR").is_ok() {
                 this.server = CopilotServer::Error(
-                    "Forced error for testing (ZED_FORCE_COPILOT_ERROR)".into(),
+                    "Forced error for testing (HAWK_FORCE_COPILOT_ERROR)".into(),
                 );
                 return;
             }

@@ -691,7 +691,7 @@ mod tests {
             "/root",
             json!({
                 ".config": {
-                    "zed": {
+                    "hawk": {
                         "settings.json": r#"{ "formatter": "auto" }"#,
                     },
                 },

@@ -12,7 +12,7 @@ use project::{LspStore, lsp_store::LocalLspAdapterDelegate};
 use settings::{LSP_SETTINGS_SCHEMA_URL_PREFIX, Settings as _, SettingsLocation};
 use util::schemars::{AllowTrailingCommas, DefaultDenyUnknownFields};
 
-const SCHEMA_URI_PREFIX: &str = "zed://schemas/";
+const SCHEMA_URI_PREFIX: &str = "hawk://schemas/";
 
 const TSCONFIG_SCHEMA: &str = include_str!("schemas/tsconfig.json");
 const PACKAGE_JSON_SCHEMA: &str = include_str!("schemas/package.json");
@@ -158,7 +158,7 @@ fn resolve_static_schema(path: &str) -> Option<String> {
         "snippets" => Some(SNIPPETS_SCHEMA.clone()),
         "jsonc" => Some(JSONC_SCHEMA.clone()),
         "keymap" => Some(KEYMAP_SCHEMA.clone()),
-        "zed_inspector_style" => {
+        "hawk_inspector_style" => {
             #[cfg(debug_assertions)]
             {
                 Some(INSPECTOR_STYLE_SCHEMA.clone())
@@ -472,7 +472,7 @@ pub fn all_schema_file_associations(
                 "fileMatch": [
                     "zed-inspector-style.json"
                 ],
-                "url": format!("{SCHEMA_URI_PREFIX}zed_inspector_style")
+                "url": format!("{SCHEMA_URI_PREFIX}hawk_inspector_style")
             }));
     }
 

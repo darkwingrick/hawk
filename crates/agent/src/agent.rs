@@ -1244,7 +1244,7 @@ impl acp_thread::AgentModelSelector for NativeAgentModelSelector {
 
 impl acp_thread::AgentConnection for NativeAgentConnection {
     fn telemetry_id(&self) -> SharedString {
-        "zed".into()
+        "hawk".into()
     }
 
     fn new_session(
@@ -2014,7 +2014,7 @@ mod internal_tests {
                     name: "Fake".into(),
                     description: None,
                     icon: Some(acp_thread::AgentModelIcon::Named(
-                        ui::IconName::ZedAssistant
+                        ui::IconName::HawkAssistant
                     )),
                     is_latest: false,
                     cost: None,

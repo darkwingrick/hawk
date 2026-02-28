@@ -50,7 +50,7 @@ To improve the Editor and understand how You use it, Zed optionally collects the
 - (c) project statistics (e.g., number of files); and
 - (d) frameworks detected in Your projects
 
-(a-d collectively, "Usage Data"). Usage Data does not include any of Your software code or sensitive project details. You may change Your preferences disabling the collection of Usage Data and You can audit Usage Data collected by the Editor at any time. See [https://zed.dev/docs/telemetry](https://zed.dev/docs/telemetry) for more.
+(a-d collectively, "Usage Data"). Usage Data does not include any of Your software code or sensitive project details. You may change Your preferences disabling the collection of Usage Data and You can audit Usage Data collected by the Editor at any time. See [https://hawk.dev/docs/telemetry](https://hawk.dev/docs/telemetry) for more.
 
 Usage Data is associated with a secure random telemetry ID which may be linked to Your email address. This linkage currently serves two purposes: (1) it allows Zed to analyze usage patterns over time while maintaining Your privacy; and (2) it enables Zed to reach out to specific user groups for feedback and improvement suggestions. Zed may contact You based on Your usage patterns to better understand your needs and improve the Solution. If You delete Your account, the link between Your telemetry ID and Your email address will be permanently removed. By continuing to use Editor or Solution with this feature enabled You agree to this Usage Data collection.
 
@@ -94,21 +94,21 @@ Output is provided "as is" without any warranties or guarantees of functionality
 
 When using Zed AI Services to provide Edit Predictions in connection with certain open source software projects, You may elect to share requests, responses and feedback comments (collectively "Model Improvement Feedback") with Zed, and Zed may use the same to improve Zed Edit Predictions models. You may opt-out of sharing Model Improvement Feedback at any time.
 
-For more information on Zed Edit Predictions please see: [https://zed.dev/docs/ai/ai-improvement](https://zed.dev/docs/ai/ai-improvement)
+For more information on Zed Edit Predictions please see: [https://hawk.dev/docs/ai/ai-improvement](https://hawk.dev/docs/ai/ai-improvement)
 
 When using Zed AI Services in connection with the Agent Panel, You may elect to share with Zed requests, responses and feedback regarding the Agent Panel and related Output (the “Agent Improvement Feedback”) with Zed, and Zed may use the same to improve the Agent Panel and related Output. Zed will only collect Agent Improvement Feedback when You elect to share the same.
 
-For more information regarding the Agent Panel please see: [https://zed.dev/docs/ai/ai-improvement](https://zed.dev/docs/ai/ai-improvement)
+For more information regarding the Agent Panel please see: [https://hawk.dev/docs/ai/ai-improvement](https://hawk.dev/docs/ai/ai-improvement)
 
 #### 3.4. Privacy Policy
 
-You and Zed are bound by the terms and conditions contained in the Zed Privacy Policy which is incorporated by reference hereto. The Zed Privacy Policy is available at the following URL: [https://zed.dev/privacy-policy](https://zed.dev/privacy-policy).
+You and Zed are bound by the terms and conditions contained in the Zed Privacy Policy which is incorporated by reference hereto. The Zed Privacy Policy is available at the following URL: [https://hawk.dev/privacy-policy](https://hawk.dev/privacy-policy).
 
 ## 4. FEE BASED SERVICES, FEES AND PAYMENT TERMS
 
 ### 4.1. Fee Based Services
 
-The Zed AI Services is made available with additional usage benefits (the “Enhanced Use ”) as described in the table published at [zed.dev/pricing](https://zed.dev/pricing) (the “Pricing Table”), subject to the requirements and limitations set forth in the Pricing Table and these Terms. In order to make use of the Enhanced Use, Customer must access the Zed AI Services through a Zed registered account.
+The Zed AI Services is made available with additional usage benefits (the “Enhanced Use ”) as described in the table published at [hawk.dev/pricing](https://hawk.dev/pricing) (the “Pricing Table”), subject to the requirements and limitations set forth in the Pricing Table and these Terms. In order to make use of the Enhanced Use, Customer must access the Zed AI Services through a Zed registered account.
 
 ### 4.2. Fees
 
@@ -154,7 +154,7 @@ IN NO EVENT SHALL ZED BE LIABLE FOR ANY LOST DATA, LOST PROFITS, BUSINESS INTERR
 
 ## 10. Third Party Services
 
-Zed may make certain third party services available to You within the Editor or the Zed Service (each a "Third Party Service"). You acknowledge and agree that (a) use of each Third Party Service is subject to the corresponding terms and conditions available at the following URL: [https://zed.dev/third-party-terms](https://zed.dev/third-party-terms) and/or presented in connection with Your use of such Third Party Service; (b) the terms and conditions of this Agreement do not apply with respect to Your use of any Third Party Service; and (c) Zed is not liable in any way regarding Your use of any Third Party Service.
+Zed may make certain third party services available to You within the Editor or the Zed Service (each a "Third Party Service"). You acknowledge and agree that (a) use of each Third Party Service is subject to the corresponding terms and conditions available at the following URL: [https://hawk.dev/third-party-terms](https://hawk.dev/third-party-terms) and/or presented in connection with Your use of such Third Party Service; (b) the terms and conditions of this Agreement do not apply with respect to Your use of any Third Party Service; and (c) Zed is not liable in any way regarding Your use of any Third Party Service.
 
 ## 11. MISCELLANEOUS
 

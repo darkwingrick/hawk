@@ -211,11 +211,11 @@ impl HttpClientWithUrl {
     }
 
     /// Builds a Zed API URL using the given path.
-    pub fn build_zed_api_url(&self, path: &str, query: &[(&str, &str)]) -> Result<Url> {
+    pub fn build_hawk_api_url(&self, path: &str, query: &[(&str, &str)]) -> Result<Url> {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
-            "https://zed.dev" => "https://api.zed.dev",
-            "https://staging.zed.dev" => "https://api-staging.zed.dev",
+            "https://hawk.dev" => "https://api.hawk.dev",
+            "https://staging.hawk.dev" => "https://api-staging.hawk.dev",
             "http://localhost:3000" => "http://localhost:8080",
             other => other,
         };
@@ -227,11 +227,11 @@ impl HttpClientWithUrl {
     }
 
     /// Builds a Zed Cloud URL using the given path.
-    pub fn build_zed_cloud_url(&self, path: &str) -> Result<Url> {
+    pub fn build_hawk_cloud_url(&self, path: &str) -> Result<Url> {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
-            "https://zed.dev" => "https://cloud.zed.dev",
-            "https://staging.zed.dev" => "https://cloud.zed.dev",
+            "https://hawk.dev" => "https://cloud.hawk.dev",
+            "https://staging.hawk.dev" => "https://cloud.hawk.dev",
             "http://localhost:3000" => "http://localhost:8787",
             other => other,
         };
@@ -240,11 +240,11 @@ impl HttpClientWithUrl {
     }
 
     /// Builds a Zed Cloud URL using the given path and query params.
-    pub fn build_zed_cloud_url_with_query(&self, path: &str, query: impl Serialize) -> Result<Url> {
+    pub fn build_hawk_cloud_url_with_query(&self, path: &str, query: impl Serialize) -> Result<Url> {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
-            "https://zed.dev" => "https://cloud.zed.dev",
-            "https://staging.zed.dev" => "https://cloud.zed.dev",
+            "https://hawk.dev" => "https://cloud.hawk.dev",
+            "https://staging.hawk.dev" => "https://cloud.hawk.dev",
             "http://localhost:3000" => "http://localhost:8787",
             other => other,
         };
@@ -253,11 +253,11 @@ impl HttpClientWithUrl {
     }
 
     /// Builds a Zed LLM URL using the given path.
-    pub fn build_zed_llm_url(&self, path: &str, query: &[(&str, &str)]) -> Result<Url> {
+    pub fn build_hawk_llm_url(&self, path: &str, query: &[(&str, &str)]) -> Result<Url> {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
-            "https://zed.dev" => "https://cloud.zed.dev",
-            "https://staging.zed.dev" => "https://llm-staging.zed.dev",
+            "https://hawk.dev" => "https://cloud.hawk.dev",
+            "https://staging.hawk.dev" => "https://llm-staging.hawk.dev",
             "http://localhost:3000" => "http://localhost:8787",
             other => other,
         };

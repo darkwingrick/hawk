@@ -50,7 +50,7 @@ impl ZedVersion {
 pub struct Connection {
     pub user_id: UserId,
     pub admin: bool,
-    pub zed_version: ZedVersion,
+    pub hawk_version: ZedVersion,
 }
 
 impl ConnectionPool {
@@ -70,14 +70,14 @@ impl ConnectionPool {
         connection_id: ConnectionId,
         user_id: UserId,
         admin: bool,
-        zed_version: ZedVersion,
+        hawk_version: ZedVersion,
     ) {
         self.connections.insert(
             connection_id,
             Connection {
                 user_id,
                 admin,
-                zed_version,
+                hawk_version,
             },
         );
         let connected_user = self.connected_users.entry(user_id).or_default();

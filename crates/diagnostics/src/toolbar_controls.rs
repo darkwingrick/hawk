@@ -4,8 +4,8 @@ use language::DiagnosticEntry;
 use text::{Anchor, BufferId};
 use ui::{Tooltip, prelude::*};
 use workspace::{ToolbarItemEvent, ToolbarItemLocation, ToolbarItemView, item::ItemHandle};
-use zed_actions::assistant::InlineAssist;
-use zed_actions::buffer_search;
+use hawk_actions::assistant::InlineAssist;
+use hawk_actions::buffer_search;
 
 pub struct ToolbarControls {
     editor: Option<Box<dyn DiagnosticsToolbarEditor>>,
@@ -66,7 +66,7 @@ impl Render for ToolbarControls {
                     })
             })
             .child({
-                IconButton::new("inline_assist", IconName::ZedAssistant)
+                IconButton::new("inline_assist", IconName::HawkAssistant)
                     .icon_size(IconSize::Small)
                     .tooltip(Tooltip::for_action_title(
                         "Inline Assist",
