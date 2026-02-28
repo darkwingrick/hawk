@@ -234,7 +234,7 @@ impl RenderOnce for AiUpsellCard {
                     }),
                 Some(Plan::ZedProTrial) => card
                     .child(pro_trial_stamp)
-                    .child(Label::new("You're in the Zed Pro Trial").size(LabelSize::Large))
+                    .child(Label::new("You're in the Hawk Pro Trial").size(LabelSize::Large))
                     .child(
                         Label::new("Here's what you get for the next 14 days:")
                             .color(Color::Muted)
@@ -243,7 +243,7 @@ impl RenderOnce for AiUpsellCard {
                     .child(PlanDefinitions.pro_trial(false)),
                 Some(Plan::ZedPro) => card
                     .child(certified_user_stamp)
-                    .child(Label::new("You're in the Zed Pro plan").size(LabelSize::Large))
+                    .child(Label::new("You're in the Hawk Pro plan").size(LabelSize::Large))
                     .child(
                         Label::new("Here's what you get:")
                             .color(Color::Muted)
