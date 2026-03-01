@@ -32,9 +32,7 @@ use workspace::{
 
 #[derive(Clone, Debug)]
 struct AgentThreadInfo {
-    title: SharedString,
     status: AgentThreadStatus,
-    icon: IconName,
 }
 
 const DEFAULT_WIDTH: Pixels = px(320.0);
@@ -46,6 +44,7 @@ const MAX_MATCHES: usize = 100;
 struct WorkspaceThreadEntry {
     index: usize,
     worktree_label: SharedString,
+    git_branch: Option<SharedString>,
     full_path: SharedString,
     thread_info: Option<AgentThreadInfo>,
 }
@@ -81,14 +80,22 @@ impl WorkspaceThreadEntry {
             .join("\n")
             .into();
 
+        let git_branch = Self::active_git_branch(workspace, cx);
         let thread_info = Self::thread_info(workspace, cx);
 
         Self {
             index,
             worktree_label,
+            git_branch,
             full_path,
             thread_info,
         }
+    }
+
+    fn active_git_branch(workspace: &Entity<Workspace>, cx: &App) -> Option<SharedString> {
+        let active_repository = workspace.read(cx).project().read(cx).active_repository(cx)?;
+        let branch_name = active_repository.read(cx).branch.as_ref()?.name().to_string();
+        Some(branch_name.into())
     }
 
     fn thread_info(workspace: &Entity<Workspace>, cx: &App) -> Option<AgentThreadInfo> {
@@ -97,9 +104,6 @@ impl WorkspaceThreadEntry {
 
         let thread_view = agent_panel_ref.as_active_thread_view(cx)?.read(cx);
         let thread = thread_view.thread.read(cx);
-
-        let icon = thread_view.agent_icon;
-        let title = thread.title();
 
         let status = if thread.is_waiting_for_confirmation() {
             AgentThreadStatus::WaitingForConfirmation
@@ -111,11 +115,7 @@ impl WorkspaceThreadEntry {
                 ThreadStatus::Idle => AgentThreadStatus::Completed,
             }
         };
-        Some(AgentThreadInfo {
-            title,
-            status,
-            icon,
-        })
+        Some(AgentThreadInfo { status })
     }
 }
 
@@ -134,6 +134,10 @@ impl SidebarEntry {
             SidebarEntry::RecentProject(entry) => entry.name.as_ref(),
         }
     }
+}
+
+fn workspace_thread_subtitle(git_branch: Option<SharedString>) -> SharedString {
+    git_branch.unwrap_or_default()
 }
 
 #[derive(Clone)]
@@ -576,6 +580,7 @@ impl PickerDelegate for WorkspacePickerDelegate {
             ),
             SidebarEntry::WorkspaceThread(thread_entry) => {
                 let worktree_label = thread_entry.worktree_label.clone();
+                let thread_subtitle = workspace_thread_subtitle(thread_entry.git_branch.clone());
                 let full_path = thread_entry.full_path.clone();
                 let thread_info = thread_entry.thread_info.clone();
                 let workspace_index = thread_entry.index;
@@ -600,7 +605,6 @@ impl PickerDelegate for WorkspacePickerDelegate {
                 });
 
                 let has_notification = self.notified_workspaces.contains(&workspace_index);
-                let thread_subtitle = thread_info.as_ref().map(|info| info.title.clone());
                 let status = thread_info
                     .as_ref()
                     .map_or(AgentThreadStatus::default(), |info| info.status);
@@ -612,19 +616,18 @@ impl PickerDelegate for WorkspacePickerDelegate {
                 Some(
                     ThreadItem::new(
                         ("workspace-item", thread_entry.index),
-                        thread_subtitle.unwrap_or("New Thread".into()),
+                        worktree_label.clone(),
                     )
-                    .icon(
-                        thread_info
-                            .as_ref()
-                            .map_or(IconName::HawkAgent, |info| info.icon),
-                    )
+                    .show_icon(false)
                     .running(running)
                     .generation_done(has_notification)
                     .status(status)
                     .selected(selected)
-                    .worktree(worktree_label.clone())
-                    .worktree_highlight_positions(positions.clone())
+                    .when(!thread_subtitle.is_empty(), |item| {
+                        item.worktree(thread_subtitle.clone())
+                            .worktree_truncate_start(false)
+                    })
+                    .worktree_highlight_positions(Vec::new())
                     .when(workspace_count > 1, |item| item.action_slot(remove_btn))
                     .hovered(is_hovered)
                     .on_hover(cx.listener(move |picker, is_hovered, _window, cx| {
@@ -839,17 +842,10 @@ impl Sidebar {
     pub fn set_test_thread_info(
         &mut self,
         index: usize,
-        title: SharedString,
+        _title: SharedString,
         status: AgentThreadStatus,
     ) {
-        self.test_thread_infos.insert(
-            index,
-            AgentThreadInfo {
-                title,
-                status,
-                icon: IconName::HawkAgent,
-            },
-        );
+        self.test_thread_infos.insert(index, AgentThreadInfo { status });
     }
 
     #[cfg(any(test, feature = "test-support"))]
@@ -1268,6 +1264,19 @@ mod tests {
         assert!(
             !has_notifications(&sidebar, cx),
             "notification should be cleared when workspace becomes active"
+        );
+    }
+
+    #[test]
+    fn test_workspace_thread_subtitle_uses_git_branch_or_blank() {
+        assert_eq!(
+            workspace_thread_subtitle(None),
+            SharedString::default(),
+            "Missing branch should render as blank subtitle"
+        );
+        assert_eq!(
+            workspace_thread_subtitle(Some("feature/test".into())),
+            SharedString::from("feature/test")
         );
     }
 }

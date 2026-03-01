@@ -15,7 +15,7 @@ use dap::adapters::DebugAdapterName;
 use dap::{DapRegistry, StartDebuggingRequestArguments};
 use dap::{client::SessionId, debugger_settings::DebuggerSettings};
 use editor::{Editor, MultiBufferOffset, ToPoint};
-use feature_flags::{FeatureFlag, FeatureFlagAppExt as _};
+use feature_flags::{FeatureFlag, FeatureFlagAppExt as _, HideDebugButtonFeatureFlag};
 use gpui::{
     Action, App, AsyncWindowContext, ClipboardItem, Context, Corner, DismissEvent, Entity,
     EntityId, EventEmitter, FocusHandle, Focusable, MouseButton, MouseDownEvent, Point,
@@ -1580,13 +1580,21 @@ impl Panel for DebugPanel {
     }
 
     fn icon(&self, _window: &Window, cx: &App) -> Option<IconName> {
-        DebuggerSettings::get_global(cx)
-            .button
-            .then_some(IconName::Debug)
+        let should_show_button = should_show_debug_button(
+            DebuggerSettings::get_global(cx).button,
+            cx.has_flag::<HideDebugButtonFeatureFlag>(),
+        );
+
+        should_show_button.then_some(IconName::Debug)
     }
 
     fn icon_tooltip(&self, _window: &Window, cx: &App) -> Option<&'static str> {
-        if DebuggerSettings::get_global(cx).button {
+        let should_show_button = should_show_debug_button(
+            DebuggerSettings::get_global(cx).button,
+            cx.has_flag::<HideDebugButtonFeatureFlag>(),
+        );
+
+        if should_show_button {
             Some("Debug Panel")
         } else {
             None
@@ -1615,6 +1623,10 @@ impl Panel for DebugPanel {
         self.is_zoomed = zoomed;
         cx.notify();
     }
+}
+
+fn should_show_debug_button(button_setting_enabled: bool, hide_debug_button_flag_enabled: bool) -> bool {
+    button_setting_enabled && !hide_debug_button_flag_enabled
 }
 
 impl Render for DebugPanel {
@@ -2001,5 +2013,18 @@ impl workspace::DebuggerProvider for DebuggerProvider {
         let session = self.0.read(cx).active_session()?;
         let thread = session.read(cx).running_state().read(cx).thread_id()?;
         session.read(cx).session(cx).read(cx).thread_state(thread)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::should_show_debug_button;
+
+    #[test]
+    fn test_should_show_debug_button_respects_hide_flag() {
+        assert!(should_show_debug_button(true, false));
+        assert!(!should_show_debug_button(true, true));
+        assert!(!should_show_debug_button(false, false));
+        assert!(!should_show_debug_button(false, true));
     }
 }

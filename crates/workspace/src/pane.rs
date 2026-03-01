@@ -3524,6 +3524,14 @@ impl Pane {
                 this.suppress_scroll = true;
             }))
             .children(unpinned_tabs)
+            .child(
+                IconButton::new("new_file", IconName::Plus)
+                    .icon_size(IconSize::Small)
+                    .tooltip(Tooltip::text("New File"))
+                    .on_click(cx.listener(|_, _, window, cx| {
+                        window.dispatch_action(NewFile.boxed_clone(), cx);
+                    })),
+            )
             .child(self.render_tab_bar_drop_target(tab_count, cx))
     }
 

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use arrayvec::ArrayVec;
-use client::{Client, EditPredictionUsage, UserStore};
+use client::{Client, EditPredictionUsage, Status, UserStore};
 use cloud_api_types::SubmitEditPredictionFeedbackBody;
 use cloud_llm_client::predict_edits_v3::{
     PredictEditsV3Request, PredictEditsV3Response, RawCompletionRequest, RawCompletionResponse,
@@ -2055,6 +2055,9 @@ impl EditPredictionStore {
         allow_jump: bool,
         cx: &mut Context<Self>,
     ) -> Task<Result<Option<EditPredictionResult>>> {
+        if matches!(*self.client.status().borrow(), Status::SignedOut) {
+            return Task::ready(Ok(None));
+        }
         self.get_or_init_project(&project, cx);
         let project_state = self.projects.get(&project.entity_id()).unwrap();
         let stored_events = project_state.events(cx);

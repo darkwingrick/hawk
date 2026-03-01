@@ -18,6 +18,7 @@ pub enum AgentThreadStatus {
 pub struct ThreadItem {
     id: ElementId,
     icon: IconName,
+    show_icon: bool,
     title: SharedString,
     timestamp: SharedString,
     running: bool,
@@ -28,6 +29,7 @@ pub struct ThreadItem {
     added: Option<usize>,
     removed: Option<usize>,
     worktree: Option<SharedString>,
+    worktree_truncate_start: bool,
     highlight_positions: Vec<usize>,
     worktree_highlight_positions: Vec<usize>,
     on_click: Option<Box<dyn Fn(&ClickEvent, &mut Window, &mut App) + 'static>>,
@@ -41,6 +43,7 @@ impl ThreadItem {
         Self {
             id: id.into(),
             icon: IconName::HawkAgent,
+            show_icon: true,
             title: title.into(),
             timestamp: "".into(),
             running: false,
@@ -51,6 +54,7 @@ impl ThreadItem {
             added: None,
             removed: None,
             worktree: None,
+            worktree_truncate_start: true,
             highlight_positions: Vec::new(),
             worktree_highlight_positions: Vec::new(),
             on_click: None,
@@ -67,6 +71,11 @@ impl ThreadItem {
 
     pub fn icon(mut self, icon: IconName) -> Self {
         self.icon = icon;
+        self
+    }
+
+    pub fn show_icon(mut self, show_icon: bool) -> Self {
+        self.show_icon = show_icon;
         self
     }
 
@@ -102,6 +111,11 @@ impl ThreadItem {
 
     pub fn worktree(mut self, worktree: impl Into<SharedString>) -> Self {
         self.worktree = Some(worktree.into());
+        self
+    }
+
+    pub fn worktree_truncate_start(mut self, truncate_start: bool) -> Self {
+        self.worktree_truncate_start = truncate_start;
         self
     }
 
@@ -247,7 +261,7 @@ impl RenderOnce for ThreadItem {
                             .min_w_0()
                             .flex_1()
                             .gap_1p5()
-                            .child(icon)
+                            .when(self.show_icon, |this| this.child(icon))
                             .child(title_label)
                             .when_some(self.tooltip, |this, tooltip| this.tooltip(tooltip)),
                     )
@@ -270,11 +284,19 @@ impl RenderOnce for ThreadItem {
             .when_some(self.worktree, |this, worktree| {
                 let worktree_highlight_positions = self.worktree_highlight_positions;
                 let worktree_label = if worktree_highlight_positions.is_empty() {
-                    Label::new(worktree)
-                        .size(LabelSize::Small)
-                        .color(Color::Muted)
-                        .truncate_start()
-                        .into_any_element()
+                    if self.worktree_truncate_start {
+                        Label::new(worktree)
+                            .size(LabelSize::Small)
+                            .color(Color::Muted)
+                            .truncate_start()
+                            .into_any_element()
+                    } else {
+                        Label::new(worktree)
+                            .size(LabelSize::Small)
+                            .color(Color::Muted)
+                            .truncate()
+                            .into_any_element()
+                    }
                 } else {
                     HighlightedLabel::new(worktree, worktree_highlight_positions)
                         .size(LabelSize::Small)
@@ -286,7 +308,7 @@ impl RenderOnce for ThreadItem {
                     h_flex()
                         .min_w_0()
                         .gap_1p5()
-                        .child(icon_container()) // Icon Spacing
+                        .when(self.show_icon, |this| this.child(icon_container())) // Icon Spacing
                         .child(worktree_label)
                         // TODO: Uncomment the elements below when we're ready to expose this data
                         // .child(dot_separator())

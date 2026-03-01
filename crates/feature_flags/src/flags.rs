@@ -43,6 +43,12 @@ impl FeatureFlag for HideAgentPanelFeatureFlag {
     const NAME: &'static str = "hide-agent-panel";
 }
 
+pub struct HideDebugButtonFeatureFlag;
+
+impl FeatureFlag for HideDebugButtonFeatureFlag {
+    const NAME: &'static str = "hide-debug-button";
+}
+
 pub struct SubagentsFeatureFlag;
 
 impl FeatureFlag for SubagentsFeatureFlag {
