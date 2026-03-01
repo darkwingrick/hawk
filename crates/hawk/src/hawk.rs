@@ -24,7 +24,7 @@ use collections::VecDeque;
 use debugger_ui::debugger_panel::DebugPanel;
 use editor::{Editor, MultiBuffer};
 use extension_host::ExtensionStore;
-use feature_flags::{FeatureFlagAppExt as _, PanicFeatureFlag};
+use feature_flags::{FeatureFlagAppExt as _, HideAgentPanelFeatureFlag, PanicFeatureFlag};
 use fs::Fs;
 use futures::FutureExt as _;
 use futures::future::Either;
@@ -677,18 +677,22 @@ fn setup_or_teardown_ai_panel<P: Panel>(
 ) -> Task<anyhow::Result<()>> {
     let disable_ai = SettingsStore::global(cx)
         .get::<DisableAiSettings>(None)
-        .disable_ai
-        || cfg!(test);
+        .disable_ai;
+    let hide_agent_panel = cx.has_flag::<HideAgentPanelFeatureFlag>();
+    let panel_disabled = should_disable_ai_panel(disable_ai, hide_agent_panel, cfg!(test));
     let existing_panel = workspace.panel::<P>(cx);
-    match (disable_ai, existing_panel) {
+    match (panel_disabled, existing_panel) {
         (false, None) => cx.spawn_in(window, async move |workspace, cx| {
             let panel = load_panel(workspace.clone(), cx.clone()).await?;
             workspace.update_in(cx, |workspace, window, cx| {
                 let disable_ai = SettingsStore::global(cx)
                     .get::<DisableAiSettings>(None)
                     .disable_ai;
+                let hide_agent_panel = cx.has_flag::<HideAgentPanelFeatureFlag>();
                 let have_panel = workspace.panel::<P>(cx).is_some();
-                if !disable_ai && !have_panel {
+                if !should_disable_ai_panel(disable_ai, hide_agent_panel, cfg!(test))
+                    && !have_panel
+                {
                     workspace.add_panel(panel, window, cx);
                 }
             })
@@ -699,6 +703,14 @@ fn setup_or_teardown_ai_panel<P: Panel>(
         }
         _ => Task::ready(Ok(())),
     }
+}
+
+fn should_disable_ai_panel(
+    disable_ai: bool,
+    hide_agent_panel: bool,
+    disable_for_tests: bool,
+) -> bool {
+    disable_ai || hide_agent_panel || disable_for_tests
 }
 
 async fn initialize_agent_panel(
@@ -5234,6 +5246,14 @@ mod tests {
         cx.run_until_parked();
 
         // If this panics, the test has failed
+    }
+
+    #[test]
+    fn test_should_disable_ai_panel_when_hide_flag_enabled() {
+        assert!(should_disable_ai_panel(false, true, false));
+        assert!(should_disable_ai_panel(true, false, false));
+        assert!(should_disable_ai_panel(false, false, true));
+        assert!(!should_disable_ai_panel(false, false, false));
     }
 
     #[gpui::test]

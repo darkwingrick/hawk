@@ -54,6 +54,7 @@ use editor::{Anchor, AnchorRangeExt as _, Editor, EditorEvent, MultiBuffer};
 use extension::ExtensionEvents;
 use extension_host::ExtensionStore;
 use fs::Fs;
+use feature_flags::{FeatureFlagAppExt as _, HideAgentPanelFeatureFlag};
 use gpui::{
     Action, Animation, AnimationExt, AnyElement, App, AsyncWindowContext, ClipboardItem, Corner,
     DismissEvent, Entity, EventEmitter, ExternalPaths, FocusHandle, Focusable, KeyContext, Pixels,
@@ -1978,7 +1979,7 @@ impl Panel for AgentPanel {
     }
 
     fn enabled(&self, cx: &App) -> bool {
-        AgentSettings::get_global(cx).enabled(cx)
+        AgentSettings::get_global(cx).enabled(cx) && !cx.has_flag::<HideAgentPanelFeatureFlag>()
     }
 
     fn is_zoomed(&self, _window: &Window, _cx: &App) -> bool {

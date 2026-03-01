@@ -37,6 +37,12 @@ impl FeatureFlag for AgentSharingFeatureFlag {
     const NAME: &'static str = "agent-sharing";
 }
 
+pub struct HideAgentPanelFeatureFlag;
+
+impl FeatureFlag for HideAgentPanelFeatureFlag {
+    const NAME: &'static str = "hide-agent-panel";
+}
+
 pub struct SubagentsFeatureFlag;
 
 impl FeatureFlag for SubagentsFeatureFlag {
