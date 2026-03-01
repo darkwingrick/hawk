@@ -686,7 +686,7 @@ impl Item for Editor {
     }
 
     fn tab_content(&self, params: TabContentParams, _: &Window, cx: &App) -> AnyElement {
-        let label_color = if ItemSettings::get_global(cx).git_status {
+        let mut label_color = if ItemSettings::get_global(cx).git_status {
             self.buffer()
                 .read(cx)
                 .as_singleton()
@@ -712,6 +712,10 @@ impl Item for Editor {
         } else {
             entry_label_color(params.selected)
         };
+
+        if !params.selected && label_color == Color::Muted {
+            label_color = Color::Disabled;
+        }
 
         let description = params.detail.and_then(|detail| {
             let path = path_for_buffer(&self.buffer, detail, false, cx)?;

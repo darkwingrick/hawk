@@ -111,13 +111,13 @@ impl RenderOnce for Tab {
     fn render(self, _: &mut Window, cx: &mut App) -> Stateful<Div> {
         let (text_color, tab_bg, _tab_hover_bg, _tab_active_bg) = match self.selected {
             false => (
-                cx.theme().colors().text_muted,
+                cx.theme().colors().text_disabled,
                 cx.theme().colors().tab_inactive_background,
                 cx.theme().colors().ghost_element_hover,
                 cx.theme().colors().ghost_element_active,
             ),
             true => (
-                cx.theme().colors().text,
+                cx.theme().colors().text_accent,
                 cx.theme().colors().tab_active_background,
                 cx.theme().colors().element_hover,
                 cx.theme().colors().element_active,
