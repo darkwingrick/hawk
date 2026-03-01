@@ -940,8 +940,15 @@ impl Render for ActivityBar {
             let icon = entry.panel.icon(window, cx)?;
             let name = entry.panel.persistent_name();
             let is_active = Some(i) == active_index && is_open;
-            let action = entry.panel.toggle_action(window, cx);
-            let tooltip: SharedString = entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
+            let (action, tooltip) = if is_active {
+                let action = left_dock.toggle_action();
+                let tooltip: SharedString = format!("Close Left Dock").into();
+                (action, tooltip)
+            } else {
+                let action = entry.panel.toggle_action(window, cx);
+                let tooltip: SharedString = entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
+                (action, tooltip)
+            };
             let focus_handle = left_dock.focus_handle(cx);
             
             if name == "GitPanel" {
@@ -994,8 +1001,15 @@ impl Render for ActivityBar {
             let icon = entry.panel.icon(window, cx)?;
             let name = entry.panel.persistent_name();
             let is_active = Some(i) == bottom_active_index && bottom_is_open;
-            let action = entry.panel.toggle_action(window, cx);
-            let tooltip: SharedString = entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
+            let (action, tooltip) = if is_active {
+                let action = bottom_dock.toggle_action();
+                let tooltip: SharedString = format!("Close Bottom Dock").into();
+                (action, tooltip)
+            } else {
+                let action = entry.panel.toggle_action(window, cx);
+                let tooltip: SharedString = entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
+                (action, tooltip)
+            };
             let focus_handle = bottom_dock.focus_handle(cx);
 
             Some(
@@ -1085,6 +1099,10 @@ impl Render for PanelButtons {
             .iter()
             .enumerate()
             .filter_map(|(i, entry)| {
+                if entry.panel.persistent_name() == "TerminalPanel" {
+                    return None;
+                }
+
                 let icon = entry.panel.icon(window, cx)?;
                 let icon_tooltip = entry
                     .panel
