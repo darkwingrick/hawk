@@ -450,7 +450,6 @@ pub fn initialize_workspace(
             }
         });
 
-        let search_button = cx.new(|_| search::search_status_button::SearchButton::new());
         let diagnostic_summary =
             cx.new(|cx| diagnostics::items::DiagnosticIndicator::new(workspace, cx));
         let activity_indicator = activity_indicator::ActivityIndicator::new(
@@ -482,17 +481,19 @@ pub fn initialize_workspace(
         let line_ending_indicator =
             cx.new(|_| line_ending_selector::LineEndingIndicator::default());
         workspace.status_bar().update(cx, |status_bar, cx| {
-            status_bar.add_left_item(search_button, window, cx);
-            status_bar.add_left_item(lsp_button, window, cx);
-            status_bar.add_left_item(diagnostic_summary, window, cx);
+            // Left items
+            status_bar.add_left_item(active_buffer_language, window, cx);
+            status_bar.add_left_item(cursor_position, window, cx);
             status_bar.add_left_item(activity_indicator, window, cx);
+            
+            // Right items
             status_bar.add_right_item(edit_prediction_ui, window, cx);
+            status_bar.add_right_item(lsp_button, window, cx);
+            status_bar.add_right_item(diagnostic_summary, window, cx);
             status_bar.add_right_item(active_buffer_encoding, window, cx);
-            status_bar.add_right_item(active_buffer_language, window, cx);
             status_bar.add_right_item(active_toolchain_language, window, cx);
             status_bar.add_right_item(line_ending_indicator, window, cx);
             status_bar.add_right_item(vim_mode_indicator, window, cx);
-            status_bar.add_right_item(cursor_position, window, cx);
             status_bar.add_right_item(image_info, window, cx);
         });
 

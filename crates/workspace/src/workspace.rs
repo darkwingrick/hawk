@@ -39,7 +39,7 @@ use client::{
     proto::{self, ErrorCode, PanelId, PeerId},
 };
 use collections::{HashMap, HashSet, hash_map};
-use dock::{Dock, DockPosition, PanelButtons, PanelHandle, RESIZE_HANDLE_SIZE};
+use dock::{Dock, DockPosition, PanelButtons, ActivityBar, PanelHandle, RESIZE_HANDLE_SIZE};
 use fs::Fs;
 use futures::{
     Future, FutureExt, StreamExt,
@@ -1244,6 +1244,7 @@ pub struct Workspace {
     zoomed_position: Option<DockPosition>,
     center: PaneGroup,
     left_dock: Entity<Dock>,
+    activity_bar: Entity<ActivityBar>,
     bottom_dock: Entity<Dock>,
     right_dock: Entity<Dock>,
     panes: Vec<Entity<Pane>>,
@@ -1563,13 +1564,12 @@ impl Workspace {
 
         let left_dock = Dock::new(DockPosition::Left, modal_layer.clone(), window, cx);
         let bottom_dock = Dock::new(DockPosition::Bottom, modal_layer.clone(), window, cx);
+        let activity_bar = cx.new(|cx| ActivityBar::new(left_dock.clone(), bottom_dock.clone(), cx));
         let right_dock = Dock::new(DockPosition::Right, modal_layer.clone(), window, cx);
-        let left_dock_buttons = cx.new(|cx| PanelButtons::new(left_dock.clone(), cx));
         let bottom_dock_buttons = cx.new(|cx| PanelButtons::new(bottom_dock.clone(), cx));
         let right_dock_buttons = cx.new(|cx| PanelButtons::new(right_dock.clone(), cx));
         let status_bar = cx.new(|cx| {
             let mut status_bar = StatusBar::new(&center_pane.clone(), window, cx);
-            status_bar.add_left_item(left_dock_buttons, window, cx);
             status_bar.add_right_item(right_dock_buttons, window, cx);
             status_bar.add_right_item(bottom_dock_buttons, window, cx);
             status_bar
@@ -1657,6 +1657,7 @@ impl Workspace {
             notifications: Notifications::default(),
             suppressed_notifications: HashSet::default(),
             left_dock,
+            activity_bar,
             bottom_dock,
             right_dock,
             project: project.clone(),
@@ -7601,6 +7602,7 @@ impl Render for Workspace {
                                                     .flex_row()
                                                     .flex_1()
                                                     .overflow_hidden()
+                                                    .child(self.activity_bar.clone())
                                                     .children(self.render_dock(
                                                         DockPosition::Left,
                                                         &self.left_dock,
@@ -7679,6 +7681,7 @@ impl Render for Workspace {
                                                             .flex()
                                                             .flex_row()
                                                             .flex_1()
+                                                            .child(self.activity_bar.clone())
                                                             .children(self.render_dock(DockPosition::Left, &self.left_dock, window, cx))
 
                                                             .child(
@@ -7727,6 +7730,7 @@ impl Render for Workspace {
                                             .flex()
                                             .flex_row()
                                             .h_full()
+                                            .child(self.activity_bar.clone())
                                             .children(self.render_dock(
                                                 DockPosition::Left,
                                                 &self.left_dock,
@@ -7786,6 +7790,7 @@ impl Render for Workspace {
                                             .flex()
                                             .flex_row()
                                             .h_full()
+                                            .child(self.activity_bar.clone())
                                             .children(self.render_dock(
                                                 DockPosition::Left,
                                                 &self.left_dock,
