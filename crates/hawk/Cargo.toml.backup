@@ -263,7 +263,7 @@ agent_ui = { workspace = true, features = ["test-support"] }
 search = { workspace = true, features = ["test-support"] }
 repl = { workspace = true, features = ["test-support"] }
 
-[package.metadata.bundle]
+[package.metadata.bundle-dev]
 icon = ["resources/icon.icns"]
 identifier = "dev.hawk.Hawk-Dev"
 name = "Hawk Dev"
