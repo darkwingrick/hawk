@@ -1812,6 +1812,18 @@ impl Workspace {
                         .unwrap_or(false);
 
                     let workspace = window.update(cx, |multi_workspace, window, cx| {
+                        // Check if the current workspace is empty (no worktrees, no dirty items)
+                        // If empty, replace it; otherwise, add a new workspace
+                        let current_workspace = multi_workspace.workspace();
+                        let current_is_empty = current_workspace
+                            .read(cx)
+                            .project
+                            .read(cx)
+                            .worktrees(cx)
+                            .next()
+                            .is_none()
+                            && !current_workspace.read(cx).items(cx).any(|item| item.is_dirty(cx));
+
                         let workspace = cx.new(|cx| {
                             let mut workspace = Workspace::new(
                                 Some(workspace_id),
@@ -1830,7 +1842,12 @@ impl Workspace {
 
                             workspace
                         });
-                        multi_workspace.activate(workspace.clone(), cx);
+
+                        if current_is_empty {
+                            multi_workspace.replace_workspace(workspace.clone(), cx);
+                        } else {
+                            multi_workspace.activate(workspace.clone(), cx);
+                        }
                         workspace
                     })?;
                     (window, workspace)

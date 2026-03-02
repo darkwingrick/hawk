@@ -315,6 +315,27 @@ impl MultiWorkspace {
         }
     }
 
+    /// Replaces the workspace at the active index with the given workspace.
+    /// This is used when opening a folder in an empty workspace.
+    pub fn replace_workspace(&mut self, workspace: Entity<Workspace>, cx: &mut Context<Self>) {
+        if !self.multi_workspace_enabled(cx) {
+            self.workspaces[0] = workspace;
+            self.active_workspace_index = 0;
+            cx.notify();
+            return;
+        }
+
+        let index = self.active_workspace_index;
+        if index < self.workspaces.len() {
+            self.workspaces[index] = workspace;
+            cx.notify();
+            self.serialize(cx);
+        } else {
+            // Fallback to activate if index is out of bounds
+            self.activate(workspace, cx);
+        }
+    }
+
     fn set_active_workspace(
         &mut self,
         workspace: Entity<Workspace>,
