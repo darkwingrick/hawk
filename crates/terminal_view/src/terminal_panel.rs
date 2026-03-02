@@ -155,31 +155,18 @@ impl TerminalPanel {
                 let right_children = h_flex()
                     .gap(DynamicSpacing::Base02.rems(cx))
                     .child(
-                        PopoverMenu::new("terminal-tab-bar-popover-menu")
-                            .trigger_with_tooltip(
-                                IconButton::new("plus", IconName::Plus).icon_size(IconSize::Small),
-                                Tooltip::text("New…"),
-                            )
-                            .anchor(Corner::TopRight)
-                            .with_handle(pane.new_item_context_menu_handle.clone())
-                            .menu(move |window, cx| {
+                        Button::new("terminal-tab-bar-spawn", "S")
+                            .style(ButtonStyle::Subtle)
+                            .tooltip(Tooltip::text("Spawn Task"))
+                            .on_click({
                                 let focus_handle = focus_handle.clone();
-                                let menu = ContextMenu::build(window, cx, |menu, _, _| {
-                                    menu.context(focus_handle.clone())
-                                        .action(
-                                            "New Terminal",
-                                            workspace::NewTerminal::default().boxed_clone(),
-                                        )
-                                        // We want the focus to go back to terminal panel once task modal is dismissed,
-                                        // hence we focus that first. Otherwise, we'd end up without a focused element, as
-                                        // context menu will be gone the moment we spawn the modal.
-                                        .action(
-                                            "Spawn Task",
-                                            hawk_actions::Spawn::modal().boxed_clone(),
-                                        )
-                                });
-
-                                Some(menu)
+                                cx.listener(move |_, _, window, cx| {
+                                    focus_handle.focus(window, cx);
+                                    window.dispatch_action(
+                                        hawk_actions::Spawn::modal().boxed_clone(),
+                                        cx,
+                                    );
+                                })
                             }),
                     )
                     .children(assistant_tab_bar_button.clone())
@@ -1205,6 +1192,11 @@ pub fn new_terminal_pane(
         pane.display_nav_history_buttons(None);
         pane.set_should_display_tab_bar(|_, _| true);
         pane.set_zoom_out_on_close(false);
+        pane.set_custom_new_item_button(
+            workspace::NewTerminal::default().boxed_clone(),
+            "New Terminal",
+            cx,
+        );
 
         let split_closure_terminal_panel = terminal_panel.downgrade();
         pane.set_can_split(Some(Arc::new(move |pane, dragged_item, _window, cx| {

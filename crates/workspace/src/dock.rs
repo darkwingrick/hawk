@@ -910,6 +910,7 @@ impl Render for ActivityBar {
         let left_dock = self.left_dock.read(cx);
         let active_index = left_dock.active_panel_index;
         let is_open = left_dock.is_open;
+        let activity_icon_size = IconSize::Custom(rems_from_px(30.));
 
         let search_button = div()
             .relative()
@@ -917,7 +918,7 @@ impl Render for ActivityBar {
             .px_2()
             .child(
                 IconButton::new("activity-bar-project-search", ui::IconName::MagnifyingGlass)
-                    .icon_size(IconSize::Medium)
+                    .icon_size(activity_icon_size)
                     .tooltip(|_window, cx| {
                         Tooltip::for_action(
                             "Project Search",
@@ -963,7 +964,7 @@ impl Render for ActivityBar {
                     .px_2()
                     .child(
                         IconButton::new(name, icon)
-                            .icon_size(IconSize::Medium)
+                            .icon_size(activity_icon_size)
                             .toggle_state(is_active)
                             .on_click({
                                 let action = action.boxed_clone();
@@ -1019,7 +1020,7 @@ impl Render for ActivityBar {
                     .px_2()
                     .child(
                         IconButton::new(name, icon)
-                            .icon_size(IconSize::Medium)
+                            .icon_size(activity_icon_size)
                             .toggle_state(is_active)
                             .on_click({
                                 let action = action.boxed_clone();

@@ -418,9 +418,10 @@ pub struct Pane {
     diagnostics: HashMap<ProjectPath, DiagnosticSeverity>,
     zoom_out_on_close: bool,
     diagnostic_summary_update: Task<()>,
-    /// If a certain project item wants to get recreated with specific data, it can persist its data before the recreation here.
     pub project_item_restoration_data: HashMap<ProjectItemKind, Box<dyn Any + Send>>,
     welcome_page: Option<Entity<crate::welcome::WelcomePage>>,
+
+    pub custom_new_item_button: Option<(Box<dyn Action>, SharedString)>,
 
     pub in_center_group: bool,
 }
@@ -590,6 +591,7 @@ impl Pane {
             diagnostic_summary_update: Task::ready(()),
             project_item_restoration_data: HashMap::default(),
             welcome_page: None,
+            custom_new_item_button: None,
             in_center_group: false,
         }
     }
@@ -832,7 +834,6 @@ impl Pane {
         self.render_tab_bar = Rc::new(render);
         cx.notify();
     }
-
     pub fn set_render_tab_bar_buttons<F>(&mut self, cx: &mut Context<Self>, render: F)
     where
         F: 'static
@@ -843,6 +844,11 @@ impl Pane {
             ) -> (Option<AnyElement>, Option<AnyElement>),
     {
         self.render_tab_bar_buttons = Rc::new(render);
+        cx.notify();
+    }
+
+    pub fn set_custom_new_item_button(&mut self, action: Box<dyn Action>, tooltip: impl Into<SharedString>, cx: &mut Context<Self>) {
+        self.custom_new_item_button = Some((action, tooltip.into()));
         cx.notify();
     }
 
@@ -3524,14 +3530,19 @@ impl Pane {
                 this.suppress_scroll = true;
             }))
             .children(unpinned_tabs)
-            .child(
-                IconButton::new("new_file", IconName::Plus)
+            .child({
+                let (action, tooltip) = if let Some((action, tooltip)) = &self.custom_new_item_button {
+                    (action.boxed_clone(), tooltip.clone())
+                } else {
+                    (NewFile.boxed_clone(), SharedString::from("New File"))
+                };
+                IconButton::new("new_item", IconName::Plus)
                     .icon_size(IconSize::Small)
-                    .tooltip(Tooltip::text("New File"))
-                    .on_click(cx.listener(|_, _, window, cx| {
-                        window.dispatch_action(NewFile.boxed_clone(), cx);
-                    })),
-            )
+                    .tooltip(Tooltip::text(tooltip.clone()))
+                    .on_click(cx.listener(move |_, _, window, cx| {
+                        window.dispatch_action(action.boxed_clone(), cx);
+                    }))
+            })
             .child(self.render_tab_bar_drop_target(tab_count, cx))
     }
 
