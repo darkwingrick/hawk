@@ -2333,7 +2333,7 @@ impl TextThreadEditor {
     }
 
     fn render_payment_required_error(&self, cx: &mut Context<Self>) -> AnyElement {
-        const ERROR_MESSAGE: &str = "Free tier exceeded. Subscribe and add payment to continue using Zed LLMs. You'll be billed at cost for tokens used.";
+        const ERROR_MESSAGE: &str = "Free tier exceeded. Subscribe and add payment to continue using Hawk LLMs. You'll be billed at cost for tokens used.";
 
         v_flex()
             .gap_0p5()

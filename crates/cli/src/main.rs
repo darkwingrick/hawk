@@ -47,8 +47,8 @@ trait InstalledApp {
 #[command(
     name = "hawk",
     disable_version_flag = true,
-    before_help = "The Zed CLI binary.
-This CLI is a separate binary that invokes Zed.
+    before_help = "Hawk CLI binary.
+This CLI is a separate binary that invokes Hawk.
 
 Examples:
     `zed`
@@ -86,7 +86,7 @@ struct Args {
     )]
     #[arg(long, value_name = "DIR")]
     user_data_dir: Option<String>,
-    /// The paths to open in Zed (space-separated).
+    /// The paths to open in Hawk (space-separated).
     ///
     /// Use `path:line:column` syntax to open a file at the given line and column.
     paths_with_position: Vec<String>,
@@ -103,7 +103,7 @@ struct Args {
     #[arg(long)]
     dev_server_token: Option<String>,
     /// The username and WSL distribution to use when opening paths. If not specified,
-    /// Zed will attempt to open the paths directly.
+    /// Hawk will attempt to open the paths directly.
     ///
     /// The username is optional, and if not specified, the default user for the distribution
     /// will be used.
@@ -122,7 +122,7 @@ struct Args {
     /// When directories are provided, recurses into them and shows all changed files in a single multi-diff view.
     #[arg(long, action = clap::ArgAction::Append, num_args = 2, value_names = ["OLD_PATH", "NEW_PATH"])]
     diff: Vec<String>,
-    /// Uninstall Zed from user system
+    /// Uninstall Hawk from user system
     #[cfg(all(
         any(target_os = "linux", target_os = "macos"),
         not(feature = "no-bundled-uninstall")
@@ -822,7 +822,7 @@ mod linux {
     impl InstalledApp for App {
         fn hawk_version_string(&self) -> String {
             format!(
-                "Zed {}{}{} – {}",
+                "Hawk {}{}{} – {}",
                 if *release_channel::RELEASE_CHANNEL_NAME == "stable" {
                     "".to_string()
                 } else {
@@ -1069,7 +1069,7 @@ mod windows {
     impl InstalledApp for App {
         fn hawk_version_string(&self) -> String {
             format!(
-                "Zed {}{}{} – {}",
+                "Hawk {}{}{} – {}",
                 if *release_channel::RELEASE_CHANNEL_NAME == "stable" {
                     "".to_string()
                 } else {
@@ -1237,7 +1237,7 @@ mod mac_os {
 
     impl InstalledApp for Bundle {
         fn hawk_version_string(&self) -> String {
-            format!("Zed {} – {}", self.version(), self.path().display(),)
+            format!("Hawk {} – {}", self.version(), self.path().display(),)
         }
 
         fn launch(&self, url: String, user_data_dir: Option<&str>) -> anyhow::Result<()> {

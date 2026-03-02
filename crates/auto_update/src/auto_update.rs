@@ -229,7 +229,7 @@ pub fn check(_: &Check, window: &mut Window, cx: &mut App) {
     if let Some(message) = option_env!("HAWK_UPDATE_EXPLANATION") {
         drop(window.prompt(
             gpui::PromptLevel::Info,
-            "Zed was installed via a package manager.",
+            "Hawk was installed via a package manager.",
             Some(message),
             &["Ok"],
             cx,
@@ -240,7 +240,7 @@ pub fn check(_: &Check, window: &mut Window, cx: &mut App) {
     if let Ok(message) = env::var("HAWK_UPDATE_EXPLANATION") {
         drop(window.prompt(
             gpui::PromptLevel::Info,
-            "Zed was installed via a package manager.",
+            "Hawk was installed via a package manager.",
             Some(&message),
             &["Ok"],
             cx,

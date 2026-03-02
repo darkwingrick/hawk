@@ -374,7 +374,7 @@ pub enum AgentType {
 impl AgentType {
     fn label(&self) -> SharedString {
         match self {
-            Self::NativeAgent | Self::TextThread => "Zed Agent".into(),
+            Self::NativeAgent | Self::TextThread => "Hawk Agent".into(),
             Self::Custom { name, .. } => name.into(),
         }
     }
@@ -2414,7 +2414,7 @@ impl AgentPanel {
                                 }
                             })
                             .item(
-                                ContextMenuEntry::new("Zed Agent")
+                                ContextMenuEntry::new("Hawk Agent")
                                     .when(
                                         is_agent_selected(AgentType::NativeAgent)
                                             | is_agent_selected(AgentType::TextThread),
@@ -2929,7 +2929,7 @@ impl AgentPanel {
                 .when(border_bottom, |this| {
                     this.border_position(ui::BorderPosition::Bottom)
                 })
-                .title("Sign in to continue using Zed as your LLM provider.")
+                .title("Sign in to continue using Hawk as your LLM provider.")
                 .actions_slot(
                     Button::new("sign_in", "Sign In")
                         .style(ButtonStyle::Tinted(ui::TintColor::Warning))
