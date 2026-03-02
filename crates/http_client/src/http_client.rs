@@ -214,6 +214,8 @@ impl HttpClientWithUrl {
     pub fn build_hawk_api_url(&self, path: &str, query: &[(&str, &str)]) -> Result<Url> {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
+            "https://hawk.dev" if path.starts_with("/extensions") => "https://api.zed.dev",
+            "https://staging.hawk.dev" if path.starts_with("/extensions") => "https://api-staging.zed.dev",
             "https://hawk.dev" => "https://api.hawk.dev",
             "https://staging.hawk.dev" => "https://api-staging.hawk.dev",
             "http://localhost:3000" => "http://localhost:8080",

@@ -1056,6 +1056,29 @@ impl Render for ActivityBar {
             }
         }
 
+        let extensions_button = div()
+            .relative()
+            .flex_none()
+            .px_2()
+            .child(
+                IconButton::new("activity-bar-extensions", ui::IconName::Blocks)
+                    .icon_size(activity_icon_size)
+                    .tooltip(|_window, cx| {
+                        Tooltip::for_action(
+                            "Extensions",
+                            &hawk_actions::Extensions::default(),
+                            cx,
+                        )
+                    })
+                    .on_click(move |_, window, cx| {
+                        window.dispatch_action(
+                            Box::new(hawk_actions::Extensions::default()),
+                            cx,
+                        )
+                    }),
+            );
+        items.push(extensions_button);
+
         // Insert search button after the first panel (Project Panel) if possible, otherwise at the start
         let insert_pos = if items.is_empty() { 0 } else { 1 };
         items.insert(insert_pos, search_button);
