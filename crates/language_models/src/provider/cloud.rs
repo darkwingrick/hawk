@@ -10,6 +10,7 @@ use cloud_llm_client::{
     CountTokensBody, CountTokensResponse, ListModelsResponse,
     SERVER_SUPPORTS_STATUS_MESSAGES_HEADER_NAME, HAWK_VERSION_HEADER_NAME,
 };
+use feature_flags::{FeatureFlagAppExt, SignInFeatureFlag};
 use futures::{
     AsyncBufReadExt, FutureExt, Stream, StreamExt,
     future::BoxFuture,
@@ -1045,7 +1046,7 @@ struct ZedAiConfiguration {
 }
 
 impl RenderOnce for ZedAiConfiguration {
-    fn render(self, _window: &mut Window, _cx: &mut App) -> impl IntoElement {
+    fn render(self, _window: &mut Window, cx: &mut App) -> impl IntoElement {
         let is_pro = self.plan.is_some_and(|plan| plan == Plan::ZedPro);
         let subscription_text = match (self.plan, self.subscription_period) {
             (Some(Plan::ZedPro), Some(_)) => {
@@ -1091,21 +1092,27 @@ impl RenderOnce for ZedAiConfiguration {
         };
 
         if !self.is_connected {
-            return v_flex()
-                .gap_2()
-                .child(Label::new("Sign in to have access to Zed's complete agentic experience with hosted models."))
-                .child(
-                    Button::new("sign_in", "Sign In to use Zed AI")
-                        .icon_color(Color::Muted)
-                        .icon(IconName::Github)
-                        .icon_size(IconSize::Small)
-                        .icon_position(IconPosition::Start)
-                        .full_width()
-                        .on_click({
-                            let callback = self.sign_in_callback.clone();
-                            move |_, window, cx| (callback)(window, cx)
-                        }),
-                );
+            if cx.has_flag::<SignInFeatureFlag>() {
+                return v_flex()
+                    .gap_2()
+                    .child(Label::new("Sign in to have access to Zed's complete agentic experience with hosted models."))
+                    .child(
+                        Button::new("sign_in", "Sign In to use Zed AI")
+                            .icon_color(Color::Muted)
+                            .icon(IconName::Github)
+                            .icon_size(IconSize::Small)
+                            .icon_position(IconPosition::Start)
+                            .full_width()
+                            .on_click({
+                                let callback = self.sign_in_callback.clone();
+                                move |_, window, cx| (callback)(window, cx)
+                            }),
+                    );
+            } else {
+                return v_flex()
+                    .gap_2()
+                    .child(Label::new("Zed AI is not available."));
+            }
         }
 
         v_flex().gap_2().w_full().map(|this| {

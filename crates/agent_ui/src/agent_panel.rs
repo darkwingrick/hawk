@@ -54,7 +54,7 @@ use editor::{Anchor, AnchorRangeExt as _, Editor, EditorEvent, MultiBuffer};
 use extension::ExtensionEvents;
 use extension_host::ExtensionStore;
 use fs::Fs;
-use feature_flags::{FeatureFlagAppExt as _, HideAgentPanelFeatureFlag};
+use feature_flags::{FeatureFlagAppExt as _, HideAgentPanelFeatureFlag, SignInFeatureFlag};
 use gpui::{
     Action, Animation, AnimationExt, AnyElement, App, AsyncWindowContext, ClipboardItem, Corner,
     DismissEvent, Entity, EventEmitter, ExternalPaths, FocusHandle, Focusable, KeyContext, Pixels,
@@ -2922,7 +2922,7 @@ impl AgentPanel {
             .as_ref()
             .is_some_and(|selection| selection.provider.0.as_str() == "hawk.dev");
 
-        let callout = if hawk_provider_configured {
+        let callout = if hawk_provider_configured && cx.has_flag::<SignInFeatureFlag>() {
             Callout::new()
                 .icon(IconName::Warning)
                 .severity(Severity::Warning)

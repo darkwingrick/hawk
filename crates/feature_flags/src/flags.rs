@@ -154,3 +154,17 @@ impl FeatureFlag for GoogleAuthFeatureFlag {
         false
     }
 }
+
+pub struct SignInFeatureFlag;
+
+impl FeatureFlag for SignInFeatureFlag {
+    const NAME: &'static str = "sign-in";
+
+    fn enabled_for_staff() -> bool {
+        false
+    }
+
+    fn enabled_for_all() -> bool {
+        false
+    }
+}

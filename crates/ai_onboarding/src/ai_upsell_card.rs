@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use client::{Client, UserStore, hawk_urls};
 use cloud_api_types::Plan;
+use feature_flags::{FeatureFlagAppExt, SignInFeatureFlag};
 use gpui::{AnyElement, App, Entity, IntoElement, RenderOnce, Window};
 use ui::{CommonAnimationExt, Divider, Vector, VectorName, prelude::*};
 
@@ -270,19 +271,21 @@ impl RenderOnce for AiUpsellCard {
                         .child(Label::new(description).color(Color::Muted)),
                 )
                 .child(plans_section)
-                .child(
-                    Button::new("sign_in", "Sign In")
-                        .full_width()
-                        .style(ButtonStyle::Tinted(ui::TintColor::Accent))
-                        .when_some(self.tab_index, |this, tab_index| this.tab_index(tab_index))
-                        .on_click({
-                            let callback = self.sign_in.clone();
-                            move |_, window, cx| {
-                                telemetry::event!("Start Trial Clicked", state = "pre-sign-in");
-                                callback(window, cx)
-                            }
-                        }),
-                ),
+                .when(cx.has_flag::<SignInFeatureFlag>(), |this| {
+                    this.child(
+                        Button::new("sign_in", "Sign In")
+                            .full_width()
+                            .style(ButtonStyle::Tinted(ui::TintColor::Accent))
+                            .when_some(self.tab_index, |this, tab_index| this.tab_index(tab_index))
+                            .on_click({
+                                let callback = self.sign_in.clone();
+                                move |_, window, cx| {
+                                    telemetry::event!("Start Trial Clicked", state = "pre-sign-in");
+                                    callback(window, cx)
+                                }
+                            }),
+                    )
+                }),
         }
     }
 }

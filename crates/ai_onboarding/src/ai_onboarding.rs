@@ -18,6 +18,7 @@ pub use young_account_banner::YoungAccountBanner;
 use std::sync::Arc;
 
 use client::{Client, UserStore, hawk_urls};
+use feature_flags::{FeatureFlagAppExt, SignInFeatureFlag};
 use gpui::{AnyElement, Entity, IntoElement, ParentElement};
 use ui::{Divider, RegisterComponent, Tooltip, prelude::*};
 
@@ -105,7 +106,7 @@ impl ZedAiOnboarding {
         })
     }
 
-    fn render_sign_in_disclaimer(&self, _cx: &mut App) -> AnyElement {
+    fn render_sign_in_disclaimer(&self, cx: &mut App) -> AnyElement {
         let signing_in = matches!(self.sign_in_status, SignInStatus::SigningIn);
 
         v_flex()
@@ -118,19 +119,21 @@ impl ZedAiOnboarding {
                     .mb_2(),
             )
             .child(PlanDefinitions.pro_plan())
-            .child(
-                Button::new("sign_in", "Try Hawk Pro for Free")
-                    .disabled(signing_in)
-                    .full_width()
-                    .style(ButtonStyle::Tinted(ui::TintColor::Accent))
-                    .on_click({
-                        let callback = self.sign_in.clone();
-                        move |_, window, cx| {
-                            telemetry::event!("Start Trial Clicked", state = "pre-sign-in");
-                            callback(window, cx)
-                        }
-                    }),
-            )
+            .when(cx.has_flag::<SignInFeatureFlag>(), |this| {
+                this.child(
+                    Button::new("sign_in", "Try Hawk Pro for Free")
+                        .disabled(signing_in)
+                        .full_width()
+                        .style(ButtonStyle::Tinted(ui::TintColor::Accent))
+                        .on_click({
+                            let callback = self.sign_in.clone();
+                            move |_, window, cx| {
+                                telemetry::event!("Start Trial Clicked", state = "pre-sign-in");
+                                callback(window, cx)
+                            }
+                        }),
+                )
+            })
             .children(self.render_dismiss_button())
             .into_any_element()
     }

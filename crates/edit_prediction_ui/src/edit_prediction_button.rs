@@ -8,7 +8,7 @@ use edit_prediction_types::EditPredictionDelegateHandle;
 use editor::{
     Editor, MultiBufferOffset, SelectionEffects, actions::ShowEditPrediction, scroll::Autoscroll,
 };
-use feature_flags::FeatureFlagAppExt;
+use feature_flags::{FeatureFlagAppExt, SignInFeatureFlag};
 use fs::Fs;
 use gpui::{
     Action, Animation, AnimationExt, App, AsyncWindowContext, Corner, Entity, FocusHandle,
@@ -242,14 +242,17 @@ impl Render for EditPredictionButton {
                         })
                         .menu(move |window, cx| match &status {
                             SupermavenButtonStatus::NeedsActivation(activate_url) => {
-                                Some(ContextMenu::build(window, cx, |menu, _, _| {
+                                Some(ContextMenu::build(window, cx, |mut menu, _, cx| {
                                     let fs = fs.clone();
                                     let activate_url = activate_url.clone();
 
-                                    menu.entry("Sign In", None, move |_, cx| {
-                                        cx.open_url(activate_url.as_str())
-                                    })
-                                    .entry(
+                                    if cx.has_flag::<SignInFeatureFlag>() {
+                                        menu = menu.entry("Sign In", None, move |_, cx| {
+                                            cx.open_url(activate_url.as_str())
+                                        });
+                                    }
+
+                                    menu.entry(
                                         "Use Zed AI",
                                         None,
                                         move |_, cx| {
@@ -481,8 +484,10 @@ impl Render for EditPredictionButton {
                 if edit_prediction::should_show_upsell_modal() {
                     let tooltip_meta = if self.user_store.read(cx).current_user().is_some() {
                         "Choose a Plan"
-                    } else {
+                    } else if cx.has_flag::<SignInFeatureFlag>() {
                         "Sign In To Use"
+                    } else {
+                        "Not Available"
                     };
 
                     return div().child(
@@ -545,7 +550,11 @@ impl Render for EditPredictionButton {
                                 if show_editor_predictions {
                                     tooltip_meta
                                 } else if user.is_none() {
-                                    "Sign In To Use"
+                                    if cx.has_flag::<SignInFeatureFlag>() {
+                                        "Sign In To Use"
+                                    } else {
+                                        "Feature Unavailable"
+                                    }
                                 } else {
                                     "Hidden For This File"
                                 }
@@ -712,22 +721,24 @@ impl EditPredictionButton {
     ) -> Entity<ContextMenu> {
         let fs = self.fs.clone();
         let project = self.project.clone();
-        ContextMenu::build(window, cx, |menu, _, _| {
-            menu.entry("Sign In to Copilot", None, move |window, cx| {
-                telemetry::event!(
-                    "Edit Prediction Menu Action",
-                    action = "sign_in",
-                    provider = "copilot",
-                );
-                if let Some(copilot) = EditPredictionStore::try_global(cx).and_then(|store| {
-                    store.update(cx, |this, cx| {
-                        this.start_copilot_for_project(&project.upgrade()?, cx)
-                    })
-                }) {
-                    copilot_ui::initiate_sign_in(copilot, window, cx);
-                }
-            })
-            .entry("Disable Copilot", None, {
+        ContextMenu::build(window, cx, |mut menu, _, cx| {
+            if cx.has_flag::<SignInFeatureFlag>() {
+                menu = menu.entry("Sign In to Copilot", None, move |window, cx| {
+                    telemetry::event!(
+                        "Edit Prediction Menu Action",
+                        action = "sign_in",
+                        provider = "copilot",
+                    );
+                    if let Some(copilot) = EditPredictionStore::try_global(cx).and_then(|store| {
+                        store.update(cx, |this, cx| {
+                            this.start_copilot_for_project(&project.upgrade()?, cx)
+                        })
+                    }) {
+                        copilot_ui::initiate_sign_in(copilot, window, cx);
+                    }
+                });
+            }
+            menu.entry("Disable Copilot", None, {
                 let fs = fs.clone();
                 move |_window, cx| {
                     telemetry::event!(
@@ -1184,8 +1195,10 @@ impl EditPredictionButton {
                             )
                             .into_any_element()
                     })
-                    .separator()
-                    .entry("Sign In & Start Using", None, |window, cx| {
+                    .separator();
+
+                if cx.has_flag::<SignInFeatureFlag>() {
+                    menu = menu.entry("Sign In & Start Using", None, |window, cx| {
                         telemetry::event!(
                             "Edit Prediction Menu Action",
                             action = "sign_in",
@@ -1200,8 +1213,10 @@ impl EditPredictionButton {
                                     .log_err();
                             })
                             .detach();
-                    })
-                    .link_with_handler(
+                    });
+                }
+
+                menu = menu.link_with_handler(
                         "Learn More",
                         OpenBrowser {
                             url: hawk_urls::edit_prediction_docs(cx),

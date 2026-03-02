@@ -717,6 +717,7 @@ fn main() {
         settings_profile_selector::init(cx);
         language_tools::init(cx);
         call::init(app_state.client.clone(), app_state.user_store.clone(), cx);
+        title_bar::init(cx);
         if feature_flags::CollabFeatureFlag::enabled_for_all() {
             notifications::init(app_state.client.clone(), app_state.user_store.clone(), cx);
             collab_ui::init(&app_state, cx);

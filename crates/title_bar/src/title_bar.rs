@@ -24,7 +24,7 @@ use auto_update::AutoUpdateStatus;
 use call::ActiveCall;
 use client::{Client, UserStore, hawk_urls};
 use cloud_api_types::Plan;
-use feature_flags::{AgentV2FeatureFlag, FeatureFlagAppExt};
+use feature_flags::{AgentV2FeatureFlag, FeatureFlagAppExt, SignInFeatureFlag};
 use gpui::{
     Action, AnyElement, App, Context, Corner, Element, Empty, Entity, Focusable,
     InteractiveElement, IntoElement, MouseButton, ParentElement, Render,
@@ -226,7 +226,9 @@ impl Render for TitleBar {
                 .children(self.render_connection_status(status, cx))
                 .child(self.update_version.clone())
                 .when(
-                    user.is_none() && TitleBarSettings::get_global(cx).show_sign_in,
+                    user.is_none()
+                        && TitleBarSettings::get_global(cx).show_sign_in
+                        && cx.has_flag::<SignInFeatureFlag>(),
                     |this| this.child(self.render_sign_in_button(cx)),
                 )
                 .child(self.render_organization_menu_button(cx))
