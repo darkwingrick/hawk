@@ -603,7 +603,7 @@ impl TitleBar {
         }
 
         let button = Button::new("restricted_mode_trigger", "Restricted Mode")
-            .style(ButtonStyle::Tinted(TintColor::Warning))
+            .style(ButtonStyle::OutlinedGhost)
             .label_size(LabelSize::Small)
             .color(Color::Warning)
             .icon(IconName::Warning)

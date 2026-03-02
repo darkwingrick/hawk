@@ -117,6 +117,20 @@ pub struct ReleaseAsset {
     pub url: String,
 }
 
+/// GitHub API response for a release
+#[derive(Deserialize, Clone, Debug)]
+struct GithubReleaseResponse {
+    tag_name: String,
+    assets: Vec<GithubReleaseAsset>,
+}
+
+/// GitHub API response for a release asset
+#[derive(Deserialize, Clone, Debug)]
+struct GithubReleaseAsset {
+    name: String,
+    browser_download_url: String,
+}
+
 struct MacOsUnmounter<'a> {
     mount_path: PathBuf,
     background_executor: &'a BackgroundExecutor,
@@ -261,16 +275,15 @@ pub fn release_notes_url(cx: &mut App) -> Option<String> {
             let auto_updater = AutoUpdater::get(cx)?;
             let auto_updater = auto_updater.read(cx);
             let current_version = &auto_updater.current_version;
-            let release_channel = release_channel.dev_name();
-            let path = format!("/releases/{release_channel}/{current_version}");
-            auto_updater.client.http_client().build_url(&path)
+            // Point to GitHub releases page
+            Some(format!("https://github.com/darkwingrick/hawk/releases/tag/v{}", current_version))
         }
         ReleaseChannel::Nightly => {
-            "https://github.com/zed-industries/zed/commits/nightly/".to_string()
+            Some("https://github.com/darkwingrick/hawk/releases/nightly/".to_string())
         }
-        ReleaseChannel::Dev => "https://github.com/zed-industries/zed/commits/main/".to_string(),
+        ReleaseChannel::Dev => Some("https://github.com/darkwingrick/hawk/releases/".to_string()),
     };
-    Some(url)
+    url
 }
 
 pub fn view_release_notes(_: &ViewReleaseNotes, cx: &mut App) -> Option<()> {
@@ -305,7 +318,7 @@ impl InstallerDir {
     async fn new() -> Result<Self> {
         let installer_dir = std::env::current_exe()?
             .parent()
-            .context("No parent dir for Zed.exe")?
+            .context("No parent dir for Hawk.exe")?
             .join("updates");
         if smol::fs::metadata(&installer_dir).await.is_ok() {
             smol::fs::remove_dir_all(&installer_dir).await?;
@@ -520,49 +533,39 @@ impl AutoUpdater {
 
     async fn get_release_asset(
         this: &Entity<Self>,
-        release_channel: ReleaseChannel,
+        _release_channel: ReleaseChannel,
         version: Option<Version>,
-        asset: &str,
+        _asset: &str,
         os: &str,
         arch: &str,
         cx: &mut AsyncApp,
     ) -> Result<ReleaseAsset> {
         let client = this.read_with(cx, |this, _| this.client.clone());
 
-        let (system_id, metrics_id, is_staff) = if client.telemetry().metrics_enabled() {
-            (
-                client.telemetry().system_id(),
-                client.telemetry().metrics_id(),
-                client.telemetry().is_staff(),
-            )
-        } else {
-            (None, None, None)
-        };
-
-        let version = if let Some(mut version) = version {
-            version.pre = semver::Prerelease::EMPTY;
-            version.build = semver::BuildMetadata::EMPTY;
-            version.to_string()
-        } else {
-            "latest".to_string()
-        };
         let http_client = client.http_client();
 
-        let path = format!("/releases/{}/{}/asset", release_channel.dev_name(), version,);
-        let url = http_client.build_hawk_cloud_url_with_query(
-            &path,
-            AssetQuery {
-                os,
-                arch,
-                asset,
-                metrics_id: metrics_id.as_deref(),
-                system_id: system_id.as_deref(),
-                is_staff: is_staff,
-            },
-        )?;
+        // GitHub repository for releases
+        let owner = "darkwingrick";
+        let repo = "hawk";
+
+        // Determine the API URL and asset name pattern based on version
+        let (api_url, _target_asset_pattern) = if let Some(mut version) = version {
+            version.pre = semver::Prerelease::EMPTY;
+            version.build = semver::BuildMetadata::EMPTY;
+            let version_str = version.to_string();
+            (
+                format!("https://api.github.com/repos/{}/{}/releases/tags/v{}", owner, repo, version_str),
+                Self::get_asset_pattern(os, arch),
+            )
+        } else {
+            (
+                format!("https://api.github.com/repos/{}/{}/releases/latest", owner, repo),
+                Self::get_asset_pattern(os, arch),
+            )
+        };
 
         let mut response = http_client
-            .get(url.as_str(), Default::default(), true)
+            .get(&api_url, Default::default(), true)
             .await?;
         let mut body = Vec::new();
         response.body_mut().read_to_end(&mut body).await?;
@@ -573,12 +576,57 @@ impl AutoUpdater {
             String::from_utf8_lossy(&body),
         );
 
-        serde_json::from_slice(body.as_slice()).with_context(|| {
-            format!(
-                "error deserializing release {:?}",
-                String::from_utf8_lossy(&body),
-            )
+        // Parse GitHub release response
+        let github_release: GithubReleaseResponse = serde_json::from_slice(body.as_slice())
+            .with_context(|| format!("error deserializing GitHub release: {:?}", String::from_utf8_lossy(&body)))?;
+
+        // Extract version from tag (remove 'v' prefix if present)
+        let version_str = github_release.tag_name.trim_start_matches('v');
+
+        // Find the matching asset for this platform
+        let target_patterns = Self::get_asset_pattern(os, arch);
+        let asset_url = github_release
+            .assets
+            .iter()
+            .find(|a| {
+                let name_lower = a.name.to_lowercase();
+                target_patterns.iter().any(|pattern| name_lower.contains(&pattern.to_lowercase()))
+            })
+            .map(|a| a.browser_download_url.clone())
+            .ok_or_else(|| anyhow::anyhow!("no matching asset found for {} {}", os, arch))?;
+
+        Ok(ReleaseAsset {
+            version: version_str.to_string(),
+            url: asset_url,
         })
+    }
+
+    /// Get the asset name pattern for the current OS and architecture
+    /// Returns patterns to match against GitHub asset names
+    fn get_asset_pattern(os: &str, arch: &str) -> Vec<String> {
+        let mut patterns = Vec::new();
+
+        let os_patterns: Vec<&str> = match os {
+            "macos" => vec!["darwin", "macos", "osx"],
+            "linux" => vec!["linux"],
+            "windows" => vec!["windows", "win"],
+            _ => vec![os],
+        };
+
+        let arch_patterns: Vec<&str> = match arch {
+            "x86_64" | "x86" => vec!["x86_64", "x86-64", "amd64"],
+            "aarch64" | "arm64" => vec!["aarch64", "arm64", "armv8"],
+            _ => vec![arch],
+        };
+
+        // Generate all combinations of OS and arch patterns
+        for os_pat in &os_patterns {
+            for arch_pat in &arch_patterns {
+                patterns.push(format!("{}-{}", os_pat, arch_pat));
+            }
+        }
+
+        patterns
     }
 
     async fn update(this: Entity<Self>, cx: &mut AsyncApp) -> Result<()> {
@@ -721,9 +769,9 @@ impl AutoUpdater {
 
     async fn target_path(installer_dir: &InstallerDir) -> Result<PathBuf> {
         let filename = match OS {
-            "macos" => anyhow::Ok("Zed.dmg"),
-            "linux" => Ok("zed.tar.gz"),
-            "windows" => Ok("Zed.exe"),
+            "macos" => anyhow::Ok("Hawk.dmg"),
+            "linux" => Ok("hawk.tar.gz"),
+            "windows" => Ok("Hawk.exe"),
             unsupported_os => anyhow::bail!("not supported: {unsupported_os}"),
         }?;
 
@@ -923,12 +971,12 @@ async fn install_release_linux(
     } else {
         String::default()
     };
-    let app_folder_name = format!("zed{}.app", suffix);
+    let app_folder_name = format!("hawk{}.app", suffix);
 
     let from = extracted.join(&app_folder_name);
     let mut to = home_dir.join(".local");
 
-    let expected_suffix = format!("{}/libexec/zed-editor", app_folder_name);
+    let expected_suffix = format!("{}/libexec/hawk-editor", app_folder_name);
 
     if let Some(prefix) = running_app_path
         .to_str()
@@ -946,7 +994,7 @@ async fn install_release_linux(
 
     anyhow::ensure!(
         output.status.success(),
-        "failed to copy Zed update from {:?} to {:?}: {:?}",
+        "failed to copy Hawk update from {:?} to {:?}: {:?}",
         from,
         to,
         String::from_utf8_lossy(&output.stderr)
@@ -1008,7 +1056,7 @@ async fn install_release_macos(
 async fn cleanup_windows() -> Result<()> {
     let parent = std::env::current_exe()?
         .parent()
-        .context("No parent dir for Zed.exe")?
+        .context("No parent dir for Hawk.exe")?
         .to_owned();
 
     // keep in sync with crates/auto_update_helper/src/updater.rs
@@ -1037,7 +1085,7 @@ async fn install_release_windows(downloaded_installer: PathBuf) -> Result<Option
     // deleting the old one, and launching the new binary.
     let helper_path = std::env::current_exe()?
         .parent()
-        .context("No parent dir for Zed.exe")?
+        .context("No parent dir for Hawk.exe")?
         .join("tools")
         .join("auto_update_helper.exe");
     Ok(Some(helper_path))
