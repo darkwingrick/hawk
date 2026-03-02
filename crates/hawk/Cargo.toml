@@ -263,31 +263,9 @@ agent_ui = { workspace = true, features = ["test-support"] }
 search = { workspace = true, features = ["test-support"] }
 repl = { workspace = true, features = ["test-support"] }
 
+
+
 [package.metadata.bundle]
-icon = ["resources/icon.icns"]
-identifier = "dev.hawk.Hawk-Dev"
-name = "Hawk Dev"
-osx_minimum_system_version = "10.15.7"
-osx_info_plist_exts = ["resources/info/*"]
-osx_url_schemes = ["hawk"]
-
-[package.metadata.bundle-nightly]
-icon = ["resources/icon.icns"]
-identifier = "dev.hawk.Hawk-Nightly"
-name = "Hawk Nightly"
-osx_minimum_system_version = "10.15.7"
-osx_info_plist_exts = ["resources/info/*"]
-osx_url_schemes = ["hawk"]
-
-[package.metadata.bundle-preview]
-icon = ["resources/icon.icns"]
-identifier = "dev.hawk.Hawk-Preview"
-name = "Hawk Preview"
-osx_minimum_system_version = "10.15.7"
-osx_info_plist_exts = ["resources/info/*"]
-osx_url_schemes = ["hawk"]
-
-[package.metadata.bundle-stable]
 icon = ["resources/icon.icns"]
 identifier = "dev.hawk.Hawk"
 name = "Hawk"

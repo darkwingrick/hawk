@@ -1,8 +1,9 @@
 use collab_ui::collab_panel;
 use gpui::{App, Menu, MenuItem, OsAction};
+use onboarding;
 use release_channel::ReleaseChannel;
 use terminal_view::terminal_panel;
-use hawk_actions::{debug_panel, dev};
+use hawk_actions::{debug_panel, dev, OpenOnboarding};
 
 pub fn app_menus(cx: &mut App) -> Vec<Menu> {
     use hawk_actions::Quit;
@@ -302,6 +303,7 @@ pub fn app_menus(cx: &mut App) -> Vec<Menu> {
                 MenuItem::action("View Telemetry", hawk_actions::OpenTelemetryLog),
                 MenuItem::action("View Dependency Licenses", hawk_actions::OpenLicenses),
                 MenuItem::action("Show Welcome", onboarding::ShowWelcome),
+                MenuItem::action("Onboarding", OpenOnboarding),
                 MenuItem::separator(),
                 MenuItem::action("File Bug Report...", hawk_actions::feedback::FileBugReport),
                 MenuItem::action("Request Feature...", hawk_actions::feedback::RequestFeature),
