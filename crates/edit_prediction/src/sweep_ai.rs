@@ -489,7 +489,7 @@ fn write_event(event: &zeta_prompt::Event, f: &mut impl fmt::Write) -> fmt::Resu
 
 fn debug_info(cx: &gpui::App) -> Arc<str> {
     format!(
-        "Zed v{version} ({sha}) - OS: {os} - Zed v{version}",
+        "Hawk v{version} ({sha}) - OS: {os} - Hawk v{version}",
         version = release_channel::AppVersion::global(cx),
         sha = release_channel::AppCommitSha::try_global(cx)
             .map_or("unknown".to_string(), |sha| sha.full()),

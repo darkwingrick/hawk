@@ -777,8 +777,8 @@ mod tests {
         assert_models_eq(
             results,
             vec![
-                "zed/gpt-5",
-                "zed/gpt-5-mini",
+                "hawk/gpt-5",
+                "hawk/gpt-5-mini",
                 "openai/gpt-5",
                 "openai/gpt-5-mini",
             ],
@@ -805,8 +805,8 @@ mod tests {
         );
 
         // Results should preserve models order whenever possible.
-        // In the case below, `zed/gpt-5-mini` and `openai/gpt-5-mini` have identical
-        // similarity scores, but `zed/gpt-5-mini` was higher in the models list,
+        // In the case below, `hawk/gpt-5-mini` and `openai/gpt-5-mini` have identical
+        // similarity scores, but `hawk/gpt-5-mini` was higher in the models list,
         // so it should appear first in the results.
         let results = matcher.fuzzy_search("mini");
         assert_models_eq(results, vec!["hawk/gpt-5-mini", "openai/gpt-5-mini"]);
@@ -841,7 +841,7 @@ mod tests {
         // Recommended models should also appear in "all"
         assert_models_eq(
             actual_all_models,
-            vec!["hawk/claude", "zed/gemini", "copilot/o3"],
+            vec!["hawk/claude", "hawk/gemini", "copilot/o3"],
         );
     }
 
@@ -866,7 +866,7 @@ mod tests {
         // All models should appear in "all" regardless of recommended status
         assert_models_eq(
             actual_all_models,
-            vec!["hawk/claude", "zed/gemini", "copilot/claude"],
+            vec!["hawk/claude", "hawk/gemini", "copilot/claude"],
         );
     }
 
@@ -919,8 +919,8 @@ mod tests {
 
         for entry in &entries {
             if let LanguageModelPickerEntry::Model(info) = entry {
-                if info.model.telemetry_id() == "zed/claude" {
-                    assert!(info.is_favorite, "zed/claude should be a favorite");
+                if info.model.telemetry_id() == "hawk/claude" {
+                    assert!(info.is_favorite, "hawk/claude should be a favorite");
                 } else {
                     assert!(
                         !info.is_favorite,
@@ -955,7 +955,7 @@ mod tests {
         assert_models_eq(grouped_models.recommended, vec!["hawk/claude"]);
         assert_models_eq(
             grouped_models.all.values().flatten().cloned().collect(),
-            vec!["hawk/claude", "zed/gemini", "openai/gpt-4", "openai/gpt-3.5"],
+            vec!["hawk/claude", "hawk/gemini", "openai/gpt-4", "openai/gpt-3.5"],
         );
     }
 }

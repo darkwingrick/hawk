@@ -2855,9 +2855,26 @@ mod tests {
             );
         });
 
-        // Wait for the printf command to execute and produce output
-        // Use real time since parking is enabled
-        cx.executor().timer(Duration::from_millis(500)).await;
+        // Poll until the printf output appears in the terminal, up to 10s.
+        // A fixed sleep is unreliable under load; polling drains GPUI's event
+        // queue repeatedly so the PTY reader thread's output events are flushed
+        // into the terminal emulator's grid before we kill.
+        let poll_start = std::time::Instant::now();
+        loop {
+            cx.run_until_parked();
+            let content = thread.read_with(cx, |thread, cx| {
+                let term = thread.terminals.get(&terminal_id).unwrap();
+                term.read(cx).inner().read(cx).get_content()
+            });
+            if content.contains("output_before_kill") {
+                break;
+            }
+            assert!(
+                poll_start.elapsed() < Duration::from_secs(10),
+                "Timed out waiting for 'output_before_kill' to appear in terminal"
+            );
+            cx.executor().timer(Duration::from_millis(100)).await;
+        }
 
         // Get the acp_thread Terminal and kill it
         let wait_for_exit = thread.update(cx, |thread, cx| {
@@ -2884,7 +2901,7 @@ mod tests {
             This indicates kill_active_task is not properly killing the shell process."
         );
 
-        // Give the system a chance to process any pending updates
+        // Give the system a chance to process any pending updates after kill
         cx.run_until_parked();
 
         // Verify that the underlying terminal still has the output that was
