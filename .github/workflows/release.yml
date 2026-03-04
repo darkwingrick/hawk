@@ -16,6 +16,7 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   CARGO_BUILD_JOBS: "2"
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
 
 jobs:
   build-and-release:
