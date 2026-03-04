@@ -89,9 +89,44 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Validate macOS signing and notarization secrets
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_NOTARIZATION_KEY: ${{ secrets.APPLE_NOTARIZATION_KEY }}
+          APPLE_NOTARIZATION_KEY_ID: ${{ secrets.APPLE_NOTARIZATION_KEY_ID }}
+          APPLE_NOTARIZATION_ISSUER_ID: ${{ secrets.APPLE_NOTARIZATION_ISSUER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for variable_name in \
+            MACOS_CERTIFICATE \
+            MACOS_CERTIFICATE_PASSWORD \
+            APPLE_NOTARIZATION_KEY \
+            APPLE_NOTARIZATION_KEY_ID \
+            APPLE_NOTARIZATION_ISSUER_ID
+          do
+            if [[ -z "${!variable_name:-}" ]]; then
+              echo "::error::Missing required secret: ${variable_name}"
+              missing=1
+            fi
+          done
+
+          if [[ "${missing}" -ne 0 ]]; then
+            echo "::error::Release build requires notarization secrets. Add them in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
       - name: Build Hawk macOS bundle
         env:
           HAWK_APP_VERSION: ${{ steps.version.outputs.version }}
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_NOTARIZATION_KEY: ${{ secrets.APPLE_NOTARIZATION_KEY }}
+          APPLE_NOTARIZATION_KEY_ID: ${{ secrets.APPLE_NOTARIZATION_KEY_ID }}
+          APPLE_NOTARIZATION_ISSUER_ID: ${{ secrets.APPLE_NOTARIZATION_ISSUER_ID }}
         shell: bash
         run: |
           set -euo pipefail
