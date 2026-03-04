@@ -644,8 +644,8 @@ mod tests {
         ]);
 
         // Results should preserve models order whenever possible.
-        // In the case below, `zed/gpt-5-mini` and `openai/gpt-5-mini` have identical
-        // similarity scores, but `zed/gpt-5-mini` was higher in the models list,
+        // In the case below, `hawk/gpt-5-mini` and `openai/gpt-5-mini` have identical
+        // similarity scores, but `hawk/gpt-5-mini` was higher in the models list,
         // so it should appear first in the results.
         let results = fuzzy_search(models.clone(), "mini".into(), cx.executor()).await;
         assert_models_eq(
@@ -661,7 +661,7 @@ mod tests {
     #[gpui::test]
     fn test_favorites_section_appears_when_favorites_exist(_cx: &mut TestAppContext) {
         let models = create_model_list(vec![
-            ("hawk", vec!["hawk/claude", "zed/gemini"]),
+            ("hawk", vec!["hawk/claude", "hawk/gemini"]),
             ("openai", vec!["openai/gpt-5"]),
         ]);
         let favorites = create_favorites(vec!["hawk/gemini"]);
@@ -674,12 +674,12 @@ mod tests {
         ));
 
         let model_ids = get_entry_model_ids(&entries);
-        assert_eq!(model_ids[0], "zed/gemini");
+        assert_eq!(model_ids[0], "hawk/gemini");
     }
 
     #[gpui::test]
     fn test_no_favorites_section_when_no_favorites(_cx: &mut TestAppContext) {
-        let models = create_model_list(vec![("hawk", vec!["hawk/claude", "zed/gemini"])]);
+        let models = create_model_list(vec![("hawk", vec!["hawk/claude", "hawk/gemini"])]);
         let favorites = create_favorites(vec![]);
 
         let entries = info_list_to_picker_entries(models, &favorites);
@@ -693,7 +693,7 @@ mod tests {
     #[gpui::test]
     fn test_models_have_correct_actions(_cx: &mut TestAppContext) {
         let models = create_model_list(vec![
-            ("hawk", vec!["hawk/claude", "zed/gemini"]),
+            ("hawk", vec!["hawk/claude", "hawk/gemini"]),
             ("openai", vec!["openai/gpt-5"]),
         ]);
         let favorites = create_favorites(vec!["hawk/claude"]);
@@ -702,8 +702,8 @@ mod tests {
 
         for entry in &entries {
             if let ModelPickerEntry::Model(info, is_favorite) = entry {
-                if info.id.0.as_ref() == "zed/claude" {
-                    assert!(is_favorite, "zed/claude should be a favorite");
+                if info.id.0.as_ref() == "hawk/claude" {
+                    assert!(is_favorite, "hawk/claude should be a favorite");
                 } else {
                     assert!(!is_favorite, "{} should not be a favorite", info.id.0);
                 }
@@ -714,7 +714,7 @@ mod tests {
     #[gpui::test]
     fn test_favorites_appear_in_both_sections(_cx: &mut TestAppContext) {
         let models = create_model_list(vec![
-            ("hawk", vec!["hawk/claude", "zed/gemini"]),
+            ("hawk", vec!["hawk/claude", "hawk/gemini"]),
             ("openai", vec!["openai/gpt-5", "openai/gpt-4"]),
         ]);
         let favorites = create_favorites(vec!["hawk/gemini", "openai/gpt-5"]);
@@ -722,10 +722,10 @@ mod tests {
         let entries = info_list_to_picker_entries(models, &favorites);
         let model_ids = get_entry_model_ids(&entries);
 
-        assert_eq!(model_ids[0], "zed/gemini");
+        assert_eq!(model_ids[0], "hawk/gemini");
         assert_eq!(model_ids[1], "openai/gpt-5");
 
-        assert!(model_ids[2..].contains(&"zed/gemini"));
+        assert!(model_ids[2..].contains(&"hawk/gemini"));
         assert!(model_ids[2..].contains(&"openai/gpt-5"));
     }
 
@@ -733,7 +733,7 @@ mod tests {
     fn test_favorites_are_not_duplicated_when_repeated_in_other_sections(_cx: &mut TestAppContext) {
         let models = create_model_list(vec![
             ("Recommended", vec!["hawk/claude", "anthropic/claude"]),
-            ("Hawk", vec!["hawk/claude", "zed/gpt-5"]),
+            ("Hawk", vec!["hawk/claude", "hawk/gpt-5"]),
             ("Antropic", vec!["anthropic/claude"]),
             ("OpenAI", vec!["openai/gpt-5"]),
         ]);
@@ -747,13 +747,13 @@ mod tests {
             labels,
             vec![
                 "Favorite",
-                "zed/claude",
+                "hawk/claude",
                 "Recommended",
-                "zed/claude",
+                "hawk/claude",
                 "anthropic/claude",
                 "Hawk",
-                "zed/claude",
-                "zed/gpt-5",
+                "hawk/claude",
+                "hawk/gpt-5",
                 "Antropic",
                 "anthropic/claude",
                 "OpenAI",
@@ -766,7 +766,7 @@ mod tests {
     fn test_flat_model_list_with_favorites(_cx: &mut TestAppContext) {
         let models = AgentModelList::Flat(vec![
             acp_thread::AgentModelInfo {
-                id: acp::ModelId::new("zed/claude".to_string()),
+                id: acp::ModelId::new("hawk/claude".to_string()),
                 name: "Claude".into(),
                 description: None,
                 icon: None,
@@ -774,7 +774,7 @@ mod tests {
                 cost: None,
             },
             acp_thread::AgentModelInfo {
-                id: acp::ModelId::new("zed/gemini".to_string()),
+                id: acp::ModelId::new("hawk/gemini".to_string()),
                 name: "Gemini".into(),
                 description: None,
                 icon: None,

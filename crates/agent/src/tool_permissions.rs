@@ -2118,13 +2118,13 @@ mod tests {
     #[test]
     fn normalize_path_collapses_dot_segments() {
         assert_eq!(
-            normalize_path("src/../.zed/settings.json"),
-            ".zed/settings.json"
+            normalize_path("src/../.hawk/settings.json"),
+            ".hawk/settings.json"
         );
         assert_eq!(normalize_path("a/b/../c"), "a/c");
         assert_eq!(normalize_path("a/./b/c"), "a/b/c");
         assert_eq!(normalize_path("a/b/./c/../d"), "a/b/d");
-        assert_eq!(normalize_path(".zed/settings.json"), ".zed/settings.json");
+        assert_eq!(normalize_path(".hawk/settings.json"), ".hawk/settings.json");
         assert_eq!(normalize_path("a/b/c"), "a/b/c");
     }
 
@@ -2196,8 +2196,8 @@ mod tests {
     fn decide_permission_for_path_denies_traversal_to_denied_dir() {
         let decision = path_perm(
             "copy_path",
-            "src/../.zed/settings.json",
-            &["^\\.zed/"],
+            "src/../.hawk/settings.json",
+            &["^\\.hawk/"],
             &[],
             &[],
         );
@@ -2208,10 +2208,10 @@ mod tests {
     fn decide_permission_for_path_confirms_traversal_to_confirmed_dir() {
         let decision = path_perm(
             "copy_path",
-            "src/../.zed/settings.json",
+            "src/../.hawk/settings.json",
             &[],
             &[],
-            &["^\\.zed/"],
+            &["^\\.hawk/"],
         );
         assert!(matches!(decision, ToolPermissionDecision::Confirm));
     }
@@ -2226,8 +2226,8 @@ mod tests {
     fn decide_permission_for_path_most_restrictive_wins() {
         let decision = path_perm(
             "copy_path",
-            "allowed/../.zed/settings.json",
-            &["^\\.zed/"],
+            "allowed/../.hawk/settings.json",
+            &["^\\.hawk/"],
             &["^allowed/"],
             &[],
         );
@@ -2238,8 +2238,8 @@ mod tests {
     fn decide_permission_for_path_dot_segment_only() {
         let decision = path_perm(
             "delete_path",
-            "./.zed/settings.json",
-            &["^\\.zed/"],
+            "./.hawk/settings.json",
+            &["^\\.hawk/"],
             &[],
             &[],
         );
@@ -2249,7 +2249,7 @@ mod tests {
     #[test]
     fn decide_permission_for_path_no_change_when_already_simple() {
         // When path has no `.` or `..` segments, behavior matches decide_permission_from_settings
-        let decision = path_perm("copy_path", ".zed/settings.json", &["^\\.zed/"], &[], &[]);
+        let decision = path_perm("copy_path", ".hawk/settings.json", &["^\\.hawk/"], &[], &[]);
         assert!(matches!(decision, ToolPermissionDecision::Deny(_)));
     }
 

@@ -244,7 +244,7 @@ fn heap_tracing_profile(heap_pid: Option<u32>) -> String {
         Some(pid) => (
             format!(
                 r#"
-    <HeapEventProvider Id="ZedHeapProvider">
+    <HeapEventProvider Id="HawkHeapProvider">
       <HeapProcessIds Operation="Set">
         <HeapProcessId Value="{pid}"/>
       </HeapProcessIds>
@@ -254,7 +254,7 @@ fn heap_tracing_profile(heap_pid: Option<u32>) -> String {
       <Collectors Operation="Add">
         <HeapEventCollectorId Value="HeapCollector_WPRHeapCollector">
           <HeapEventProviders Operation="Set">
-            <HeapEventProviderId Value="ZedHeapProvider"/>
+            <HeapEventProviderId Value="HawkHeapProvider"/>
           </HeapEventProviders>
         </HeapEventCollectorId>
       </Collectors>"#

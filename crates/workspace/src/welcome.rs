@@ -376,7 +376,7 @@ impl Render for WelcomePage {
         let welcome_label = if self.fallback_to_recent_projects {
             "Welcome back to Hawk"
         } else {
-            "Welcome to Zed"
+            "Welcome to Hawk"
         };
 
         h_flex()

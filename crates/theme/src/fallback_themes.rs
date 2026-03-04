@@ -15,7 +15,7 @@ use crate::{
 pub fn hawk_default_themes() -> ThemeFamily {
     ThemeFamily {
         id: "zed-default".to_string(),
-        name: "Dark Green".into(),
+        name: "One Dark".into(),
         author: "".into(),
         themes: vec![hawk_default_dark()],
         scales: default_color_scales(),
@@ -104,7 +104,7 @@ pub(crate) fn hawk_default_dark() -> Theme {
     let player = PlayerColors::dark();
     Theme {
         id: "one_dark".to_string(),
-        name: "Dark Green".into(),
+        name: "One Dark".into(),
         appearance: Appearance::Dark,
         styles: ThemeStyles {
             window_background_appearance: WindowBackgroundAppearance::Opaque,

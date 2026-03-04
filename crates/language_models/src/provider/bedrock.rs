@@ -1640,7 +1640,7 @@ impl ConfigurationView {
             .child(self.session_token_editor.clone())
             .child(
                 Label::new(format!(
-                    "You can also set the {}, {} and {} environment variables (or {} for Bedrock API Key authentication) and restart Zed.",
+                    "You can also set the {}, {} and {} environment variables (or {} for Bedrock API Key authentication) and restart Hawk.",
                     HAWK_BEDROCK_ACCESS_KEY_ID_VAR.name,
                     HAWK_BEDROCK_SECRET_ACCESS_KEY_VAR.name,
                     HAWK_BEDROCK_REGION_VAR.name,

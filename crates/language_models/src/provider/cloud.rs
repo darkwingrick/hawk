@@ -1097,7 +1097,7 @@ impl RenderOnce for ZedAiConfiguration {
                     .gap_2()
                     .child(Label::new("Sign in to have access to Zed's complete agentic experience with hosted models."))
                     .child(
-                        Button::new("sign_in", "Sign In to use Zed AI")
+                        Button::new("sign_in", "Sign In to use Hawk AI")
                             .icon_color(Color::Muted)
                             .icon(IconName::Github)
                             .icon_size(IconSize::Small)
@@ -1111,7 +1111,7 @@ impl RenderOnce for ZedAiConfiguration {
             } else {
                 return v_flex()
                     .gap_2()
-                    .child(Label::new("Zed AI is not available."));
+                    .child(Label::new("Hawk AI is not available."));
             }
         }
 
@@ -1227,11 +1227,11 @@ impl Component for ZedAiConfiguration {
                         configuration(true, Some(Plan::ZedFree), true, false),
                     ),
                     single_example(
-                        "Zed Pro Trial Plan",
+                        "Hawk Pro Trial Plan",
                         configuration(true, Some(Plan::ZedProTrial), true, false),
                     ),
                     single_example(
-                        "Zed Pro Plan",
+                        "Hawk Pro Plan",
                         configuration(true, Some(Plan::ZedPro), true, false),
                     ),
                 ])

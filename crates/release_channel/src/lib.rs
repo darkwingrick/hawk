@@ -28,10 +28,10 @@ pub static RELEASE_CHANNEL: LazyLock<ReleaseChannel> =
 #[cfg(target_os = "windows")]
 pub fn app_identifier() -> &'static str {
     match *RELEASE_CHANNEL {
-        ReleaseChannel::Dev => "Zed-Editor-Dev",
-        ReleaseChannel::Nightly => "Zed-Editor-Nightly",
-        ReleaseChannel::Preview => "Zed-Editor-Preview",
-        ReleaseChannel::Stable => "Zed-Editor-Stable",
+        ReleaseChannel::Dev => "Hawk-Editor-Dev",
+        ReleaseChannel::Nightly => "Hawk-Editor-Nightly",
+        ReleaseChannel::Preview => "Hawk-Editor-Preview",
+        ReleaseChannel::Stable => "Hawk-Editor-Stable",
     }
 }
 
@@ -85,7 +85,10 @@ impl AppVersion {
         build_id: Option<&str>,
         commit_sha: Option<AppCommitSha>,
     ) -> Version {
-        let mut version: Version = if let Ok(from_env) = env::var("HAWK_APP_VERSION") {
+        let version_from_env = env::var("HAWK_APP_VERSION")
+            .ok()
+            .or_else(|| option_env!("HAWK_APP_VERSION").map(ToOwned::to_owned));
+        let mut version: Version = if let Some(from_env) = version_from_env {
             from_env.parse().expect("invalid HAWK_APP_VERSION")
         } else {
             pkg_version.parse().expect("invalid version in Cargo.toml")

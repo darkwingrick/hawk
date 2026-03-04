@@ -603,7 +603,7 @@ impl TitleBar {
         }
 
         let button = Button::new("restricted_mode_trigger", "Restricted Mode")
-            .style(ButtonStyle::Tinted(TintColor::Warning))
+            .style(ButtonStyle::OutlinedGhost)
             .label_size(LabelSize::Small)
             .color(Color::Warning)
             .icon(IconName::Warning)
@@ -913,7 +913,7 @@ impl TitleBar {
             client::Status::UpgradeRequired => {
                 let auto_updater = auto_update::AutoUpdater::get(cx);
                 let label = match auto_updater.map(|auto_update| auto_update.read(cx).status()) {
-                    Some(AutoUpdateStatus::Updated { .. }) => "Please restart Zed to Collaborate",
+                    Some(AutoUpdateStatus::Updated { .. }) => "Please restart Hawk to Collaborate",
                     Some(AutoUpdateStatus::Installing { .. })
                     | Some(AutoUpdateStatus::Downloading { .. })
                     | Some(AutoUpdateStatus::Checking) => "Updating...",

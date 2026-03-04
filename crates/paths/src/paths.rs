@@ -1,4 +1,4 @@
-//! Paths to locations used by Zed.
+//! Paths to locations used by Hawk.
 
 use std::env;
 use std::path::{Path, PathBuf};

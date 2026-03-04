@@ -18,16 +18,13 @@ env:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
-      - name: Install Linux build dependencies
-        run: ./script/linux
 
       - name: Determine next tag
         id: version
@@ -81,10 +78,20 @@ jobs:
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Build Hawk release binary
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Hawk macOS bundle
         env:
           HAWK_APP_VERSION: ${{ steps.version.outputs.version }}
-        run: cargo build --release -p hawk --bin hawk
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "stable" > crates/hawk/RELEASE_CHANNEL
+          ./script/bundle-mac aarch64-apple-darwin
 
       - name: Package updater artifact
         shell: bash
@@ -92,16 +99,19 @@ jobs:
           set -euo pipefail
 
           rm -rf dist
-          mkdir -p dist/hawk.app/libexec
+          mkdir -p dist
 
-          cp target/release/hawk dist/hawk.app/libexec/hawk-editor
-          chmod +x dist/hawk.app/libexec/hawk-editor
+          dmg_path="target/aarch64-apple-darwin/release/Hawk-aarch64.dmg"
+          if [[ ! -f "${dmg_path}" ]]; then
+            echo "Expected DMG not found at ${dmg_path}"
+            exit 1
+          fi
 
-          tar -C dist -czf dist/hawk-linux-x86_64.tar.gz hawk.app
+          cp "${dmg_path}" dist/hawk-macos-aarch64.dmg
 
           (
             cd dist
-            sha256sum hawk-linux-x86_64.tar.gz > SHA256SUMS
+            shasum -a 256 hawk-macos-aarch64.dmg > SHA256SUMS
           )
 
       - name: Publish GitHub release
@@ -112,7 +122,7 @@ jobs:
           target_commitish: ${{ github.sha }}
           generate_release_notes: true
           files: |
-            dist/hawk-linux-x86_64.tar.gz
+            dist/hawk-macos-aarch64.dmg
             dist/SHA256SUMS
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

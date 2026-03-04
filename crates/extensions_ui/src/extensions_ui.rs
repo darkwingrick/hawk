@@ -1632,7 +1632,7 @@ impl ExtensionsPage {
                     cx,
                 ),
                 Feature::Git => self.render_feature_upsell_banner(
-                    "Zed comes with basic Git support—more features are coming in the future."
+                    "Hawk comes with basic Git support—more features are coming in the future."
                         .into(),
                     "https://hawk.dev/docs/git".into(),
                     false,
@@ -1687,7 +1687,7 @@ impl ExtensionsPage {
                     cx,
                 ),
                 Feature::OpenIn => self.render_feature_upsell_banner(
-                    "Zed supports linking to a source line on GitHub and others.".into(),
+                    "Hawk supports linking to a source line on GitHub and others.".into(),
                     "https://hawk.dev/docs/git#git-integrations".into(),
                     false,
                     cx,

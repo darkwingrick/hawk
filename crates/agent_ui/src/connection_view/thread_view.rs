@@ -968,7 +968,7 @@ impl ThreadView {
                 ThreadError::PaymentRequired => (
                     "payment_required",
                     None,
-                    "You reached your free usage limit. Upgrade to Zed Pro for more prompts."
+                    "You reached your free usage limit. Upgrade to Hawk Pro for more prompts."
                         .into(),
                 ),
                 ThreadError::Refusal => {
@@ -3500,13 +3500,13 @@ impl ThreadView {
         let following = self.is_following(cx);
 
         let tooltip_label = if following {
-            if self.agent_name == "Zed Agent" {
+            if self.agent_name == "Hawk Agent" {
                 format!("Stop Following the {}", self.agent_name)
             } else {
                 format!("Stop Following {}", self.agent_name)
             }
         } else {
-            if self.agent_name == "Zed Agent" {
+            if self.agent_name == "Hawk Agent" {
                 format!("Follow the {}", self.agent_name)
             } else {
                 format!("Follow {}", self.agent_name)
@@ -4109,7 +4109,7 @@ impl ThreadView {
 
             let tooltip_meta = || {
                 SharedString::new(
-                    "Rating the thread sends all of your current conversation to the Zed team.",
+                    "Rating the thread sends all of your current conversation to the Hawk team.",
                 )
             };
 
@@ -6975,7 +6975,7 @@ impl ThreadView {
 
     fn render_payment_required_error(&self, cx: &mut Context<Self>) -> Callout {
         const ERROR_MESSAGE: &str =
-            "You reached your free usage limit. Upgrade to Zed Pro for more prompts.";
+            "You reached your free usage limit. Upgrade to Hawk Pro for more prompts.";
 
         Callout::new()
             .severity(Severity::Error)

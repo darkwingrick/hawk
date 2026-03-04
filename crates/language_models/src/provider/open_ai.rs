@@ -1310,7 +1310,7 @@ impl Render for ConfigurationView {
                 .child(self.api_key_editor.clone())
                 .child(
                     Label::new(format!(
-                        "You can also set the {API_KEY_ENV_VAR_NAME} environment variable and restart Zed."
+                        "You can also set the {API_KEY_ENV_VAR_NAME} environment variable and restart Hawk."
                     ))
                     .size(LabelSize::Small)
                     .color(Color::Muted),
@@ -1349,7 +1349,7 @@ impl Render for ConfigurationView {
                             .size(IconSize::XSmall)
                             .color(Color::Muted),
                     )
-                    .child(Label::new("Zed also supports OpenAI-compatible models.")),
+                    .child(Label::new("Hawk also supports OpenAI-compatible models.")),
             )
             .child(
                 Button::new("docs", "Learn More")

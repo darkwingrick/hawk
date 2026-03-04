@@ -181,7 +181,7 @@ fn get_hawk_install_folder() -> Option<PathBuf> {
 
 #[inline]
 fn get_hawk_exe_path() -> Option<String> {
-    get_hawk_install_folder().map(|path| path.join("Zed.exe").to_string_lossy().into_owned())
+    get_hawk_install_folder().map(|path| path.join("Hawk.exe").to_string_lossy().into_owned())
 }
 
 #[inline]

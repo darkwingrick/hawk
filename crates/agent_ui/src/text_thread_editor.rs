@@ -2333,7 +2333,7 @@ impl TextThreadEditor {
     }
 
     fn render_payment_required_error(&self, cx: &mut Context<Self>) -> AnyElement {
-        const ERROR_MESSAGE: &str = "Free tier exceeded. Subscribe and add payment to continue using Zed LLMs. You'll be billed at cost for tokens used.";
+        const ERROR_MESSAGE: &str = "Free tier exceeded. Subscribe and add payment to continue using Hawk LLMs. You'll be billed at cost for tokens used.";
 
         v_flex()
             .gap_0p5()
@@ -3181,7 +3181,7 @@ mod tests {
             (Role::User, "What is the Zed editor?"),
             (
                 Role::Assistant,
-                "Zed is a modern, high-performance code editor designed from the ground up for speed and collaboration.",
+                "Hawk is a modern, high-performance code editor designed from the ground up for speed and collaboration.",
             ),
             (Role::User, ""),
         ],cx).await;
@@ -3192,7 +3192,7 @@ mod tests {
             message_range(&context, 0, &mut cx),
             indoc! {"
                 What is the Zed editor?
-                Zed is a modern, high-performance code editor designed from the ground up for speed and collaboration.
+                Hawk is a modern, high-performance code editor designed from the ground up for speed and collaboration.
                 What is the Zed editor?
             "},
             &mut cx,
@@ -3204,9 +3204,9 @@ mod tests {
             message_range(&context, 1, &mut cx),
             indoc! {"
                 What is the Zed editor?
-                Zed is a modern, high-performance code editor designed from the ground up for speed and collaboration.
+                Hawk is a modern, high-performance code editor designed from the ground up for speed and collaboration.
                 What is the Zed editor?
-                Zed is a modern, high-performance code editor designed from the ground up for speed and collaboration.
+                Hawk is a modern, high-performance code editor designed from the ground up for speed and collaboration.
             "},
             &mut cx,
         );

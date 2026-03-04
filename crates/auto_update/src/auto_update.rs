@@ -6,11 +6,13 @@ use gpui::{
     App, AppContext as _, AsyncApp, BackgroundExecutor, Context, Entity, Global, Task, Window,
     actions,
 };
+use http_client::github::{get_release_by_tag_name, latest_github_release};
 use http_client::{HttpClient, HttpClientWithUrl};
 use paths::remote_servers_dir;
 use release_channel::{AppCommitSha, ReleaseChannel};
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use settings::{RegisterSetting, Settings, SettingsStore};
 use smol::fs::File;
 use smol::{fs, io::AsyncReadExt};
@@ -32,6 +34,11 @@ use workspace::Workspace;
 const SHOULD_SHOW_UPDATE_NOTIFICATION_KEY: &str = "auto-updater-should-show-updated-notification";
 const POLL_INTERVAL: Duration = Duration::from_secs(60 * 60);
 const REMOTE_SERVER_CACHE_LIMIT: usize = 5;
+const DEFAULT_RELEASE_REPOSITORY: &str = "darkwingrick/hawk";
+const RELEASE_REPOSITORY_ENV_VAR: &str = "HAWK_RELEASE_REPOSITORY";
+const DEFAULT_TAG_PREFIX: &str = "v";
+const RELEASE_TAG_PREFIX_ENV_VAR: &str = "HAWK_RELEASE_TAG_PREFIX";
+const CHECKSUM_ASSET_NAME: &str = "SHA256SUMS";
 
 actions!(
     auto_update,
@@ -114,7 +121,9 @@ pub struct AutoUpdater {
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct ReleaseAsset {
     pub version: String,
+    pub name: String,
     pub url: String,
+    pub sha256: Option<String>,
 }
 
 struct MacOsUnmounter<'a> {
@@ -215,7 +224,7 @@ pub fn check(_: &Check, window: &mut Window, cx: &mut App) {
     if let Some(message) = option_env!("HAWK_UPDATE_EXPLANATION") {
         drop(window.prompt(
             gpui::PromptLevel::Info,
-            "Zed was installed via a package manager.",
+            "Hawk was installed via a package manager.",
             Some(message),
             &["Ok"],
             cx,
@@ -226,7 +235,7 @@ pub fn check(_: &Check, window: &mut Window, cx: &mut App) {
     if let Ok(message) = env::var("HAWK_UPDATE_EXPLANATION") {
         drop(window.prompt(
             gpui::PromptLevel::Info,
-            "Zed was installed via a package manager.",
+            "Hawk was installed via a package manager.",
             Some(&message),
             &["Ok"],
             cx,
@@ -254,23 +263,60 @@ pub fn check(_: &Check, window: &mut Window, cx: &mut App) {
     }
 }
 
+fn release_repository() -> String {
+    match env::var(RELEASE_REPOSITORY_ENV_VAR) {
+        Ok(repository) if release_repository_is_valid(&repository) => repository,
+        Ok(invalid_repository) => {
+            log::warn!(
+                "{RELEASE_REPOSITORY_ENV_VAR} is invalid ({invalid_repository:?}), using default repository"
+            );
+            DEFAULT_RELEASE_REPOSITORY.to_string()
+        }
+        Err(_) => DEFAULT_RELEASE_REPOSITORY.to_string(),
+    }
+}
+
+fn release_repository_is_valid(repository: &str) -> bool {
+    let mut segments = repository.split('/');
+    matches!(
+        (segments.next(), segments.next(), segments.next()),
+        (Some(owner), Some(repo), None) if !owner.is_empty() && !repo.is_empty()
+    )
+}
+
+fn release_tag_prefix() -> String {
+    match env::var(RELEASE_TAG_PREFIX_ENV_VAR) {
+        Ok(prefix) if !prefix.is_empty() => prefix,
+        Ok(_) => DEFAULT_TAG_PREFIX.to_string(),
+        Err(_) => DEFAULT_TAG_PREFIX.to_string(),
+    }
+}
+
+fn release_tag_for_version(version: &Version) -> String {
+    format!("{}{}", release_tag_prefix(), version)
+}
+
 pub fn release_notes_url(cx: &mut App) -> Option<String> {
     let release_channel = ReleaseChannel::try_global(cx)?;
+    let repository = release_repository();
     let url = match release_channel {
         ReleaseChannel::Stable | ReleaseChannel::Preview => {
             let auto_updater = AutoUpdater::get(cx)?;
             let auto_updater = auto_updater.read(cx);
-            let current_version = &auto_updater.current_version;
-            let release_channel = release_channel.dev_name();
-            let path = format!("/releases/{release_channel}/{current_version}");
-            auto_updater.client.http_client().build_url(&path)
+            let mut current_version = auto_updater.current_version.clone();
+            current_version.pre = semver::Prerelease::EMPTY;
+            current_version.build = semver::BuildMetadata::EMPTY;
+            let tag = release_tag_for_version(&current_version);
+            Some(format!(
+                "https://github.com/{repository}/releases/tag/{tag}"
+            ))
         }
         ReleaseChannel::Nightly => {
-            "https://github.com/zed-industries/zed/commits/nightly/".to_string()
+            Some(format!("https://github.com/{repository}/releases/nightly/"))
         }
-        ReleaseChannel::Dev => "https://github.com/zed-industries/zed/commits/main/".to_string(),
+        ReleaseChannel::Dev => Some(format!("https://github.com/{repository}/releases/")),
     };
-    Some(url)
+    url
 }
 
 pub fn view_release_notes(_: &ViewReleaseNotes, cx: &mut App) -> Option<()> {
@@ -305,7 +351,7 @@ impl InstallerDir {
     async fn new() -> Result<Self> {
         let installer_dir = std::env::current_exe()?
             .parent()
-            .context("No parent dir for Zed.exe")?
+            .context("No parent dir for Hawk.exe")?
             .join("updates");
         if smol::fs::metadata(&installer_dir).await.is_ok() {
             smol::fs::remove_dir_all(&installer_dir).await?;
@@ -340,7 +386,7 @@ impl AutoUpdater {
         // On windows, executable files cannot be overwritten while they are
         // running, so we must wait to overwrite the application until quitting
         // or restarting. When quitting the app, we spawn the auto update helper
-        // to finish the auto update process after Zed exits. When restarting
+        // to finish the auto update process after Hawk exits. When restarting
         // the app after an update, we use `set_restart_path` to run the auto
         // update helper instead of the app, so that it can overwrite the app
         // and then spawn the new binary.
@@ -522,63 +568,191 @@ impl AutoUpdater {
         this: &Entity<Self>,
         release_channel: ReleaseChannel,
         version: Option<Version>,
-        asset: &str,
+        asset_name_prefix: &str,
         os: &str,
         arch: &str,
         cx: &mut AsyncApp,
     ) -> Result<ReleaseAsset> {
         let client = this.read_with(cx, |this, _| this.client.clone());
+        let repository = release_repository();
+        let release_tag_prefix = release_tag_prefix();
 
-        let (system_id, metrics_id, is_staff) = if client.telemetry().metrics_enabled() {
-            (
-                client.telemetry().system_id(),
-                client.telemetry().metrics_id(),
-                client.telemetry().is_staff(),
-            )
-        } else {
-            (None, None, None)
-        };
-
-        let version = if let Some(mut version) = version {
-            version.pre = semver::Prerelease::EMPTY;
-            version.build = semver::BuildMetadata::EMPTY;
-            version.to_string()
-        } else {
-            "latest".to_string()
-        };
         let http_client = client.http_client();
-
-        let path = format!("/releases/{}/{}/asset", release_channel.dev_name(), version,);
-        let url = http_client.build_hawk_cloud_url_with_query(
-            &path,
-            AssetQuery {
-                os,
-                arch,
-                asset,
-                metrics_id: metrics_id.as_deref(),
-                system_id: system_id.as_deref(),
-                is_staff: is_staff,
-            },
-        )?;
-
-        let mut response = http_client
-            .get(url.as_str(), Default::default(), true)
-            .await?;
-        let mut body = Vec::new();
-        response.body_mut().read_to_end(&mut body).await?;
-
-        anyhow::ensure!(
-            response.status().is_success(),
-            "failed to fetch release: {:?}",
-            String::from_utf8_lossy(&body),
+        let http_client_dyn: Arc<dyn HttpClient> = http_client.clone();
+        let include_prereleases = matches!(
+            release_channel,
+            ReleaseChannel::Nightly | ReleaseChannel::Preview
         );
 
-        serde_json::from_slice(body.as_slice()).with_context(|| {
-            format!(
-                "error deserializing release {:?}",
-                String::from_utf8_lossy(&body),
-            )
+        let github_release = if let Some(mut requested_version) = version {
+            requested_version.pre = semver::Prerelease::EMPTY;
+            requested_version.build = semver::BuildMetadata::EMPTY;
+            let release_tag = format!("{release_tag_prefix}{requested_version}");
+            get_release_by_tag_name(&repository, &release_tag, http_client_dyn.clone()).await?
+        } else if include_prereleases {
+            match latest_github_release(&repository, true, true, http_client_dyn.clone()).await {
+                Ok(release) => release,
+                Err(prerelease_error) => {
+                    latest_github_release(&repository, true, false, http_client_dyn.clone())
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "failed to fetch prerelease ({prerelease_error:#}) and stable release"
+                            )
+                        })?
+                }
+            }
+        } else {
+            latest_github_release(&repository, true, false, http_client_dyn.clone()).await?
+        };
+
+        let normalized_version = github_release
+            .tag_name
+            .strip_prefix(&release_tag_prefix)
+            .unwrap_or(&github_release.tag_name)
+            .to_string();
+
+        let target_patterns = Self::get_asset_pattern(os, arch);
+        let expected_extension = Self::expected_asset_extension(asset_name_prefix, os)?;
+        let release_asset = github_release
+            .assets
+            .iter()
+            .find(|a| {
+                Self::asset_matches(
+                    &a.name,
+                    asset_name_prefix,
+                    &target_patterns,
+                    expected_extension,
+                )
+            })
+            .with_context(|| {
+                format!(
+                    "no matching release asset found for {os} {arch}, prefix {asset_name_prefix}, extension {expected_extension}"
+                )
+            })?;
+
+        let checksum_from_asset = release_asset
+            .digest
+            .as_deref()
+            .and_then(normalize_sha256_digest);
+        let checksum_from_sums_file = Self::checksum_from_release_sums(
+            &github_release.assets,
+            &release_asset.name,
+            http_client,
+        )
+        .await?;
+        let checksum = checksum_from_asset.or(checksum_from_sums_file);
+
+        Ok(ReleaseAsset {
+            version: normalized_version,
+            name: release_asset.name.clone(),
+            url: release_asset.browser_download_url.clone(),
+            sha256: checksum,
         })
+    }
+
+    /// Get the asset name pattern for the current OS and architecture
+    /// Returns patterns to match against GitHub asset names
+    fn get_asset_pattern(os: &str, arch: &str) -> Vec<String> {
+        let mut patterns = Vec::new();
+
+        let os_patterns: Vec<&str> = match os {
+            "macos" => vec!["darwin", "macos", "osx"],
+            "linux" => vec!["linux"],
+            "windows" => vec!["windows", "win"],
+            _ => vec![os],
+        };
+
+        let arch_patterns: Vec<&str> = match arch {
+            "x86_64" | "x86" => vec!["x86_64", "x86-64", "amd64"],
+            "aarch64" | "arm64" => vec!["aarch64", "arm64", "armv8"],
+            _ => vec![arch],
+        };
+
+        // Generate all combinations of OS and arch patterns
+        for os_pat in &os_patterns {
+            for arch_pat in &arch_patterns {
+                patterns.push(format!("{}-{}", os_pat, arch_pat));
+            }
+        }
+
+        patterns
+    }
+
+    fn expected_asset_extension(asset_name_prefix: &str, os: &str) -> Result<&'static str> {
+        let is_remote_server_asset = asset_name_prefix.contains("remote-server");
+        if is_remote_server_asset {
+            return match os {
+                "macos" | "linux" | "windows" => Ok(""),
+                unsupported_os => anyhow::bail!("not supported: {unsupported_os}"),
+            };
+        }
+
+        match os {
+            "macos" => Ok(".dmg"),
+            "linux" => Ok(".tar.gz"),
+            "windows" => Ok(".exe"),
+            unsupported_os => anyhow::bail!("not supported: {unsupported_os}"),
+        }
+    }
+
+    fn asset_matches(
+        asset_name: &str,
+        asset_name_prefix: &str,
+        target_patterns: &[String],
+        expected_extension: &str,
+    ) -> bool {
+        let normalized_name = asset_name.to_ascii_lowercase();
+        let normalized_prefix = asset_name_prefix.to_ascii_lowercase();
+        let normalized_extension = expected_extension.to_ascii_lowercase();
+
+        let matches_prefix = normalized_name.contains(&normalized_prefix);
+        let matches_platform = target_patterns
+            .iter()
+            .any(|pattern| normalized_name.contains(&pattern.to_ascii_lowercase()));
+        let matches_extension = normalized_extension.is_empty()
+            || normalized_name.ends_with(&normalized_extension);
+
+        matches_prefix && matches_platform && matches_extension
+    }
+
+    async fn checksum_from_release_sums(
+        release_assets: &[http_client::github::GithubReleaseAsset],
+        target_asset_name: &str,
+        http_client: Arc<HttpClientWithUrl>,
+    ) -> Result<Option<String>> {
+        let checksum_asset = release_assets.iter().find(|asset| {
+            let name = asset.name.to_ascii_lowercase();
+            name == CHECKSUM_ASSET_NAME.to_ascii_lowercase()
+                || name == format!("{}.txt", CHECKSUM_ASSET_NAME.to_ascii_lowercase())
+        });
+
+        let Some(checksum_asset) = checksum_asset else {
+            return Ok(None);
+        };
+
+        let mut response = http_client
+            .get(&checksum_asset.browser_download_url, Default::default(), true)
+            .await
+            .with_context(|| {
+                format!(
+                    "failed to download checksum file {}",
+                    checksum_asset.browser_download_url
+                )
+            })?;
+        anyhow::ensure!(
+            response.status().is_success(),
+            "failed to fetch checksum file {}: {}",
+            checksum_asset.browser_download_url,
+            response.status()
+        );
+
+        let mut body = Vec::new();
+        response.body_mut().read_to_end(&mut body).await?;
+        let checksum_contents = String::from_utf8(body)
+            .with_context(|| format!("invalid utf-8 in checksum file {}", checksum_asset.name))?;
+
+        Ok(parse_sha256sums(&checksum_contents, target_asset_name))
     }
 
     async fn update(this: Entity<Self>, cx: &mut AsyncApp) -> Result<()> {
@@ -721,9 +895,9 @@ impl AutoUpdater {
 
     async fn target_path(installer_dir: &InstallerDir) -> Result<PathBuf> {
         let filename = match OS {
-            "macos" => anyhow::Ok("Zed.dmg"),
-            "linux" => Ok("zed.tar.gz"),
-            "windows" => Ok("Zed.exe"),
+            "macos" => anyhow::Ok("Hawk.dmg"),
+            "linux" => Ok("hawk.tar.gz"),
+            "windows" => Ok("Hawk.exe"),
             unsupported_os => anyhow::bail!("not supported: {unsupported_os}"),
         }?;
 
@@ -792,11 +966,72 @@ impl AutoUpdater {
     }
 }
 
+fn normalize_sha256_digest(digest: &str) -> Option<String> {
+    let trimmed = digest.trim().trim_start_matches("sha256:");
+    (!trimmed.is_empty()).then(|| trimmed.to_ascii_lowercase())
+}
+
+fn parse_sha256sums(checksum_contents: &str, target_asset_name: &str) -> Option<String> {
+    let normalized_target_name = target_asset_name.to_ascii_lowercase();
+
+    for line in checksum_contents.lines() {
+        let trimmed_line = line.trim();
+        if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
+            continue;
+        }
+
+        let mut parts = trimmed_line.split_whitespace();
+        let Some(checksum) = parts.next() else {
+            continue;
+        };
+        let Some(path_or_file_name) = parts.next() else {
+            continue;
+        };
+
+        let file_name = path_or_file_name
+            .trim_start_matches('*')
+            .rsplit('/')
+            .next()
+            .unwrap_or(path_or_file_name)
+            .to_ascii_lowercase();
+
+        if file_name == normalized_target_name {
+            return normalize_sha256_digest(checksum);
+        }
+    }
+
+    None
+}
+
+async fn verify_download_sha256(path: &Path, expected_sha256: &str) -> Result<()> {
+    let mut file = File::open(path).await?;
+    let mut hasher = Sha256::new();
+    let mut chunk = vec![0_u8; 8192];
+
+    loop {
+        let bytes_read = file.read(&mut chunk).await?;
+        if bytes_read == 0 {
+            break;
+        }
+        hasher.update(&chunk[..bytes_read]);
+    }
+
+    let actual_sha256 = format!("{:x}", hasher.finalize());
+    let expected_sha256 = expected_sha256.to_ascii_lowercase();
+    anyhow::ensure!(
+        actual_sha256 == expected_sha256,
+        "checksum mismatch for {:?}: expected {expected_sha256}, got {actual_sha256}",
+        path
+    );
+    Ok(())
+}
+
 async fn download_remote_server_binary(
     target_path: &PathBuf,
     release: ReleaseAsset,
     client: Arc<HttpClientWithUrl>,
 ) -> Result<()> {
+    let expected_sha256 = release.sha256.clone();
     let temp = tempfile::Builder::new().tempfile_in(remote_servers_dir())?;
     let mut temp_file = File::create(&temp).await?;
 
@@ -807,6 +1042,18 @@ async fn download_remote_server_binary(
         response.status()
     );
     smol::io::copy(response.body_mut(), &mut temp_file).await?;
+    temp_file.sync_all().await?;
+    drop(temp_file);
+
+    if let Some(expected_sha256) = expected_sha256 {
+        verify_download_sha256(temp.path(), &expected_sha256).await?;
+    } else {
+        log::warn!(
+            "remote server asset {} has no SHA-256 checksum; proceeding without verification",
+            release.name
+        );
+    }
+
     smol::fs::rename(&temp, &target_path).await?;
 
     Ok(())
@@ -874,6 +1121,7 @@ async fn download_release(
     release: ReleaseAsset,
     client: Arc<HttpClientWithUrl>,
 ) -> Result<()> {
+    let expected_sha256 = release.sha256.clone();
     let mut target_file = File::create(&target_path).await?;
 
     let mut response = client.get(&release.url, Default::default(), true).await?;
@@ -883,6 +1131,18 @@ async fn download_release(
         response.status()
     );
     smol::io::copy(response.body_mut(), &mut target_file).await?;
+    target_file.sync_all().await?;
+    drop(target_file);
+
+    if let Some(expected_sha256) = expected_sha256 {
+        verify_download_sha256(target_path, &expected_sha256).await?;
+    } else {
+        log::warn!(
+            "release asset {} has no SHA-256 checksum; proceeding without verification",
+            release.name
+        );
+    }
+
     log::info!("downloaded update. path:{:?}", target_path);
 
     Ok(())
@@ -923,12 +1183,12 @@ async fn install_release_linux(
     } else {
         String::default()
     };
-    let app_folder_name = format!("zed{}.app", suffix);
+    let app_folder_name = format!("hawk{}.app", suffix);
 
     let from = extracted.join(&app_folder_name);
     let mut to = home_dir.join(".local");
 
-    let expected_suffix = format!("{}/libexec/zed-editor", app_folder_name);
+    let expected_suffix = format!("{}/libexec/hawk-editor", app_folder_name);
 
     if let Some(prefix) = running_app_path
         .to_str()
@@ -946,7 +1206,7 @@ async fn install_release_linux(
 
     anyhow::ensure!(
         output.status.success(),
-        "failed to copy Zed update from {:?} to {:?}: {:?}",
+        "failed to copy Hawk update from {:?} to {:?}: {:?}",
         from,
         to,
         String::from_utf8_lossy(&output.stderr)
@@ -1008,7 +1268,7 @@ async fn install_release_macos(
 async fn cleanup_windows() -> Result<()> {
     let parent = std::env::current_exe()?
         .parent()
-        .context("No parent dir for Zed.exe")?
+        .context("No parent dir for Hawk.exe")?
         .to_owned();
 
     // keep in sync with crates/auto_update_helper/src/updater.rs
@@ -1037,7 +1297,7 @@ async fn install_release_windows(downloaded_installer: PathBuf) -> Result<Option
     // deleting the old one, and launching the new binary.
     let helper_path = std::env::current_exe()?
         .parent()
-        .context("No parent dir for Zed.exe")?
+        .context("No parent dir for Hawk.exe")?
         .join("tools")
         .join("auto_update_helper.exe");
     Ok(Some(helper_path))
@@ -1461,6 +1721,36 @@ mod tests {
         assert_eq!(
             newer_version.unwrap(),
             Some(VersionCheckType::Sha(AppCommitSha::new(fetched_sha)))
+        );
+    }
+
+    #[test]
+    fn test_parse_sha256sums_finds_named_asset() {
+        let checksums = "\
+1234abcd  hawk-linux-aarch64.tar.gz
+deadbeef  hawk-linux-x86_64.tar.gz
+";
+        let parsed_checksum = parse_sha256sums(checksums, "hawk-linux-x86_64.tar.gz");
+
+        assert_eq!(parsed_checksum, Some("deadbeef".to_string()));
+    }
+
+    #[test]
+    fn test_parse_sha256sums_supports_star_prefix() {
+        let checksums = "\
+1234abcd *hawk-linux-x86_64.tar.gz
+";
+        let parsed_checksum = parse_sha256sums(checksums, "hawk-linux-x86_64.tar.gz");
+
+        assert_eq!(parsed_checksum, Some("1234abcd".to_string()));
+    }
+
+    #[test]
+    fn test_normalize_sha256_digest_removes_algorithm_prefix() {
+        let digest = "sha256:ABCDEF";
+        assert_eq!(
+            normalize_sha256_digest(digest),
+            Some("abcdef".to_string())
         );
     }
 }
