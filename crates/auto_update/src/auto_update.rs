@@ -6,11 +6,13 @@ use gpui::{
     App, AppContext as _, AsyncApp, BackgroundExecutor, Context, Entity, Global, Task, Window,
     actions,
 };
+use http_client::github::{get_release_by_tag_name, latest_github_release};
 use http_client::{HttpClient, HttpClientWithUrl};
 use paths::remote_servers_dir;
 use release_channel::{AppCommitSha, ReleaseChannel};
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use settings::{RegisterSetting, Settings, SettingsStore};
 use smol::fs::File;
 use smol::{fs, io::AsyncReadExt};
@@ -32,6 +34,11 @@ use workspace::Workspace;
 const SHOULD_SHOW_UPDATE_NOTIFICATION_KEY: &str = "auto-updater-should-show-updated-notification";
 const POLL_INTERVAL: Duration = Duration::from_secs(60 * 60);
 const REMOTE_SERVER_CACHE_LIMIT: usize = 5;
+const DEFAULT_RELEASE_REPOSITORY: &str = "darkwingrick/hawk";
+const RELEASE_REPOSITORY_ENV_VAR: &str = "HAWK_RELEASE_REPOSITORY";
+const DEFAULT_TAG_PREFIX: &str = "v";
+const RELEASE_TAG_PREFIX_ENV_VAR: &str = "HAWK_RELEASE_TAG_PREFIX";
+const CHECKSUM_ASSET_NAME: &str = "SHA256SUMS";
 
 actions!(
     auto_update,
@@ -114,21 +121,9 @@ pub struct AutoUpdater {
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct ReleaseAsset {
     pub version: String,
+    pub name: String,
     pub url: String,
-}
-
-/// GitHub API response for a release
-#[derive(Deserialize, Clone, Debug)]
-struct GithubReleaseResponse {
-    tag_name: String,
-    assets: Vec<GithubReleaseAsset>,
-}
-
-/// GitHub API response for a release asset
-#[derive(Deserialize, Clone, Debug)]
-struct GithubReleaseAsset {
-    name: String,
-    browser_download_url: String,
+    pub sha256: Option<String>,
 }
 
 struct MacOsUnmounter<'a> {
@@ -268,20 +263,58 @@ pub fn check(_: &Check, window: &mut Window, cx: &mut App) {
     }
 }
 
+fn release_repository() -> String {
+    match env::var(RELEASE_REPOSITORY_ENV_VAR) {
+        Ok(repository) if release_repository_is_valid(&repository) => repository,
+        Ok(invalid_repository) => {
+            log::warn!(
+                "{RELEASE_REPOSITORY_ENV_VAR} is invalid ({invalid_repository:?}), using default repository"
+            );
+            DEFAULT_RELEASE_REPOSITORY.to_string()
+        }
+        Err(_) => DEFAULT_RELEASE_REPOSITORY.to_string(),
+    }
+}
+
+fn release_repository_is_valid(repository: &str) -> bool {
+    let mut segments = repository.split('/');
+    matches!(
+        (segments.next(), segments.next(), segments.next()),
+        (Some(owner), Some(repo), None) if !owner.is_empty() && !repo.is_empty()
+    )
+}
+
+fn release_tag_prefix() -> String {
+    match env::var(RELEASE_TAG_PREFIX_ENV_VAR) {
+        Ok(prefix) if !prefix.is_empty() => prefix,
+        Ok(_) => DEFAULT_TAG_PREFIX.to_string(),
+        Err(_) => DEFAULT_TAG_PREFIX.to_string(),
+    }
+}
+
+fn release_tag_for_version(version: &Version) -> String {
+    format!("{}{}", release_tag_prefix(), version)
+}
+
 pub fn release_notes_url(cx: &mut App) -> Option<String> {
     let release_channel = ReleaseChannel::try_global(cx)?;
+    let repository = release_repository();
     let url = match release_channel {
         ReleaseChannel::Stable | ReleaseChannel::Preview => {
             let auto_updater = AutoUpdater::get(cx)?;
             let auto_updater = auto_updater.read(cx);
-            let current_version = &auto_updater.current_version;
-            // Point to GitHub releases page
-            Some(format!("https://github.com/darkwingrick/hawk/releases/tag/v{}", current_version))
+            let mut current_version = auto_updater.current_version.clone();
+            current_version.pre = semver::Prerelease::EMPTY;
+            current_version.build = semver::BuildMetadata::EMPTY;
+            let tag = release_tag_for_version(&current_version);
+            Some(format!(
+                "https://github.com/{repository}/releases/tag/{tag}"
+            ))
         }
         ReleaseChannel::Nightly => {
-            Some("https://github.com/darkwingrick/hawk/releases/nightly/".to_string())
+            Some(format!("https://github.com/{repository}/releases/nightly/"))
         }
-        ReleaseChannel::Dev => Some("https://github.com/darkwingrick/hawk/releases/".to_string()),
+        ReleaseChannel::Dev => Some(format!("https://github.com/{repository}/releases/")),
     };
     url
 }
@@ -533,71 +566,88 @@ impl AutoUpdater {
 
     async fn get_release_asset(
         this: &Entity<Self>,
-        _release_channel: ReleaseChannel,
+        release_channel: ReleaseChannel,
         version: Option<Version>,
-        _asset: &str,
+        asset_name_prefix: &str,
         os: &str,
         arch: &str,
         cx: &mut AsyncApp,
     ) -> Result<ReleaseAsset> {
         let client = this.read_with(cx, |this, _| this.client.clone());
+        let repository = release_repository();
+        let release_tag_prefix = release_tag_prefix();
 
         let http_client = client.http_client();
-
-        // GitHub repository for releases
-        let owner = "darkwingrick";
-        let repo = "hawk";
-
-        // Determine the API URL and asset name pattern based on version
-        let (api_url, _target_asset_pattern) = if let Some(mut version) = version {
-            version.pre = semver::Prerelease::EMPTY;
-            version.build = semver::BuildMetadata::EMPTY;
-            let version_str = version.to_string();
-            (
-                format!("https://api.github.com/repos/{}/{}/releases/tags/v{}", owner, repo, version_str),
-                Self::get_asset_pattern(os, arch),
-            )
-        } else {
-            (
-                format!("https://api.github.com/repos/{}/{}/releases/latest", owner, repo),
-                Self::get_asset_pattern(os, arch),
-            )
-        };
-
-        let mut response = http_client
-            .get(&api_url, Default::default(), true)
-            .await?;
-        let mut body = Vec::new();
-        response.body_mut().read_to_end(&mut body).await?;
-
-        anyhow::ensure!(
-            response.status().is_success(),
-            "failed to fetch release: {:?}",
-            String::from_utf8_lossy(&body),
+        let http_client_dyn: Arc<dyn HttpClient> = http_client.clone();
+        let include_prereleases = matches!(
+            release_channel,
+            ReleaseChannel::Nightly | ReleaseChannel::Preview
         );
 
-        // Parse GitHub release response
-        let github_release: GithubReleaseResponse = serde_json::from_slice(body.as_slice())
-            .with_context(|| format!("error deserializing GitHub release: {:?}", String::from_utf8_lossy(&body)))?;
+        let github_release = if let Some(mut requested_version) = version {
+            requested_version.pre = semver::Prerelease::EMPTY;
+            requested_version.build = semver::BuildMetadata::EMPTY;
+            let release_tag = format!("{release_tag_prefix}{requested_version}");
+            get_release_by_tag_name(&repository, &release_tag, http_client_dyn.clone()).await?
+        } else if include_prereleases {
+            match latest_github_release(&repository, true, true, http_client_dyn.clone()).await {
+                Ok(release) => release,
+                Err(prerelease_error) => {
+                    latest_github_release(&repository, true, false, http_client_dyn.clone())
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "failed to fetch prerelease ({prerelease_error:#}) and stable release"
+                            )
+                        })?
+                }
+            }
+        } else {
+            latest_github_release(&repository, true, false, http_client_dyn.clone()).await?
+        };
 
-        // Extract version from tag (remove 'v' prefix if present)
-        let version_str = github_release.tag_name.trim_start_matches('v');
+        let normalized_version = github_release
+            .tag_name
+            .strip_prefix(&release_tag_prefix)
+            .unwrap_or(&github_release.tag_name)
+            .to_string();
 
-        // Find the matching asset for this platform
         let target_patterns = Self::get_asset_pattern(os, arch);
-        let asset_url = github_release
+        let expected_extension = Self::expected_asset_extension(asset_name_prefix, os)?;
+        let release_asset = github_release
             .assets
             .iter()
             .find(|a| {
-                let name_lower = a.name.to_lowercase();
-                target_patterns.iter().any(|pattern| name_lower.contains(&pattern.to_lowercase()))
+                Self::asset_matches(
+                    &a.name,
+                    asset_name_prefix,
+                    &target_patterns,
+                    expected_extension,
+                )
             })
-            .map(|a| a.browser_download_url.clone())
-            .ok_or_else(|| anyhow::anyhow!("no matching asset found for {} {}", os, arch))?;
+            .with_context(|| {
+                format!(
+                    "no matching release asset found for {os} {arch}, prefix {asset_name_prefix}, extension {expected_extension}"
+                )
+            })?;
+
+        let checksum_from_asset = release_asset
+            .digest
+            .as_deref()
+            .and_then(normalize_sha256_digest);
+        let checksum_from_sums_file = Self::checksum_from_release_sums(
+            &github_release.assets,
+            &release_asset.name,
+            http_client,
+        )
+        .await?;
+        let checksum = checksum_from_asset.or(checksum_from_sums_file);
 
         Ok(ReleaseAsset {
-            version: version_str.to_string(),
-            url: asset_url,
+            version: normalized_version,
+            name: release_asset.name.clone(),
+            url: release_asset.browser_download_url.clone(),
+            sha256: checksum,
         })
     }
 
@@ -627,6 +677,82 @@ impl AutoUpdater {
         }
 
         patterns
+    }
+
+    fn expected_asset_extension(asset_name_prefix: &str, os: &str) -> Result<&'static str> {
+        let is_remote_server_asset = asset_name_prefix.contains("remote-server");
+        if is_remote_server_asset {
+            return match os {
+                "macos" | "linux" | "windows" => Ok(""),
+                unsupported_os => anyhow::bail!("not supported: {unsupported_os}"),
+            };
+        }
+
+        match os {
+            "macos" => Ok(".dmg"),
+            "linux" => Ok(".tar.gz"),
+            "windows" => Ok(".exe"),
+            unsupported_os => anyhow::bail!("not supported: {unsupported_os}"),
+        }
+    }
+
+    fn asset_matches(
+        asset_name: &str,
+        asset_name_prefix: &str,
+        target_patterns: &[String],
+        expected_extension: &str,
+    ) -> bool {
+        let normalized_name = asset_name.to_ascii_lowercase();
+        let normalized_prefix = asset_name_prefix.to_ascii_lowercase();
+        let normalized_extension = expected_extension.to_ascii_lowercase();
+
+        let matches_prefix = normalized_name.contains(&normalized_prefix);
+        let matches_platform = target_patterns
+            .iter()
+            .any(|pattern| normalized_name.contains(&pattern.to_ascii_lowercase()));
+        let matches_extension = normalized_extension.is_empty()
+            || normalized_name.ends_with(&normalized_extension);
+
+        matches_prefix && matches_platform && matches_extension
+    }
+
+    async fn checksum_from_release_sums(
+        release_assets: &[http_client::github::GithubReleaseAsset],
+        target_asset_name: &str,
+        http_client: Arc<HttpClientWithUrl>,
+    ) -> Result<Option<String>> {
+        let checksum_asset = release_assets.iter().find(|asset| {
+            let name = asset.name.to_ascii_lowercase();
+            name == CHECKSUM_ASSET_NAME.to_ascii_lowercase()
+                || name == format!("{}.txt", CHECKSUM_ASSET_NAME.to_ascii_lowercase())
+        });
+
+        let Some(checksum_asset) = checksum_asset else {
+            return Ok(None);
+        };
+
+        let mut response = http_client
+            .get(&checksum_asset.browser_download_url, Default::default(), true)
+            .await
+            .with_context(|| {
+                format!(
+                    "failed to download checksum file {}",
+                    checksum_asset.browser_download_url
+                )
+            })?;
+        anyhow::ensure!(
+            response.status().is_success(),
+            "failed to fetch checksum file {}: {}",
+            checksum_asset.browser_download_url,
+            response.status()
+        );
+
+        let mut body = Vec::new();
+        response.body_mut().read_to_end(&mut body).await?;
+        let checksum_contents = String::from_utf8(body)
+            .with_context(|| format!("invalid utf-8 in checksum file {}", checksum_asset.name))?;
+
+        Ok(parse_sha256sums(&checksum_contents, target_asset_name))
     }
 
     async fn update(this: Entity<Self>, cx: &mut AsyncApp) -> Result<()> {
@@ -840,11 +966,72 @@ impl AutoUpdater {
     }
 }
 
+fn normalize_sha256_digest(digest: &str) -> Option<String> {
+    let trimmed = digest.trim().trim_start_matches("sha256:");
+    (!trimmed.is_empty()).then(|| trimmed.to_ascii_lowercase())
+}
+
+fn parse_sha256sums(checksum_contents: &str, target_asset_name: &str) -> Option<String> {
+    let normalized_target_name = target_asset_name.to_ascii_lowercase();
+
+    for line in checksum_contents.lines() {
+        let trimmed_line = line.trim();
+        if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
+            continue;
+        }
+
+        let mut parts = trimmed_line.split_whitespace();
+        let Some(checksum) = parts.next() else {
+            continue;
+        };
+        let Some(path_or_file_name) = parts.next() else {
+            continue;
+        };
+
+        let file_name = path_or_file_name
+            .trim_start_matches('*')
+            .rsplit('/')
+            .next()
+            .unwrap_or(path_or_file_name)
+            .to_ascii_lowercase();
+
+        if file_name == normalized_target_name {
+            return normalize_sha256_digest(checksum);
+        }
+    }
+
+    None
+}
+
+async fn verify_download_sha256(path: &Path, expected_sha256: &str) -> Result<()> {
+    let mut file = File::open(path).await?;
+    let mut hasher = Sha256::new();
+    let mut chunk = vec![0_u8; 8192];
+
+    loop {
+        let bytes_read = file.read(&mut chunk).await?;
+        if bytes_read == 0 {
+            break;
+        }
+        hasher.update(&chunk[..bytes_read]);
+    }
+
+    let actual_sha256 = format!("{:x}", hasher.finalize());
+    let expected_sha256 = expected_sha256.to_ascii_lowercase();
+    anyhow::ensure!(
+        actual_sha256 == expected_sha256,
+        "checksum mismatch for {:?}: expected {expected_sha256}, got {actual_sha256}",
+        path
+    );
+    Ok(())
+}
+
 async fn download_remote_server_binary(
     target_path: &PathBuf,
     release: ReleaseAsset,
     client: Arc<HttpClientWithUrl>,
 ) -> Result<()> {
+    let expected_sha256 = release.sha256.clone();
     let temp = tempfile::Builder::new().tempfile_in(remote_servers_dir())?;
     let mut temp_file = File::create(&temp).await?;
 
@@ -855,6 +1042,18 @@ async fn download_remote_server_binary(
         response.status()
     );
     smol::io::copy(response.body_mut(), &mut temp_file).await?;
+    temp_file.sync_all().await?;
+    drop(temp_file);
+
+    if let Some(expected_sha256) = expected_sha256 {
+        verify_download_sha256(temp.path(), &expected_sha256).await?;
+    } else {
+        log::warn!(
+            "remote server asset {} has no SHA-256 checksum; proceeding without verification",
+            release.name
+        );
+    }
+
     smol::fs::rename(&temp, &target_path).await?;
 
     Ok(())
@@ -922,6 +1121,7 @@ async fn download_release(
     release: ReleaseAsset,
     client: Arc<HttpClientWithUrl>,
 ) -> Result<()> {
+    let expected_sha256 = release.sha256.clone();
     let mut target_file = File::create(&target_path).await?;
 
     let mut response = client.get(&release.url, Default::default(), true).await?;
@@ -931,6 +1131,18 @@ async fn download_release(
         response.status()
     );
     smol::io::copy(response.body_mut(), &mut target_file).await?;
+    target_file.sync_all().await?;
+    drop(target_file);
+
+    if let Some(expected_sha256) = expected_sha256 {
+        verify_download_sha256(target_path, &expected_sha256).await?;
+    } else {
+        log::warn!(
+            "release asset {} has no SHA-256 checksum; proceeding without verification",
+            release.name
+        );
+    }
+
     log::info!("downloaded update. path:{:?}", target_path);
 
     Ok(())
@@ -1509,6 +1721,36 @@ mod tests {
         assert_eq!(
             newer_version.unwrap(),
             Some(VersionCheckType::Sha(AppCommitSha::new(fetched_sha)))
+        );
+    }
+
+    #[test]
+    fn test_parse_sha256sums_finds_named_asset() {
+        let checksums = "\
+1234abcd  hawk-linux-aarch64.tar.gz
+deadbeef  hawk-linux-x86_64.tar.gz
+";
+        let parsed_checksum = parse_sha256sums(checksums, "hawk-linux-x86_64.tar.gz");
+
+        assert_eq!(parsed_checksum, Some("deadbeef".to_string()));
+    }
+
+    #[test]
+    fn test_parse_sha256sums_supports_star_prefix() {
+        let checksums = "\
+1234abcd *hawk-linux-x86_64.tar.gz
+";
+        let parsed_checksum = parse_sha256sums(checksums, "hawk-linux-x86_64.tar.gz");
+
+        assert_eq!(parsed_checksum, Some("1234abcd".to_string()));
+    }
+
+    #[test]
+    fn test_normalize_sha256_digest_removes_algorithm_prefix() {
+        let digest = "sha256:ABCDEF";
+        assert_eq!(
+            normalize_sha256_digest(digest),
+            Some("abcdef".to_string())
         );
     }
 }
