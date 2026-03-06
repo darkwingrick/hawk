@@ -15930,6 +15930,7 @@ version = "0.1.0"
 dependencies = [
  "acp_thread",
  "agent_ui",
+ "audio",
  "chrono",
  "editor",
  "feature_flags",
@@ -15940,6 +15941,8 @@ dependencies = [
  "project",
  "recent_projects",
  "settings",
+ "terminal",
+ "terminal_view",
  "theme",
  "ui",
  "ui_input",

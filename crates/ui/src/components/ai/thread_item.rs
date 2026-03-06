@@ -222,10 +222,6 @@ impl RenderOnce for ThreadItem {
             icon_container().child(agent_icon)
         };
 
-        let running_or_action = self.running || (self.hovered && self.action_slot.is_some());
-
-        // let has_no_changes = self.added.is_none() && self.removed.is_none();
-
         let title = self.title;
         let highlight_positions = self.highlight_positions;
         let title_label = if highlight_positions.is_empty() {
@@ -246,7 +242,13 @@ impl RenderOnce for ThreadItem {
                     this.px_2().py_1()
                 }
             })
-            .when(self.selected, |s| s.bg(clr.element_active))
+            .when(self.selected, |s| {
+                s.bg(clr.text_accent.opacity(0.15))
+                    .text_color(clr.text_accent)
+                    .border_l_2()
+                    .border_color(clr.text_accent)
+                    .pl_1p5()
+            })
             .hover(|s| s.bg(clr.element_hover))
             .on_hover(self.on_hover)
             .child(
@@ -262,22 +264,23 @@ impl RenderOnce for ThreadItem {
                             .flex_1()
                             .gap_1p5()
                             .when(self.show_icon, |this| this.child(icon))
+                            .when(self.running, |this| {
+                                this.child(
+                                    icon_container().child(
+                                        SpinnerLabel::new()
+                                            .color(Color::Accent)
+                                            .size(LabelSize::Custom(rems(1.2))),
+                                    ),
+                                )
+                            })
                             .child(title_label)
                             .when_some(self.tooltip, |this, tooltip| this.tooltip(tooltip)),
                     )
-                    .when(running_or_action, |this| {
+                    .when(self.hovered && self.action_slot.is_some(), |this| {
                         this.child(
                             h_flex()
                                 .gap_1()
-                                .when(self.running, |this| {
-                                    this.child(
-                                        icon_container()
-                                            .child(SpinnerLabel::new().color(Color::Accent)),
-                                    )
-                                })
-                                .when(self.hovered, |this| {
-                                    this.when_some(self.action_slot, |this, slot| this.child(slot))
-                                }),
+                                .when_some(self.action_slot, |this, slot| this.child(slot)),
                         )
                     }),
             )

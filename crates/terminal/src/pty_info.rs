@@ -42,6 +42,14 @@ impl ProcessIdGetter {
         }
         Some(Pid::from_u32(pid as u32))
     }
+
+    pub fn is_busy(&self) -> bool {
+        let pid = unsafe { libc::tcgetpgrp(self.handle) };
+        if pid <= 0 {
+            return false;
+        }
+        pid as u32 != self.fallback_pid
+    }
 }
 
 #[cfg(windows)]
@@ -72,6 +80,10 @@ impl ProcessIdGetter {
             return Some(Pid::from_u32(self.fallback_pid));
         }
         Some(Pid::from_u32(pid))
+    }
+
+    pub fn is_busy(&self) -> bool {
+        false
     }
 }
 
@@ -197,5 +209,24 @@ impl PtyProcessInfo {
 
     pub fn pid(&self) -> Option<Pid> {
         self.pid_getter.pid()
+    }
+
+    pub fn is_busy(&self) -> bool {
+        if !self.pid_getter.is_busy() {
+            return false;
+        }
+
+        if let Some(info) = self.current.read().as_ref() {
+            let name = info.name.as_str();
+            if name == "zsh" || name == "-zsh" || name == "bash" || name == "-bash" 
+                || name == "fish" || name == "-fish" || name == "tmux" || name == "screen"
+                || name == "login" || name == "nu" {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        true
     }
 }

@@ -5,15 +5,16 @@ use chrono::{Datelike, Local, NaiveDate, TimeDelta};
 use fs::Fs;
 use fuzzy::StringMatchCandidate;
 use gpui::{
-    App, Context, Entity, EventEmitter, FocusHandle, Focusable, Pixels, Render, SharedString,
-    Subscription, Task, Window, px,
+    AnyElement, App, Context, Entity, EntityId, EventEmitter, FocusHandle, Focusable, Pixels,
+    Render, SharedString, Subscription, Task, Window, px,
 };
 use picker::{Picker, PickerDelegate};
 use project::Event as ProjectEvent;
 use recent_projects::{RecentProjectEntry, get_recent_projects};
-use std::fmt::Display;
-
+use audio::{Audio, Sound};
 use std::collections::{HashMap, HashSet};
+
+use std::fmt::Display;
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -24,10 +25,11 @@ use ui::{
     prelude::*,
 };
 use ui_input::ErasedEditor;
+use terminal_view::terminal_panel::TerminalPanel;
 use util::ResultExt as _;
 use workspace::{
-    FocusWorkspaceSidebar, MultiWorkspace, NewWorkspaceInWindow, Sidebar as WorkspaceSidebar,
-    SidebarEvent, ToggleWorkspaceSidebar, Workspace,
+    FocusWorkspaceSidebar, MultiWorkspace, NewWorkspaceInWindow,
+    Sidebar as WorkspaceSidebar, SidebarEvent, ToggleWorkspaceSidebar, Workspace,
 };
 
 #[derive(Clone, Debug)]
@@ -47,6 +49,7 @@ struct WorkspaceThreadEntry {
     git_branch: Option<SharedString>,
     full_path: SharedString,
     thread_info: Option<AgentThreadInfo>,
+    has_busy_terminal: bool,
 }
 
 impl WorkspaceThreadEntry {
@@ -82,6 +85,7 @@ impl WorkspaceThreadEntry {
 
         let git_branch = Self::active_git_branch(workspace, cx);
         let thread_info = Self::thread_info(workspace, cx);
+        let has_busy_terminal = Self::has_busy_terminal(workspace, cx);
 
         Self {
             index,
@@ -89,6 +93,7 @@ impl WorkspaceThreadEntry {
             git_branch,
             full_path,
             thread_info,
+            has_busy_terminal,
         }
     }
 
@@ -116,6 +121,13 @@ impl WorkspaceThreadEntry {
             }
         };
         Some(AgentThreadInfo { status })
+    }
+
+    fn has_busy_terminal(workspace: &Entity<Workspace>, cx: &App) -> bool {
+        let Some(terminal_panel) = workspace.read(cx).panel::<TerminalPanel>(cx) else {
+            return false;
+        };
+        terminal_panel.read(cx).has_running_terminal_task(cx)
     }
 }
 
@@ -183,7 +195,7 @@ impl WorkspacePickerDelegate {
         &mut self,
         workspace_threads: Vec<WorkspaceThreadEntry>,
         active_workspace_index: usize,
-        cx: &App,
+        cx: &mut App,
     ) {
         if let Some(hovered_index) = self.hovered_thread_item {
             let still_exists = workspace_threads
@@ -207,11 +219,14 @@ impl WorkspacePickerDelegate {
             .collect();
 
         for thread in &workspace_threads {
-            if let Some(info) = &thread.thread_info {
-                if info.status == AgentThreadStatus::Completed
-                    && thread.index != active_workspace_index
-                {
-                    if old_statuses.get(&thread.index) == Some(&AgentThreadStatus::Running) {
+            let previous_status = old_statuses.get(&thread.index);
+            let current_status = thread.thread_info.as_ref().map(|info| info.status);
+
+            if previous_status != current_status.as_ref() {
+                if let Some(AgentThreadStatus::Completed) = current_status {
+                    if thread.index != active_workspace_index
+                        && !self.notified_workspaces.contains(&thread.index)
+                    {
                         self.notified_workspaces.insert(thread.index);
                     }
                 }
@@ -608,10 +623,11 @@ impl PickerDelegate for WorkspacePickerDelegate {
                 let status = thread_info
                     .as_ref()
                     .map_or(AgentThreadStatus::default(), |info| info.status);
-                let running = matches!(
+                let agent_running = matches!(
                     status,
                     AgentThreadStatus::Running | AgentThreadStatus::WaitingForConfirmation
                 );
+                let running = agent_running || thread_entry.has_busy_terminal;
 
                 Some(
                     ThreadItem::new(
@@ -696,6 +712,31 @@ impl PickerDelegate for WorkspacePickerDelegate {
     }
 }
 
+fn reconcile_busy_workspace_transitions(
+    busy_workspaces: &mut HashSet<EntityId>,
+    workspace_ids: &[EntityId],
+    entries: &[WorkspaceThreadEntry],
+    active_workspace_id: Option<EntityId>,
+) -> Vec<EntityId> {
+    let current_workspace_ids = HashSet::<EntityId>::from_iter(workspace_ids.iter().copied());
+    busy_workspaces.retain(|workspace_id| current_workspace_ids.contains(workspace_id));
+
+    let mut finished_background_workspaces = Vec::new();
+
+    for (workspace_id, entry) in workspace_ids.iter().copied().zip(entries) {
+        if entry.has_busy_terminal {
+            busy_workspaces.insert(workspace_id);
+            continue;
+        }
+
+        if busy_workspaces.remove(&workspace_id) && Some(workspace_id) != active_workspace_id {
+            finished_background_workspaces.push(workspace_id);
+        }
+    }
+
+    finished_background_workspaces
+}
+
 pub struct Sidebar {
     multi_workspace: Entity<MultiWorkspace>,
     width: Pixels,
@@ -704,6 +745,8 @@ pub struct Sidebar {
     _project_subscriptions: Vec<Subscription>,
     _agent_panel_subscriptions: Vec<Subscription>,
     _thread_subscriptions: Vec<Subscription>,
+    _terminal_panel_subscriptions: Vec<Subscription>,
+    busy_workspaces: HashSet<EntityId>,
     #[cfg(any(test, feature = "test-support"))]
     test_thread_infos: HashMap<usize, AgentThreadInfo>,
     #[cfg(any(test, feature = "test-support"))]
@@ -762,6 +805,8 @@ impl Sidebar {
             _project_subscriptions: Vec::new(),
             _agent_panel_subscriptions: Vec::new(),
             _thread_subscriptions: Vec::new(),
+            _terminal_panel_subscriptions: Vec::new(),
+            busy_workspaces: HashSet::new(),
             #[cfg(any(test, feature = "test-support"))]
             test_thread_infos: HashMap::new(),
             #[cfg(any(test, feature = "test-support"))]
@@ -915,6 +960,55 @@ impl Sidebar {
 
     /// Reconciles the sidebar's displayed entries with the current state of all
     /// workspaces and their agent threads.
+    fn subscribe_to_terminal_panels(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Vec<Subscription> {
+        let workspaces: Vec<_> = self.multi_workspace.read(cx).workspaces().to_vec();
+
+        let mut subscriptions = Vec::new();
+
+        for workspace in workspaces {
+            if let Some(terminal_panel) = workspace.read(cx).panel::<TerminalPanel>(cx) {
+                // Keep observing the panel itself in case panes are added/removed
+                subscriptions.push(cx.observe_in(
+                    &terminal_panel,
+                    window,
+                    |this, _, window, cx| {
+                        this.update_entries(window, cx);
+                    },
+                ));
+
+                // Observe TerminalViews directly because task state changes propagate
+                // through `TerminalView` notifications, not guaranteed terminal events.
+                let panes = terminal_panel.read(cx).panes().to_vec();
+                for pane in panes {
+                    let terminal_views: Vec<_> = pane
+                        .read(cx)
+                        .items()
+                        .filter_map(|item| item.downcast::<terminal_view::TerminalView>())
+                        .collect();
+                    for tv in terminal_views {
+                        subscriptions.push(cx.observe_in(
+                            &tv,
+                            window,
+                            |this, _, window, cx| {
+                                this.update_entries(window, cx);
+                            },
+                        ));
+                    }
+                }
+            } else {
+                subscriptions.push(cx.observe_in(&workspace, window, |this, _, window, cx| {
+                    this.update_entries(window, cx);
+                }));
+            }
+        }
+
+        subscriptions
+    }
+
     fn update_entries(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let multi_workspace = self.multi_workspace.clone();
         cx.defer_in(window, move |this, window, cx| {
@@ -925,9 +1019,29 @@ impl Sidebar {
             this._project_subscriptions = this.subscribe_to_projects(window, cx);
             this._agent_panel_subscriptions = this.subscribe_to_agent_panels(window, cx);
             this._thread_subscriptions = this.subscribe_to_threads(window, cx);
-            let (entries, active_index) = multi_workspace.read_with(cx, |multi_workspace, cx| {
-                this.build_workspace_thread_entries(multi_workspace, cx)
-            });
+            this._terminal_panel_subscriptions = this.subscribe_to_terminal_panels(window, cx);
+            let (entries, active_index) =
+                this.build_workspace_thread_entries(&multi_workspace.read(cx), cx);
+            let active_workspace_id = multi_workspace
+                .read(cx)
+                .workspaces()
+                .get(active_index)
+                .map(|workspace| workspace.entity_id());
+            let workspace_ids: Vec<_> = multi_workspace
+                .read(cx)
+                .workspaces()
+                .iter()
+                .map(|workspace| workspace.entity_id())
+                .collect();
+
+            for _workspace_id in reconcile_busy_workspace_transitions(
+                &mut this.busy_workspaces,
+                &workspace_ids,
+                &entries,
+                active_workspace_id,
+            ) {
+                Audio::play_sound(Sound::AgentDone, cx);
+            }
 
             let had_notifications = !this.picker.read(cx).delegate.notified_workspaces.is_empty();
             this.picker.update(cx, |picker, cx| {
@@ -1265,6 +1379,64 @@ mod tests {
             !has_notifications(&sidebar, cx),
             "notification should be cleared when workspace becomes active"
         );
+    }
+
+    #[test]
+    fn test_background_terminal_completion_requires_sound() {
+        let workspace_ids = vec![EntityId::from(1), EntityId::from(2)];
+        let entries = vec![
+            WorkspaceThreadEntry {
+                index: 0,
+                worktree_label: SharedString::from("Workspace 1"),
+                git_branch: None,
+                full_path: SharedString::from("/tmp/workspace-1"),
+                thread_info: None,
+                has_busy_terminal: false,
+            },
+            WorkspaceThreadEntry {
+                index: 1,
+                worktree_label: SharedString::from("Workspace 2"),
+                git_branch: None,
+                full_path: SharedString::from("/tmp/workspace-2"),
+                thread_info: None,
+                has_busy_terminal: true,
+            },
+        ];
+        let mut busy_workspaces = HashSet::from_iter(workspace_ids.iter().copied());
+
+        let finished = reconcile_busy_workspace_transitions(
+            &mut busy_workspaces,
+            &workspace_ids,
+            &entries,
+            Some(workspace_ids[1]),
+        );
+
+        assert_eq!(finished, vec![workspace_ids[0]]);
+        assert_eq!(busy_workspaces, HashSet::from_iter([workspace_ids[1]]));
+    }
+
+    #[test]
+    fn test_active_terminal_completion_does_not_require_sound() {
+        let workspace_id = EntityId::from(1);
+        let entries = vec![WorkspaceThreadEntry {
+            index: 0,
+            worktree_label: SharedString::from("Workspace 1"),
+            git_branch: None,
+            full_path: SharedString::from("/tmp/workspace-1"),
+            thread_info: None,
+            has_busy_terminal: false,
+        }];
+        let mut busy_workspaces = HashSet::from_iter([workspace_id]);
+
+        let finished = reconcile_busy_workspace_transitions(
+            &mut busy_workspaces,
+            &[workspace_id],
+            &entries,
+            Some(workspace_id),
+        );
+
+        assert!(finished.is_empty());
+        assert!(busy_workspaces.is_empty());
     }
 
     #[test]
