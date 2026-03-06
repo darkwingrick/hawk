@@ -12,6 +12,7 @@ use gpui::{
     Action, AppContext, ClickEvent, Entity, FocusHandle, Focusable, MouseButton, ScrollStrategy,
     Task, UniformListScrollHandle, WeakEntity, actions, uniform_list,
 };
+use hawk_actions::{ToggleEnableBreakpoint, UnsetBreakpoint};
 use itertools::Itertools;
 use language::Point;
 use project::{
@@ -29,7 +30,6 @@ use ui::{
 };
 use util::rel_path::RelPath;
 use workspace::Workspace;
-use hawk_actions::{ToggleEnableBreakpoint, UnsetBreakpoint};
 
 actions!(
     debugger,

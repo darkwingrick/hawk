@@ -10,5 +10,6 @@ actions!(
 );
 
 pub async fn register_hawk_scheme(cx: &AsyncApp) -> anyhow::Result<()> {
-    cx.update(|cx| cx.register_url_scheme(HAWK_URL_SCHEME)).await
+    cx.update(|cx| cx.register_url_scheme(HAWK_URL_SCHEME))
+        .await
 }

@@ -12,8 +12,8 @@ use paths::remote_servers_dir;
 use release_channel::{AppCommitSha, ReleaseChannel};
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use settings::{RegisterSetting, Settings, SettingsStore};
+use sha2::{Digest, Sha256};
 use smol::fs::File;
 use smol::{fs, io::AsyncReadExt};
 use std::mem;
@@ -592,15 +592,16 @@ impl AutoUpdater {
         } else if include_prereleases {
             match latest_github_release(&repository, true, true, http_client_dyn.clone()).await {
                 Ok(release) => release,
-                Err(prerelease_error) => {
-                    latest_github_release(&repository, true, false, http_client_dyn.clone())
-                        .await
-                        .with_context(|| {
-                            format!(
-                                "failed to fetch prerelease ({prerelease_error:#}) and stable release"
-                            )
-                        })?
-                }
+                Err(prerelease_error) => latest_github_release(
+                    &repository,
+                    true,
+                    false,
+                    http_client_dyn.clone(),
+                )
+                .await
+                .with_context(|| {
+                    format!("failed to fetch prerelease ({prerelease_error:#}) and stable release")
+                })?,
             }
         } else {
             latest_github_release(&repository, true, false, http_client_dyn.clone()).await?
@@ -710,8 +711,8 @@ impl AutoUpdater {
         let matches_platform = target_patterns
             .iter()
             .any(|pattern| normalized_name.contains(&pattern.to_ascii_lowercase()));
-        let matches_extension = normalized_extension.is_empty()
-            || normalized_name.ends_with(&normalized_extension);
+        let matches_extension =
+            normalized_extension.is_empty() || normalized_name.ends_with(&normalized_extension);
 
         matches_prefix && matches_platform && matches_extension
     }
@@ -732,7 +733,11 @@ impl AutoUpdater {
         };
 
         let mut response = http_client
-            .get(&checksum_asset.browser_download_url, Default::default(), true)
+            .get(
+                &checksum_asset.browser_download_url,
+                Default::default(),
+                true,
+            )
             .await
             .with_context(|| {
                 format!(
@@ -1748,9 +1753,6 @@ deadbeef  hawk-linux-x86_64.tar.gz
     #[test]
     fn test_normalize_sha256_digest_removes_algorithm_prefix() {
         let digest = "sha256:ABCDEF";
-        assert_eq!(
-            normalize_sha256_digest(digest),
-            Some("abcdef".to_string())
-        );
+        assert_eq!(normalize_sha256_digest(digest), Some("abcdef".to_string()));
     }
 }

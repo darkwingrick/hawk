@@ -12,6 +12,7 @@ use gpui::{
     ThreadTimingsDelta, TitlebarOptions, UniformListScrollHandle, WeakEntity, WindowBounds,
     WindowOptions, div, prelude::FluentBuilder, px, relative, size, uniform_list,
 };
+use hawk_actions::OpenPerformanceProfiler;
 use rpc::{AnyProtoClient, proto};
 use util::ResultExt;
 use workspace::{
@@ -22,7 +23,6 @@ use workspace::{
         WithScrollbar, h_flex, v_flex,
     },
 };
-use hawk_actions::OpenPerformanceProfiler;
 
 const NANOS_PER_MS: u128 = 1_000_000;
 const VISIBLE_WINDOW_NANOS: u128 = 10 * 1_000_000_000;

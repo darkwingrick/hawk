@@ -341,7 +341,12 @@ impl NewProcessModal {
             .global::<DapRegistry>()
             .adapter(&session_scenario.adapter);
 
-        cx.spawn(async move |_| adapter?.config_from_hawk_format(session_scenario).await.ok())
+        cx.spawn(async move |_| {
+            adapter?
+                .config_from_hawk_format(session_scenario)
+                .await
+                .ok()
+        })
     }
 
     fn start_new_session(&mut self, window: &mut Window, cx: &mut Context<Self>) {

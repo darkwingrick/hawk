@@ -18,6 +18,7 @@ use gpui::{
     InteractiveElement, KeyContext, ParentElement, Point, Render, Styled, Task, TextStyle,
     UniformListScrollHandle, WeakEntity, Window, actions, point, uniform_list,
 };
+use hawk_actions::ExtensionCategoryFilter;
 use num_format::{Locale, ToFormattedString};
 use project::DirectoryLister;
 use release_channel::ReleaseChannel;
@@ -34,7 +35,6 @@ use workspace::{
     Workspace,
     item::{Item, ItemEvent},
 };
-use hawk_actions::ExtensionCategoryFilter;
 
 use crate::components::ExtensionCard;
 use crate::extension_version_selector::{

@@ -17,6 +17,9 @@ use gpui::{
     AnyElement, App, AsyncWindowContext, Context, Entity, EntityId, EventEmitter, IntoElement,
     ParentElement, Pixels, SharedString, Styled, Task, WeakEntity, Window, point,
 };
+use hawk_actions::preview::{
+    markdown::OpenPreview as OpenMarkdownPreview, svg::OpenPreview as OpenSvgPreview,
+};
 use language::{
     Bias, Buffer, BufferRow, CharKind, CharScopeContext, LocalFile, Point, SelectionGoal,
     proto::serialize_anchor as serialize_text_anchor,
@@ -58,9 +61,6 @@ use workspace::{
     OpenVisible, Pane, WorkspaceSettings,
     item::{BreadcrumbText, FollowEvent, ProjectItemKind},
     searchable::SearchOptions,
-};
-use hawk_actions::preview::{
-    markdown::OpenPreview as OpenMarkdownPreview, svg::OpenPreview as OpenSvgPreview,
 };
 
 pub const MAX_TAB_TITLE_LEN: usize = 24;

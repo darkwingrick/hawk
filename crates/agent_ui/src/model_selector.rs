@@ -13,13 +13,13 @@ use gpui::{
     Action, AsyncWindowContext, BackgroundExecutor, DismissEvent, FocusHandle, Subscription, Task,
     WeakEntity,
 };
+use hawk_actions::agent::OpenSettings;
 use itertools::Itertools;
 use ordered_float::OrderedFloat;
 use picker::{Picker, PickerDelegate};
 use settings::{Settings, SettingsStore};
 use ui::{DocumentationAside, DocumentationSide, IntoElement, prelude::*};
 use util::ResultExt;
-use hawk_actions::agent::OpenSettings;
 
 use crate::ui::{HoldForDefault, ModelSelectorFooter, ModelSelectorHeader, ModelSelectorListItem};
 

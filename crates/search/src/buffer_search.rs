@@ -29,9 +29,9 @@ use project::{
 };
 
 use fs::Fs;
+use hawk_actions::{outline::ToggleOutline, workspace::CopyPath, workspace::CopyRelativePath};
 use settings::{DiffViewStyle, Settings, update_settings_file};
 use std::{any::TypeId, sync::Arc};
-use hawk_actions::{outline::ToggleOutline, workspace::CopyPath, workspace::CopyRelativePath};
 
 use ui::{
     BASE_REM_SIZE_IN_PX, IconButtonShape, PlatformStyle, TextSize, Tooltip, prelude::*,

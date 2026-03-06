@@ -123,6 +123,7 @@ use gpui::{
     UniformListScrollHandle, WeakEntity, WeakFocusHandle, Window, div, point, prelude::*,
     pulsating_between, px, relative, size,
 };
+use hawk_actions::editor::{MoveDown, MoveUp};
 use hover_links::{HoverLink, HoveredLinkState, find_file};
 use hover_popover::{HoverState, hide_hover};
 use indent_guides::ActiveIndentGuidesState;
@@ -220,7 +221,6 @@ use workspace::{
     notifications::{DetachAndPromptErr, NotificationId, NotifyTaskExt},
     searchable::SearchEvent,
 };
-use hawk_actions::editor::{MoveDown, MoveUp};
 
 use crate::{
     code_context_menus::CompletionsMenuSource,
@@ -18262,8 +18262,10 @@ impl Editor {
                     Some(Either::Left(url)) => {
                         cx.update(|window, cx| {
                             if parse_hawk_link(&url, cx).is_some() {
-                                window
-                                    .dispatch_action(Box::new(hawk_actions::OpenHawkUrl { url }), cx);
+                                window.dispatch_action(
+                                    Box::new(hawk_actions::OpenHawkUrl { url }),
+                                    cx,
+                                );
                             } else {
                                 cx.open_url(&url);
                             }

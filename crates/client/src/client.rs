@@ -1,10 +1,10 @@
 #[cfg(any(test, feature = "test-support"))]
 pub mod test;
 
+pub mod hawk_urls;
 mod proxy;
 pub mod telemetry;
 pub mod user;
-pub mod hawk_urls;
 
 use anyhow::{Context as _, Result, anyhow};
 use async_tungstenite::tungstenite::{
@@ -57,7 +57,8 @@ pub use user::*;
 
 static HAWK_SERVER_URL: LazyLock<Option<String>> =
     LazyLock::new(|| std::env::var("HAWK_SERVER_URL").ok());
-static HAWK_RPC_URL: LazyLock<Option<String>> = LazyLock::new(|| std::env::var("HAWK_RPC_URL").ok());
+static HAWK_RPC_URL: LazyLock<Option<String>> =
+    LazyLock::new(|| std::env::var("HAWK_RPC_URL").ok());
 
 pub static IMPERSONATE_LOGIN: LazyLock<Option<String>> = LazyLock::new(|| {
     std::env::var("HAWK_IMPERSONATE")
@@ -65,7 +66,8 @@ pub static IMPERSONATE_LOGIN: LazyLock<Option<String>> = LazyLock::new(|| {
         .and_then(|s| if s.is_empty() { None } else { Some(s) })
 });
 
-pub static USE_WEB_LOGIN: LazyLock<bool> = LazyLock::new(|| std::env::var("HAWK_WEB_LOGIN").is_ok());
+pub static USE_WEB_LOGIN: LazyLock<bool> =
+    LazyLock::new(|| std::env::var("HAWK_WEB_LOGIN").is_ok());
 
 pub static ADMIN_API_TOKEN: LazyLock<Option<String>> = LazyLock::new(|| {
     std::env::var("HAWK_ADMIN_API_TOKEN")

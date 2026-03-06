@@ -218,9 +218,17 @@ impl PtyProcessInfo {
 
         if let Some(info) = self.current.read().as_ref() {
             let name = info.name.as_str();
-            if name == "zsh" || name == "-zsh" || name == "bash" || name == "-bash" 
-                || name == "fish" || name == "-fish" || name == "tmux" || name == "screen"
-                || name == "login" || name == "nu" {
+            if name == "zsh"
+                || name == "-zsh"
+                || name == "bash"
+                || name == "-bash"
+                || name == "fish"
+                || name == "-fish"
+                || name == "tmux"
+                || name == "screen"
+                || name == "login"
+                || name == "nu"
+            {
                 return false;
             }
         } else {

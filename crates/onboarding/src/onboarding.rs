@@ -4,17 +4,18 @@ use db::kvp::KEY_VALUE_STORE;
 use fs::Fs;
 use gpui::{
     Action, AnyElement, App, AppContext, AsyncWindowContext, Context, Entity, EventEmitter,
-    FocusHandle, Focusable, Global, img, IntoElement, KeyContext, Render, ScrollHandle, SharedString,
-    Subscription, Task, WeakEntity, Window, actions,
+    FocusHandle, Focusable, Global, IntoElement, KeyContext, Render, ScrollHandle, SharedString,
+    Subscription, Task, WeakEntity, Window, actions, img,
 };
+use hawk_actions::OpenOnboarding;
 use notifications::status_toast::{StatusToast, ToastIcon};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use settings::{SettingsStore, VsCodeSettingsSource};
 use std::sync::Arc;
 use ui::{
-    Divider, KeyBinding, ParentElement as _, StatefulInteractiveElement,
-    WithScrollbar as _, prelude::*, rems_from_px,
+    Divider, KeyBinding, ParentElement as _, StatefulInteractiveElement, WithScrollbar as _,
+    prelude::*, rems_from_px,
 };
 pub use workspace::welcome::ShowWelcome;
 use workspace::welcome::WelcomePage;
@@ -25,7 +26,6 @@ use workspace::{
     notifications::NotifyResultExt as _,
     open_new, register_serializable_item, with_active_or_new_workspace,
 };
-use hawk_actions::OpenOnboarding;
 
 mod base_keymap_picker;
 mod basics_page;
@@ -312,7 +312,7 @@ impl Render for Onboarding {
                                                 img("images/hawk_logo.png")
                                                     .w(rems_from_px(45.))
                                                     .h(rems_from_px(45.))
-                                                    .flex_none()
+                                                    .flex_none(),
                                             )
                                             .child(
                                                 v_flex()

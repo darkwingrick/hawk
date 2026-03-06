@@ -30,6 +30,7 @@ use gpui::{
     InteractiveElement, IntoElement, MouseButton, ParentElement, Render,
     StatefulInteractiveElement, Styled, Subscription, WeakEntity, Window, actions, div,
 };
+use hawk_actions::OpenRemote;
 use onboarding_banner::OnboardingBanner;
 use project::{
     DisableAiSettings, Project, git_store::GitStoreEvent, trusted_worktrees::TrustedWorktrees,
@@ -50,7 +51,6 @@ use workspace::{
     MultiWorkspace, ToggleWorkspaceSidebar, ToggleWorktreeSecurity, Workspace,
     notifications::NotifyResultExt,
 };
-use hawk_actions::OpenRemote;
 
 pub use onboarding_banner::restore_banner;
 

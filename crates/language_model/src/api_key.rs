@@ -2,12 +2,12 @@ use anyhow::{Result, anyhow};
 use credentials_provider::CredentialsProvider;
 use futures::{FutureExt, future};
 use gpui::{AsyncApp, Context, SharedString, Task};
+use hawk_env_vars::EnvVar;
 use std::{
     fmt::{Display, Formatter},
     sync::Arc,
 };
 use util::ResultExt as _;
-use hawk_env_vars::EnvVar;
 
 use crate::AuthenticateError;
 

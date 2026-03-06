@@ -31,6 +31,8 @@ use gpui::{
     WindowHandle, div, ease_in_out, img, linear_color_stop, linear_gradient, list, point,
     pulsating_between,
 };
+use hawk_actions::agent::{Chat, ToggleModelSelector};
+use hawk_actions::assistant::OpenRulesLibrary;
 use language::Buffer;
 use language_model::LanguageModelRegistry;
 use markdown::{Markdown, MarkdownElement, MarkdownFont, MarkdownStyle};
@@ -57,8 +59,6 @@ use util::{debug_panic, defer};
 use workspace::{
     CollaboratorId, MultiWorkspace, NewTerminal, Toast, Workspace, notifications::NotificationId,
 };
-use hawk_actions::agent::{Chat, ToggleModelSelector};
-use hawk_actions::assistant::OpenRulesLibrary;
 
 use super::config_options::ConfigOptionsView;
 use super::entry_view_state::EntryViewState;

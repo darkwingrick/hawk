@@ -19,11 +19,12 @@ use gpui::{
     Action, AnyView, App, AsyncWindowContext, Corner, Entity, EventEmitter, FocusHandle, Focusable,
     ScrollHandle, Subscription, Task, WeakEntity,
 };
+use hawk_actions::{ExtensionCategoryFilter, OpenBrowser};
 use itertools::Itertools;
 use language::LanguageRegistry;
 use language_model::{
-    IconOrSvg, LanguageModelProvider, LanguageModelProviderId, LanguageModelRegistry,
-    HAWK_CLOUD_PROVIDER_ID,
+    HAWK_CLOUD_PROVIDER_ID, IconOrSvg, LanguageModelProvider, LanguageModelProviderId,
+    LanguageModelRegistry,
 };
 use language_models::AllLanguageModelSettings;
 use notifications::status_toast::{StatusToast, ToastIcon};
@@ -39,7 +40,6 @@ use ui::{
 };
 use util::ResultExt as _;
 use workspace::{Workspace, create_and_open_local_file};
-use hawk_actions::{ExtensionCategoryFilter, OpenBrowser};
 
 pub(crate) use configure_context_server_modal::ConfigureContextServerModal;
 pub(crate) use configure_context_server_tools_modal::ConfigureContextServerToolsModal;
@@ -275,7 +275,10 @@ impl AgentConfiguration {
                                             .map(|this| {
                                                 if is_hawk_provider && is_signed_in {
                                                     this.child(
-                                                        self.render_hawk_plan_info(current_plan, cx),
+                                                        self.render_hawk_plan_info(
+                                                            current_plan,
+                                                            cx,
+                                                        ),
                                                     )
                                                 } else {
                                                     this.when(
@@ -478,7 +481,11 @@ impl AgentConfiguration {
             )
     }
 
-    fn render_hawk_plan_info(&self, plan: Option<Plan>, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render_hawk_plan_info(
+        &self,
+        plan: Option<Plan>,
+        cx: &mut Context<Self>,
+    ) -> impl IntoElement {
         if let Some(plan) = plan {
             let free_chip_bg = cx
                 .theme()

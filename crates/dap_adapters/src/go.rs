@@ -361,7 +361,10 @@ impl DebugAdapter for GoDebugAdapter {
         })
     }
 
-    async fn config_from_hawk_format(&self, hawk_scenario: ZedDebugConfig) -> Result<DebugScenario> {
+    async fn config_from_hawk_format(
+        &self,
+        hawk_scenario: ZedDebugConfig,
+    ) -> Result<DebugScenario> {
         let mut args = match &hawk_scenario.request {
             dap::DebugRequest::Attach(attach_config) => {
                 json!({

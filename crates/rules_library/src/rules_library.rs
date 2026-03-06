@@ -7,6 +7,7 @@ use gpui::{
     Subscription, Task, TextStyle, Tiling, TitlebarOptions, WindowBounds, WindowHandle,
     WindowOptions, actions, point, size, transparent_black,
 };
+use hawk_actions::assistant::InlineAssist;
 use language::{Buffer, LanguageRegistry, language_settings::SoftWrap};
 use language_model::{
     ConfiguredModel, LanguageModelRegistry, LanguageModelRequest, LanguageModelRequestMessage, Role,
@@ -25,7 +26,6 @@ use ui::{Divider, ListItem, ListItemSpacing, ListSubHeader, Tooltip, prelude::*}
 use ui_input::ErasedEditor;
 use util::{ResultExt, TryFutureExt};
 use workspace::{MultiWorkspace, Workspace, WorkspaceSettings, client_side_decorations};
-use hawk_actions::assistant::InlineAssist;
 
 use prompt_store::*;
 

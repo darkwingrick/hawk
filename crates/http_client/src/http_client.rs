@@ -215,7 +215,9 @@ impl HttpClientWithUrl {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
             "https://hawk.dev" if path.starts_with("/extensions") => "https://api.zed.dev",
-            "https://staging.hawk.dev" if path.starts_with("/extensions") => "https://api-staging.zed.dev",
+            "https://staging.hawk.dev" if path.starts_with("/extensions") => {
+                "https://api-staging.zed.dev"
+            }
             "https://hawk.dev" => "https://api.hawk.dev",
             "https://staging.hawk.dev" => "https://api-staging.hawk.dev",
             "http://localhost:3000" => "http://localhost:8080",
@@ -242,7 +244,11 @@ impl HttpClientWithUrl {
     }
 
     /// Builds a Zed Cloud URL using the given path and query params.
-    pub fn build_hawk_cloud_url_with_query(&self, path: &str, query: impl Serialize) -> Result<Url> {
+    pub fn build_hawk_cloud_url_with_query(
+        &self,
+        path: &str,
+        query: impl Serialize,
+    ) -> Result<Url> {
         let base_url = self.base_url();
         let base_api_url = match base_url.as_ref() {
             "https://hawk.dev" => "https://cloud.hawk.dev",

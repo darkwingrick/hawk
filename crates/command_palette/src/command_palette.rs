@@ -18,6 +18,7 @@ use gpui::{
     Action, App, Context, DismissEvent, Entity, EventEmitter, FocusHandle, Focusable,
     ParentElement, Render, Styled, Task, WeakEntity, Window,
 };
+use hawk_actions::{OpenHawkUrl, command_palette::Toggle};
 use persistence::COMMAND_PALETTE_HISTORY;
 use picker::Direction;
 use picker::{Picker, PickerDelegate};
@@ -26,7 +27,6 @@ use settings::Settings;
 use ui::{HighlightedLabel, KeyBinding, ListItem, ListItemSpacing, prelude::*};
 use util::ResultExt;
 use workspace::{ModalView, Workspace, WorkspaceSettings};
-use hawk_actions::{OpenHawkUrl, command_palette::Toggle};
 
 pub fn init(cx: &mut App) {
     command_palette_hooks::init(cx);

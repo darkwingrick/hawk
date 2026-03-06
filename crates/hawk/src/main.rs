@@ -1,8 +1,8 @@
 // Disable command line from opening on release mode
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod reliability;
 mod hawk;
+mod reliability;
 
 use agent::{SharedThread, ThreadStore};
 use agent_client_protocol;
@@ -17,12 +17,12 @@ use crashes::InitCrashHandler;
 use db::kvp::{GLOBAL_KEY_VALUE_STORE, KEY_VALUE_STORE};
 use editor::Editor;
 use extension::ExtensionHostProxy;
+use feature_flags::FeatureFlag;
 use fs::{Fs, RealFs};
 use futures::{StreamExt, channel::oneshot, future};
 use git::GitHostingProviderRegistry;
 use git_ui::clone::clone_and_open;
 use gpui::{App, AppContext, Application, AsyncApp, Focusable as _, QuitMode, UpdateGlobal as _};
-use feature_flags::FeatureFlag;
 use gpui_platform;
 
 use gpui_tokio::Tokio;
@@ -34,6 +34,12 @@ use remote::RemoteConnectionOptions;
 use reqwest_client::ReqwestClient;
 
 use assets::Assets;
+use hawk::{
+    OpenListener, OpenRequest, RawOpenRequest, app_menus, build_window_options,
+    derive_paths_with_position, edit_prediction_registry, handle_cli_connection,
+    handle_keymap_file_changes, handle_settings_file_changes, initialize_workspace,
+    open_paths_with_positions,
+};
 use node_runtime::{NodeBinaryOptions, NodeRuntime};
 use parking_lot::Mutex;
 use project::{project_settings::ProjectSettings, trusted_worktrees};
@@ -58,12 +64,6 @@ use uuid::Uuid;
 use workspace::{
     AppState, MultiWorkspace, SerializedWorkspaceLocation, SessionWorkspace, Toast,
     WorkspaceSettings, WorkspaceStore, notifications::NotificationId, restore_multiworkspace,
-};
-use hawk::{
-    OpenListener, OpenRequest, RawOpenRequest, app_menus, build_window_options,
-    derive_paths_with_position, edit_prediction_registry, handle_cli_connection,
-    handle_keymap_file_changes, handle_settings_file_changes, initialize_workspace,
-    open_paths_with_positions,
 };
 
 use crate::hawk::{OpenRequestKind, eager_load_active_theme_and_icon_theme};
@@ -365,7 +365,10 @@ fn main() {
 
         #[cfg(target_os = "windows")]
         {
-            !crate::hawk::windows_only_instance::handle_single_instance(open_listener.clone(), &args)
+            !crate::hawk::windows_only_instance::handle_single_instance(
+                open_listener.clone(),
+                &args,
+            )
         }
 
         #[cfg(target_os = "macos")]

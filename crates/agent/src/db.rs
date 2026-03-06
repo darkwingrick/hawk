@@ -7,6 +7,7 @@ use chrono::{DateTime, Utc};
 use collections::{HashMap, IndexMap};
 use futures::{FutureExt, future::Shared};
 use gpui::{BackgroundExecutor, Global, Task};
+use hawk_env_vars::HAWK_STATELESS;
 use indoc::indoc;
 use language_model::Speed;
 use parking_lot::Mutex;
@@ -19,7 +20,6 @@ use sqlez::{
 use std::sync::Arc;
 use ui::{App, SharedString};
 use util::path_list::PathList;
-use hawk_env_vars::HAWK_STATELESS;
 
 pub type DbMessage = crate::Message;
 pub type DbSummary = crate::legacy_thread::DetailedSummaryState;

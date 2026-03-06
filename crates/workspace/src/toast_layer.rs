@@ -7,8 +7,8 @@ use gpui::{
     AnyView, DismissEvent, Entity, EntityId, FocusHandle, ManagedView, MouseButton, Subscription,
     Task,
 };
-use ui::{animation::DefaultAnimations, prelude::*};
 use hawk_actions::toast;
+use ui::{animation::DefaultAnimations, prelude::*};
 
 use crate::Workspace;
 

@@ -282,13 +282,13 @@ mod tests {
     use super::*;
     use editor;
     use gpui::{TestAppContext, UpdateGlobal, VisualTestContext};
+    use hawk_actions::settings_profile_selector;
     use menu::{Cancel, Confirm, SelectNext, SelectPrevious};
     use project::{FakeFs, Project};
     use serde_json::json;
     use settings::Settings;
     use theme::{self, ThemeSettings};
     use workspace::{self, AppState, MultiWorkspace};
-    use hawk_actions::settings_profile_selector;
 
     async fn init_test(
         profiles_json: serde_json::Value,

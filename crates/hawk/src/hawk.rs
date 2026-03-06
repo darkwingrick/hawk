@@ -88,6 +88,10 @@ use workspace::notifications::{
     NotificationId, SuppressEvent, dismiss_app_notification, show_app_notification,
 };
 
+use hawk_actions::{
+    OpenAccountSettings, OpenBrowser, OpenDocs, OpenHawkUrl, OpenServerSettings, OpenSettingsFile,
+    Quit,
+};
 use workspace::{
     AppState, MultiWorkspace, NewFile, NewWindow, OpenLog, Panel, Toast, Workspace,
     WorkspaceSettings, create_and_open_local_file,
@@ -98,10 +102,6 @@ use workspace::{
     with_active_or_new_workspace,
 };
 use workspace::{Pane, notifications::DetachAndPromptErr};
-use hawk_actions::{
-    OpenAccountSettings, OpenBrowser, OpenDocs, OpenServerSettings, OpenSettingsFile, OpenHawkUrl,
-    Quit,
-};
 
 actions!(
     hawk,
@@ -485,7 +485,7 @@ pub fn initialize_workspace(
             status_bar.add_left_item(active_buffer_language, window, cx);
             status_bar.add_left_item(cursor_position, window, cx);
             status_bar.add_left_item(activity_indicator, window, cx);
-            
+
             // Right items
             status_bar.add_right_item(edit_prediction_ui, window, cx);
             status_bar.add_right_item(lsp_button, window, cx);
@@ -691,8 +691,7 @@ fn setup_or_teardown_ai_panel<P: Panel>(
                     .disable_ai;
                 let hide_agent_panel = cx.has_flag::<HideAgentPanelFeatureFlag>();
                 let have_panel = workspace.panel::<P>(cx).is_some();
-                if !should_disable_ai_panel(disable_ai, hide_agent_panel, cfg!(test))
-                    && !have_panel
+                if !should_disable_ai_panel(disable_ai, hide_agent_panel, cfg!(test)) && !have_panel
                 {
                     workspace.add_panel(panel, window, cx);
                 }
@@ -1557,7 +1556,8 @@ fn notify_settings_errors(result: settings::SettingsParseResult, is_user: bool, 
                         .primary_message("Open Settings File")
                         .primary_icon(IconName::Settings)
                         .primary_on_click(|window, cx| {
-                            window.dispatch_action(hawk_actions::OpenSettingsFile.boxed_clone(), cx);
+                            window
+                                .dispatch_action(hawk_actions::OpenSettingsFile.boxed_clone(), cx);
                             cx.emit(DismissEvent);
                         })
                     })

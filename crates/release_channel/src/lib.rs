@@ -10,10 +10,15 @@ use semver::Version;
 /// stable | dev | nightly | preview
 pub static RELEASE_CHANNEL_NAME: LazyLock<String> = LazyLock::new(|| {
     if cfg!(debug_assertions) {
-        env::var("HAWK_RELEASE_CHANNEL")
-            .unwrap_or_else(|_| include_str!("../../hawk/RELEASE_CHANNEL").trim().to_string())
+        env::var("HAWK_RELEASE_CHANNEL").unwrap_or_else(|_| {
+            include_str!("../../hawk/RELEASE_CHANNEL")
+                .trim()
+                .to_string()
+        })
     } else {
-        include_str!("../../hawk/RELEASE_CHANNEL").trim().to_string()
+        include_str!("../../hawk/RELEASE_CHANNEL")
+            .trim()
+            .to_string()
     }
 });
 

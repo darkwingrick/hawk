@@ -187,7 +187,10 @@ impl DebugAdapter for JsDebugAdapter {
         DebugAdapterName(Self::ADAPTER_NAME.into())
     }
 
-    async fn config_from_hawk_format(&self, hawk_scenario: ZedDebugConfig) -> Result<DebugScenario> {
+    async fn config_from_hawk_format(
+        &self,
+        hawk_scenario: ZedDebugConfig,
+    ) -> Result<DebugScenario> {
         let mut args = json!({
             "type": "pwa-node",
             "request": match hawk_scenario.request {

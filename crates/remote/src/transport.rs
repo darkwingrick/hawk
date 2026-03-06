@@ -208,7 +208,9 @@ async fn build_remote_server_from_source(
         if binary_exists_on_server {
             return Ok(None);
         }
-        log::warn!("HAWK_BUILD_REMOTE_SERVER is disabled, but no server binary exists on the server")
+        log::warn!(
+            "HAWK_BUILD_REMOTE_SERVER is disabled, but no server binary exists on the server"
+        )
     }
 
     async fn run_cmd(command: &mut Command) -> Result<()> {

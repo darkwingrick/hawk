@@ -847,7 +847,12 @@ impl Pane {
         cx.notify();
     }
 
-    pub fn set_custom_new_item_button(&mut self, action: Box<dyn Action>, tooltip: impl Into<SharedString>, cx: &mut Context<Self>) {
+    pub fn set_custom_new_item_button(
+        &mut self,
+        action: Box<dyn Action>,
+        tooltip: impl Into<SharedString>,
+        cx: &mut Context<Self>,
+    ) {
         self.custom_new_item_button = Some((action, tooltip.into()));
         cx.notify();
     }
@@ -3531,15 +3536,17 @@ impl Pane {
             }))
             .children(unpinned_tabs)
             .child({
-                let (action, tooltip) = if let Some((action, tooltip)) = &self.custom_new_item_button {
-                    (action.boxed_clone(), tooltip.clone())
-                } else {
-                    (NewFile.boxed_clone(), SharedString::from("New File"))
-                };
+                let (action, tooltip) =
+                    if let Some((action, tooltip)) = &self.custom_new_item_button {
+                        (action.boxed_clone(), tooltip.clone())
+                    } else {
+                        (NewFile.boxed_clone(), SharedString::from("New File"))
+                    };
                 IconButton::new("new_item", IconName::Plus)
                     .icon_size(IconSize::Small)
                     .tooltip(Tooltip::text(tooltip.clone()))
-                    .on_click(cx.listener(move |_, _, window, cx| {
+                    .on_click(cx.listener(move |pane, _, window, cx| {
+                        pane.focus_handle.focus(window, cx);
                         window.dispatch_action(action.boxed_clone(), cx);
                     }))
             })
@@ -8141,6 +8148,45 @@ mod tests {
         })
         .await
         .unwrap();
+    }
+
+    #[gpui::test]
+    async fn test_new_item_button_dispatches_in_clicked_pane(cx: &mut TestAppContext) {
+        init_test(cx);
+        let fs = FakeFs::new(cx.executor());
+        let project = Project::test(fs, None, cx).await;
+        let (workspace, cx) =
+            cx.add_window_view(|window, cx| Workspace::test_new(project, window, cx));
+
+        let pane_a = workspace.read_with(cx, |workspace, _| workspace.active_pane().clone());
+        let pane_b = workspace.update_in(cx, |workspace, window, cx| {
+            workspace.split_pane(pane_a.clone(), SplitDirection::Right, window, cx)
+        });
+
+        pane_a.update(cx, |pane, cx| {
+            pane.set_custom_new_item_button(ActivateNextItem.boxed_clone(), "Next Item", cx);
+            pane.set_should_display_tab_bar(|_, _| true);
+        });
+        pane_b.update(cx, |pane, cx| {
+            pane.set_should_display_tab_bar(|_, _| false);
+        });
+
+        set_labeled_items(&pane_a, ["A*", "B"], cx);
+        set_labeled_items(&pane_b, ["C*", "D"], cx);
+
+        workspace.update_in(cx, |_, window, cx| {
+            window.focus(&pane_b.focus_handle(cx), cx);
+        });
+        cx.run_until_parked();
+
+        let new_item_bounds = cx
+            .debug_bounds("new_item")
+            .expect("clicked pane new-item button should have debug bounds");
+        cx.simulate_click(new_item_bounds.center(), gpui::Modifiers::none());
+        cx.run_until_parked();
+
+        assert_item_labels(&pane_a, ["A", "B*"], cx);
+        assert_item_labels(&pane_b, ["C*", "D"], cx);
     }
 
     #[gpui::test]

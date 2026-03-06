@@ -1,9 +1,9 @@
 use collab_ui::collab_panel;
 use gpui::{App, Menu, MenuItem, OsAction};
+use hawk_actions::{OpenOnboarding, debug_panel, dev};
 use onboarding;
 use release_channel::ReleaseChannel;
 use terminal_view::terminal_panel;
-use hawk_actions::{debug_panel, dev, OpenOnboarding};
 
 pub fn app_menus(cx: &mut App) -> Vec<Menu> {
     use hawk_actions::Quit;
@@ -70,7 +70,10 @@ pub fn app_menus(cx: &mut App) -> Vec<Menu> {
                     items: vec![
                         MenuItem::action("Open Settings", hawk_actions::OpenSettings),
                         MenuItem::action("Open Settings File", super::OpenSettingsFile),
-                        MenuItem::action("Open Project Settings", hawk_actions::OpenProjectSettings),
+                        MenuItem::action(
+                            "Open Project Settings",
+                            hawk_actions::OpenProjectSettings,
+                        ),
                         MenuItem::action(
                             "Open Project Settings File",
                             super::OpenProjectSettingsFile,

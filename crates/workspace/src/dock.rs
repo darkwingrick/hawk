@@ -912,140 +912,139 @@ impl Render for ActivityBar {
         let is_open = left_dock.is_open;
         let activity_icon_size = IconSize::Custom(rems_from_px(30.));
 
-        let search_button = div()
-            .relative()
-            .flex_none()
-            .px_2()
-            .child(
-                IconButton::new("activity-bar-project-search", ui::IconName::MagnifyingGlass)
-                    .icon_size(activity_icon_size)
-                    .tooltip(|_window, cx| {
-                        Tooltip::for_action(
-                            "Project Search",
-                            &crate::DeploySearch::find(),
-                            cx,
-                        )
-                    })
-                    .on_click(move |_, window, cx| {
-                        window.dispatch_action(
-                            Box::new(crate::DeploySearch::find()),
-                            cx,
-                        )
-                    }),
-            );
+        let search_button = div().relative().flex_none().px_2().child(
+            IconButton::new("activity-bar-project-search", ui::IconName::MagnifyingGlass)
+                .icon_size(activity_icon_size)
+                .tooltip(|_window, cx| {
+                    Tooltip::for_action("Project Search", &crate::DeploySearch::find(), cx)
+                })
+                .on_click(move |_, window, cx| {
+                    window.dispatch_action(Box::new(crate::DeploySearch::find()), cx)
+                }),
+        );
 
         // Collect dock panel buttons, keep track of GitPanel index
         let mut git_panel_index = None;
         let mut idx = 0;
-        let mut items: Vec<gpui::Div> = left_dock.panel_entries.iter().enumerate().filter_map(|(i, entry)| {
-            let icon = entry.panel.icon(window, cx)?;
-            let name = entry.panel.persistent_name();
-            let is_active = Some(i) == active_index && is_open;
-            let (action, tooltip) = if is_active {
-                let action = left_dock.toggle_action();
-                let tooltip: SharedString = format!("Close Left Dock").into();
-                (action, tooltip)
-            } else {
-                let action = entry.panel.toggle_action(window, cx);
-                let tooltip: SharedString = entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
-                (action, tooltip)
-            };
-            let focus_handle = left_dock.focus_handle(cx);
-            
-            if name == "GitPanel" {
-                git_panel_index = Some(idx);
-            }
-            idx += 1;
+        let mut items: Vec<gpui::Div> = left_dock
+            .panel_entries
+            .iter()
+            .enumerate()
+            .filter_map(|(i, entry)| {
+                let icon = entry.panel.icon(window, cx)?;
+                let name = entry.panel.persistent_name();
+                let is_active = Some(i) == active_index && is_open;
+                let (action, tooltip) = if is_active {
+                    let action = left_dock.toggle_action();
+                    let tooltip: SharedString = format!("Close Left Dock").into();
+                    (action, tooltip)
+                } else {
+                    let action = entry.panel.toggle_action(window, cx);
+                    let tooltip: SharedString =
+                        entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
+                    (action, tooltip)
+                };
+                let focus_handle = left_dock.focus_handle(cx);
 
-            Some(
-                div()
-                    .relative()
-                    .flex_none()
-                    .px_2()
-                    .child(
-                        IconButton::new(name, icon)
-                            .icon_size(activity_icon_size)
-                            .toggle_state(is_active)
-                            .on_click({
-                                let action = action.boxed_clone();
-                                move |_, window, cx| {
-                                    window.focus(&focus_handle, cx);
-                                    window.dispatch_action(action.boxed_clone(), cx)
-                                }
-                            })
-                            .tooltip(move |_window, cx| {
-                                Tooltip::for_action(tooltip.clone(), &*action, cx)
-                            })
-                    )
-                    .when(is_active, |this| {
-                        this.child(
-                            div()
-                                .absolute()
-                                .left_0()
-                                .top_1()
-                                .bottom_1()
-                                .w(px(2.0))
-                                .bg(cx.theme().colors().text_accent)
+                if name == "GitPanel" {
+                    git_panel_index = Some(idx);
+                }
+                idx += 1;
+
+                Some(
+                    div()
+                        .relative()
+                        .flex_none()
+                        .px_2()
+                        .child(
+                            IconButton::new(name, icon)
+                                .icon_size(activity_icon_size)
+                                .toggle_state(is_active)
+                                .on_click({
+                                    let action = action.boxed_clone();
+                                    move |_, window, cx| {
+                                        window.focus(&focus_handle, cx);
+                                        window.dispatch_action(action.boxed_clone(), cx)
+                                    }
+                                })
+                                .tooltip(move |_window, cx| {
+                                    Tooltip::for_action(tooltip.clone(), &*action, cx)
+                                }),
                         )
-                    })
-            )
-        }).collect();
+                        .when(is_active, |this| {
+                            this.child(
+                                div()
+                                    .absolute()
+                                    .left_0()
+                                    .top_1()
+                                    .bottom_1()
+                                    .w(px(2.0))
+                                    .bg(cx.theme().colors().text_accent),
+                            )
+                        }),
+                )
+            })
+            .collect();
 
         // Get Terminal button from bottom_dock
         let bottom_dock = self.bottom_dock.read(cx);
         let bottom_active_index = bottom_dock.active_panel_index;
         let bottom_is_open = bottom_dock.is_open;
-        
-        let terminal_button = bottom_dock.panel_entries.iter().enumerate().find(|(_, entry)| {
-            entry.panel.persistent_name() == "TerminalPanel"
-        }).and_then(|(i, entry)| {
-            let icon = entry.panel.icon(window, cx)?;
-            let name = entry.panel.persistent_name();
-            let is_active = Some(i) == bottom_active_index && bottom_is_open;
-            let (action, tooltip) = if is_active {
-                let action = bottom_dock.toggle_action();
-                let tooltip: SharedString = format!("Close Bottom Dock").into();
-                (action, tooltip)
-            } else {
-                let action = entry.panel.toggle_action(window, cx);
-                let tooltip: SharedString = entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
-                (action, tooltip)
-            };
-            let focus_handle = bottom_dock.focus_handle(cx);
 
-            Some(
-                div()
-                    .relative()
-                    .flex_none()
-                    .px_2()
-                    .child(
-                        IconButton::new(name, icon)
-                            .icon_size(activity_icon_size)
-                            .toggle_state(is_active)
-                            .on_click({
-                                let action = action.boxed_clone();
-                                move |_, window, cx| {
-                                    window.focus(&focus_handle, cx);
-                                    window.dispatch_action(action.boxed_clone(), cx)
-                                }
-                            })
-                            .tooltip(move |_window, cx| {
-                                Tooltip::for_action(tooltip.clone(), &*action, cx)
-                            })
-                    )
-                    .when(is_active, |this| {
-                        this.child(
-                            div()
-                                .absolute()
-                                .left_0()
-                                .top_1()
-                                .bottom_1()
-                                .w(px(2.0))
-                                .bg(cx.theme().colors().text_accent)
+        let terminal_button = bottom_dock
+            .panel_entries
+            .iter()
+            .enumerate()
+            .find(|(_, entry)| entry.panel.persistent_name() == "TerminalPanel")
+            .and_then(|(i, entry)| {
+                let icon = entry.panel.icon(window, cx)?;
+                let name = entry.panel.persistent_name();
+                let is_active = Some(i) == bottom_active_index && bottom_is_open;
+                let (action, tooltip) = if is_active {
+                    let action = bottom_dock.toggle_action();
+                    let tooltip: SharedString = format!("Close Bottom Dock").into();
+                    (action, tooltip)
+                } else {
+                    let action = entry.panel.toggle_action(window, cx);
+                    let tooltip: SharedString =
+                        entry.panel.icon_tooltip(window, cx).unwrap_or(name).into();
+                    (action, tooltip)
+                };
+                let focus_handle = bottom_dock.focus_handle(cx);
+
+                Some(
+                    div()
+                        .relative()
+                        .flex_none()
+                        .px_2()
+                        .child(
+                            IconButton::new(name, icon)
+                                .icon_size(activity_icon_size)
+                                .toggle_state(is_active)
+                                .on_click({
+                                    let action = action.boxed_clone();
+                                    move |_, window, cx| {
+                                        window.focus(&focus_handle, cx);
+                                        window.dispatch_action(action.boxed_clone(), cx)
+                                    }
+                                })
+                                .tooltip(move |_window, cx| {
+                                    Tooltip::for_action(tooltip.clone(), &*action, cx)
+                                }),
                         )
-                    })
-            )
-        });
+                        .when(is_active, |this| {
+                            this.child(
+                                div()
+                                    .absolute()
+                                    .left_0()
+                                    .top_1()
+                                    .bottom_1()
+                                    .w(px(2.0))
+                                    .bg(cx.theme().colors().text_accent),
+                            )
+                        }),
+                )
+            });
 
         // Insert terminal button under Git panel, or at the end if not found
         if let Some(terminal_btn) = terminal_button {
@@ -1056,27 +1055,16 @@ impl Render for ActivityBar {
             }
         }
 
-        let extensions_button = div()
-            .relative()
-            .flex_none()
-            .px_2()
-            .child(
-                IconButton::new("activity-bar-extensions", ui::IconName::Blocks)
-                    .icon_size(activity_icon_size)
-                    .tooltip(|_window, cx| {
-                        Tooltip::for_action(
-                            "Extensions",
-                            &hawk_actions::Extensions::default(),
-                            cx,
-                        )
-                    })
-                    .on_click(move |_, window, cx| {
-                        window.dispatch_action(
-                            Box::new(hawk_actions::Extensions::default()),
-                            cx,
-                        )
-                    }),
-            );
+        let extensions_button = div().relative().flex_none().px_2().child(
+            IconButton::new("activity-bar-extensions", ui::IconName::Blocks)
+                .icon_size(activity_icon_size)
+                .tooltip(|_window, cx| {
+                    Tooltip::for_action("Extensions", &hawk_actions::Extensions::default(), cx)
+                })
+                .on_click(move |_, window, cx| {
+                    window.dispatch_action(Box::new(hawk_actions::Extensions::default()), cx)
+                }),
+        );
         items.push(extensions_button);
 
         // Insert search button after the first panel (Project Panel) if possible, otherwise at the start

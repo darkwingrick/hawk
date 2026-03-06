@@ -428,7 +428,10 @@ impl DebugAdapter for PythonDebugAdapter {
         Some(SharedString::new_static("Python").into())
     }
 
-    async fn config_from_hawk_format(&self, hawk_scenario: ZedDebugConfig) -> Result<DebugScenario> {
+    async fn config_from_hawk_format(
+        &self,
+        hawk_scenario: ZedDebugConfig,
+    ) -> Result<DebugScenario> {
         let mut args = json!({
             "request": match hawk_scenario.request {
                 DebugRequest::Launch(_) => "launch",

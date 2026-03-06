@@ -381,7 +381,9 @@ async fn test_channel_room(
     let active_call_b = cx_b.read(ActiveCall::global);
 
     active_call_a
-        .update(cx_a, |active_call, cx| active_call.join_channel(hawk_id, cx))
+        .update(cx_a, |active_call, cx| {
+            active_call.join_channel(hawk_id, cx)
+        })
         .await
         .unwrap();
 
@@ -428,7 +430,9 @@ async fn test_channel_room(
     });
 
     active_call_b
-        .update(cx_b, |active_call, cx| active_call.join_channel(hawk_id, cx))
+        .update(cx_b, |active_call, cx| {
+            active_call.join_channel(hawk_id, cx)
+        })
         .await
         .unwrap();
 
@@ -545,12 +549,16 @@ async fn test_channel_room(
     });
 
     active_call_a
-        .update(cx_a, |active_call, cx| active_call.join_channel(hawk_id, cx))
+        .update(cx_a, |active_call, cx| {
+            active_call.join_channel(hawk_id, cx)
+        })
         .await
         .unwrap();
 
     active_call_b
-        .update(cx_b, |active_call, cx| active_call.join_channel(hawk_id, cx))
+        .update(cx_b, |active_call, cx| {
+            active_call.join_channel(hawk_id, cx)
+        })
         .await
         .unwrap();
 
@@ -594,7 +602,9 @@ async fn test_channel_jumping(executor: BackgroundExecutor, cx_a: &mut TestAppCo
     let active_call_a = cx_a.read(ActiveCall::global);
 
     active_call_a
-        .update(cx_a, |active_call, cx| active_call.join_channel(hawk_id, cx))
+        .update(cx_a, |active_call, cx| {
+            active_call.join_channel(hawk_id, cx)
+        })
         .await
         .unwrap();
 
@@ -955,7 +965,11 @@ async fn test_channel_link_notifications(
 
     try_join_all(client_a.channel_store().update(cx_a, |channel_store, cx| {
         [
-            channel_store.set_channel_visibility(hawk_channel, proto::ChannelVisibility::Public, cx),
+            channel_store.set_channel_visibility(
+                hawk_channel,
+                proto::ChannelVisibility::Public,
+                cx,
+            ),
             channel_store.invite_member(hawk_channel, user_b, proto::ChannelRole::Member, cx),
             channel_store.invite_member(hawk_channel, user_c, proto::ChannelRole::Guest, cx),
         ]
@@ -1115,7 +1129,11 @@ async fn test_channel_membership_notifications(
 
     try_join_all(client_a.channel_store().update(cx_a, |channel_store, cx| {
         [
-            channel_store.set_channel_visibility(hawk_channel, proto::ChannelVisibility::Public, cx),
+            channel_store.set_channel_visibility(
+                hawk_channel,
+                proto::ChannelVisibility::Public,
+                cx,
+            ),
             channel_store.set_channel_visibility(vim_channel, proto::ChannelVisibility::Public, cx),
             channel_store.invite_member(hawk_channel, user_b, proto::ChannelRole::Admin, cx),
             channel_store.invite_member(opensource_channel, user_b, proto::ChannelRole::Member, cx),

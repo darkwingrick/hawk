@@ -3,7 +3,7 @@ pub mod room;
 
 use anyhow::{Context as _, Result, anyhow};
 use audio::Audio;
-use client::{ChannelId, Client, TypedEnvelope, User, UserStore, HAWK_ALWAYS_ACTIVE, proto};
+use client::{ChannelId, Client, HAWK_ALWAYS_ACTIVE, TypedEnvelope, User, UserStore, proto};
 use collections::HashSet;
 use futures::{Future, FutureExt, channel::oneshot, future::Shared};
 use gpui::{
