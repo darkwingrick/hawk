@@ -250,6 +250,7 @@ impl RenderOnce for ThreadItem {
                 s.bg(clr.element_selected)
                     .border_l_2()
                     .border_color(clr.border_focused)
+                    .pl_1p5()
             })
             .hover(|s| s.bg(clr.element_hover))
             .on_hover(self.on_hover)
