@@ -246,7 +246,11 @@ impl RenderOnce for ThreadItem {
                     this.px_2().py_1()
                 }
             })
-            .when(self.selected, |s| s.bg(clr.element_active))
+            .when(self.selected, |s| {
+                s.bg(clr.element_selected)
+                    .border_l_2()
+                    .border_color(clr.border_focused)
+            })
             .hover(|s| s.bg(clr.element_hover))
             .on_hover(self.on_hover)
             .child(
