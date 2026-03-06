@@ -24,10 +24,11 @@ use ui::{
     prelude::*,
 };
 use ui_input::ErasedEditor;
+use terminal_view::terminal_panel::TerminalPanel;
 use util::ResultExt as _;
 use workspace::{
-    FocusWorkspaceSidebar, MultiWorkspace, NewWorkspaceInWindow, Sidebar as WorkspaceSidebar,
-    SidebarEvent, ToggleWorkspaceSidebar, Workspace,
+    FocusWorkspaceSidebar, MultiWorkspace, NewWorkspaceInWindow,
+    Sidebar as WorkspaceSidebar, SidebarEvent, ToggleWorkspaceSidebar, Workspace,
 };
 
 #[derive(Clone, Debug)]
@@ -47,6 +48,7 @@ struct WorkspaceThreadEntry {
     git_branch: Option<SharedString>,
     full_path: SharedString,
     thread_info: Option<AgentThreadInfo>,
+    has_busy_terminal: bool,
 }
 
 impl WorkspaceThreadEntry {
@@ -82,6 +84,7 @@ impl WorkspaceThreadEntry {
 
         let git_branch = Self::active_git_branch(workspace, cx);
         let thread_info = Self::thread_info(workspace, cx);
+        let has_busy_terminal = Self::has_busy_terminal(workspace, cx);
 
         Self {
             index,
@@ -89,6 +92,7 @@ impl WorkspaceThreadEntry {
             git_branch,
             full_path,
             thread_info,
+            has_busy_terminal,
         }
     }
 
@@ -116,6 +120,13 @@ impl WorkspaceThreadEntry {
             }
         };
         Some(AgentThreadInfo { status })
+    }
+
+    fn has_busy_terminal(workspace: &Entity<Workspace>, cx: &App) -> bool {
+        let Some(terminal_panel) = workspace.read(cx).panel::<TerminalPanel>(cx) else {
+            return false;
+        };
+        terminal_panel.read(cx).has_running_terminal_task(cx)
     }
 }
 
@@ -608,10 +619,11 @@ impl PickerDelegate for WorkspacePickerDelegate {
                 let status = thread_info
                     .as_ref()
                     .map_or(AgentThreadStatus::default(), |info| info.status);
-                let running = matches!(
+                let agent_running = matches!(
                     status,
                     AgentThreadStatus::Running | AgentThreadStatus::WaitingForConfirmation
                 );
+                let running = agent_running || thread_entry.has_busy_terminal;
 
                 Some(
                     ThreadItem::new(
@@ -704,6 +716,7 @@ pub struct Sidebar {
     _project_subscriptions: Vec<Subscription>,
     _agent_panel_subscriptions: Vec<Subscription>,
     _thread_subscriptions: Vec<Subscription>,
+    _terminal_panel_subscriptions: Vec<Subscription>,
     #[cfg(any(test, feature = "test-support"))]
     test_thread_infos: HashMap<usize, AgentThreadInfo>,
     #[cfg(any(test, feature = "test-support"))]
@@ -762,6 +775,7 @@ impl Sidebar {
             _project_subscriptions: Vec::new(),
             _agent_panel_subscriptions: Vec::new(),
             _thread_subscriptions: Vec::new(),
+            _terminal_panel_subscriptions: Vec::new(),
             #[cfg(any(test, feature = "test-support"))]
             test_thread_infos: HashMap::new(),
             #[cfg(any(test, feature = "test-support"))]
@@ -915,6 +929,29 @@ impl Sidebar {
 
     /// Reconciles the sidebar's displayed entries with the current state of all
     /// workspaces and their agent threads.
+    fn subscribe_to_terminal_panels(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> Vec<Subscription> {
+        let workspaces: Vec<_> = self.multi_workspace.read(cx).workspaces().to_vec();
+
+        workspaces
+            .iter()
+            .map(|workspace| {
+                if let Some(terminal_panel) = workspace.read(cx).panel::<TerminalPanel>(cx) {
+                    cx.observe_in(&terminal_panel, window, |this, _, window, cx| {
+                        this.update_entries(window, cx);
+                    })
+                } else {
+                    cx.observe_in(workspace, window, |this, _, window, cx| {
+                        this.update_entries(window, cx);
+                    })
+                }
+            })
+            .collect()
+    }
+
     fn update_entries(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let multi_workspace = self.multi_workspace.clone();
         cx.defer_in(window, move |this, window, cx| {
@@ -925,6 +962,7 @@ impl Sidebar {
             this._project_subscriptions = this.subscribe_to_projects(window, cx);
             this._agent_panel_subscriptions = this.subscribe_to_agent_panels(window, cx);
             this._thread_subscriptions = this.subscribe_to_threads(window, cx);
+            this._terminal_panel_subscriptions = this.subscribe_to_terminal_panels(window, cx);
             let (entries, active_index) = multi_workspace.read_with(cx, |multi_workspace, cx| {
                 this.build_workspace_thread_entries(multi_workspace, cx)
             });
