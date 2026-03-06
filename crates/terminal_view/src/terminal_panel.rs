@@ -1069,9 +1069,20 @@ impl TerminalPanel {
         self.assistant_enabled
     }
 
-    /// Returns all panes in the terminal panel.
-    pub fn panes(&self) -> Vec<&Entity<Pane>> {
-        self.center.panes()
+    pub fn has_running_terminal_task(&self, cx: &App) -> bool {
+        use terminal::TaskStatus;
+        self.center.panes().iter().any(|pane| {
+            pane.read(cx).items().any(|item| {
+                item.downcast::<crate::TerminalView>()
+                    .map_or(false, |tv| {
+                        tv.read(cx)
+                            .terminal()
+                            .read(cx)
+                            .task()
+                            .is_some_and(|task| task.status == TaskStatus::Running)
+                    })
+            })
+        })
     }
 
     /// Returns all non-empty terminal selections from all terminal views in all panes.
