@@ -2192,6 +2192,20 @@ impl Terminal {
         self.task.as_ref()
     }
 
+    pub fn is_busy(&self) -> bool {
+        if let Some(task) = self.task() {
+            if task.status == TaskStatus::Running {
+                return true;
+            }
+        }
+
+        if let TerminalType::Pty { info, .. } = &self.terminal_type {
+            return info.is_busy();
+        }
+
+        false
+    }
+
     pub fn wait_for_completed_task(&self, cx: &App) -> Task<Option<ExitStatus>> {
         if let Some(task) = self.task() {
             if task.status == TaskStatus::Running {

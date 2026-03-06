@@ -18,6 +18,7 @@ test-support = []
 [dependencies]
 acp_thread.workspace = true
 agent_ui.workspace = true
+audio.workspace = true
 chrono.workspace = true
 fs.workspace = true
 fuzzy.workspace = true

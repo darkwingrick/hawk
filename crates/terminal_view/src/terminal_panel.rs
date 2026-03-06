@@ -103,13 +103,17 @@ impl TerminalPanel {
             width: None,
             height: None,
             pending_terminals_to_add: 0,
-            deferred_tasks: HashMap::default(),
+            deferred_tasks: Default::default(),
             assistant_enabled: false,
             assistant_tab_bar_button: None,
             active: false,
         };
         terminal_panel.apply_tab_bar_buttons(&terminal_panel.active_pane, cx);
         terminal_panel
+    }
+    
+    pub fn panes(&self) -> Vec<Entity<Pane>> {
+        self.center.panes().into_iter().cloned().collect()
     }
 
     pub fn set_assistant_enabled(&mut self, enabled: bool, cx: &mut Context<Self>) {
@@ -1070,7 +1074,6 @@ impl TerminalPanel {
     }
 
     pub fn has_running_terminal_task(&self, cx: &App) -> bool {
-        use terminal::TaskStatus;
         self.center.panes().iter().any(|pane| {
             pane.read(cx).items().any(|item| {
                 item.downcast::<crate::TerminalView>()
@@ -1078,8 +1081,7 @@ impl TerminalPanel {
                         tv.read(cx)
                             .terminal()
                             .read(cx)
-                            .task()
-                            .is_some_and(|task| task.status == TaskStatus::Running)
+                            .is_busy()
                     })
             })
         })
