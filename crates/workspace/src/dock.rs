@@ -1077,9 +1077,14 @@ impl Render for ActivityBar {
             .bg(cx.theme().colors().surface_background)
             .border_color(cx.theme().colors().border_variant)
             .border_r_1()
-            .py_3()
-            .gap_4()
-            .children(items)
+            .child(
+                v_flex()
+                    .h_full()
+                    .bg(cx.theme().colors().text_accent.opacity(0.15))
+                    .py_3()
+                    .gap_4()
+                    .children(items),
+            )
     }
 }
 
