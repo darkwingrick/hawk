@@ -12,6 +12,7 @@ use fs::{Fs, RemoveOptions};
 use futures::StreamExt;
 use fuzzy::StringMatchCandidate;
 use gpui::{App, AppContext as _, AsyncApp, Context, Entity, Task, WeakEntity};
+use hawk_env_vars::HAWK_STATELESS;
 use itertools::Itertools;
 use language::LanguageRegistry;
 use paths::text_threads_dir;
@@ -25,7 +26,6 @@ use rpc::AnyProtoClient;
 use std::sync::LazyLock;
 use std::{cmp::Reverse, ffi::OsStr, mem, path::Path, sync::Arc, time::Duration};
 use util::{ResultExt, TryFutureExt};
-use hawk_env_vars::HAWK_STATELESS;
 
 pub(crate) fn init(client: &AnyProtoClient) {
     client.add_entity_message_handler(TextThreadStore::handle_advertise_contexts);

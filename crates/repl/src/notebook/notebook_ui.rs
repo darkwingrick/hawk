@@ -37,11 +37,11 @@ use crate::kernels::{
 };
 use crate::repl_store::ReplStore;
 
+use hawk_actions::editor::{MoveDown, MoveUp};
+use hawk_actions::notebook::{NotebookMoveDown, NotebookMoveUp};
 use picker::Picker;
 use runtimelib::{ExecuteRequest, JupyterMessage, JupyterMessageContent};
 use ui::PopoverMenuHandle;
-use hawk_actions::editor::{MoveDown, MoveUp};
-use hawk_actions::notebook::{NotebookMoveDown, NotebookMoveUp};
 
 actions!(
     notebook,

@@ -2,6 +2,7 @@ use acp_thread::ThreadStatus;
 use agent_ui::{AgentPanel, AgentPanelEvent};
 use chrono::{Datelike, Local, NaiveDate, TimeDelta};
 
+use audio::{Audio, Sound};
 use fs::Fs;
 use fuzzy::StringMatchCandidate;
 use gpui::{
@@ -11,13 +12,13 @@ use gpui::{
 use picker::{Picker, PickerDelegate};
 use project::Event as ProjectEvent;
 use recent_projects::{RecentProjectEntry, get_recent_projects};
-use audio::{Audio, Sound};
 use std::collections::{HashMap, HashSet};
 
 use std::fmt::Display;
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use terminal_view::terminal_panel::TerminalPanel;
 use theme::ActiveTheme;
 use ui::utils::TRAFFIC_LIGHT_PADDING;
 use ui::{
@@ -25,11 +26,10 @@ use ui::{
     prelude::*,
 };
 use ui_input::ErasedEditor;
-use terminal_view::terminal_panel::TerminalPanel;
 use util::ResultExt as _;
 use workspace::{
-    FocusWorkspaceSidebar, MultiWorkspace, NewWorkspaceInWindow,
-    Sidebar as WorkspaceSidebar, SidebarEvent, ToggleWorkspaceSidebar, Workspace,
+    FocusWorkspaceSidebar, MultiWorkspace, NewWorkspaceInWindow, Sidebar as WorkspaceSidebar,
+    SidebarEvent, ToggleWorkspaceSidebar, Workspace,
 };
 
 #[derive(Clone, Debug)]
@@ -98,8 +98,17 @@ impl WorkspaceThreadEntry {
     }
 
     fn active_git_branch(workspace: &Entity<Workspace>, cx: &App) -> Option<SharedString> {
-        let active_repository = workspace.read(cx).project().read(cx).active_repository(cx)?;
-        let branch_name = active_repository.read(cx).branch.as_ref()?.name().to_string();
+        let active_repository = workspace
+            .read(cx)
+            .project()
+            .read(cx)
+            .active_repository(cx)?;
+        let branch_name = active_repository
+            .read(cx)
+            .branch
+            .as_ref()?
+            .name()
+            .to_string();
         Some(branch_name.into())
     }
 
@@ -890,7 +899,8 @@ impl Sidebar {
         _title: SharedString,
         status: AgentThreadStatus,
     ) {
-        self.test_thread_infos.insert(index, AgentThreadInfo { status });
+        self.test_thread_infos
+            .insert(index, AgentThreadInfo { status });
     }
 
     #[cfg(any(test, feature = "test-support"))]
@@ -990,13 +1000,9 @@ impl Sidebar {
                         .filter_map(|item| item.downcast::<terminal_view::TerminalView>())
                         .collect();
                     for tv in terminal_views {
-                        subscriptions.push(cx.observe_in(
-                            &tv,
-                            window,
-                            |this, _, window, cx| {
-                                this.update_entries(window, cx);
-                            },
-                        ));
+                        subscriptions.push(cx.observe_in(&tv, window, |this, _, window, cx| {
+                            this.update_entries(window, cx);
+                        }));
                     }
                 }
             } else {

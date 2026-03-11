@@ -1,5 +1,5 @@
 use gpui::{Action, IntoElement, ParentElement, RenderOnce, point};
-use language_model::{IconOrSvg, LanguageModelRegistry, HAWK_CLOUD_PROVIDER_ID};
+use language_model::{HAWK_CLOUD_PROVIDER_ID, IconOrSvg, LanguageModelRegistry};
 use ui::{Divider, List, ListBulletItem, prelude::*};
 
 pub struct ApiKeysWithProviders {

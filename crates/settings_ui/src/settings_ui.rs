@@ -40,11 +40,11 @@ use ui::{
     prelude::*,
 };
 
+use hawk_actions::{OpenProjectSettings, OpenSettings, OpenSettingsAt};
 use util::{ResultExt as _, paths::PathStyle, rel_path::RelPath};
 use workspace::{
     AppState, MultiWorkspace, OpenOptions, OpenVisible, Workspace, client_side_decorations,
 };
-use hawk_actions::{OpenProjectSettings, OpenSettings, OpenSettingsAt};
 
 use crate::components::{
     EnumVariantDropdown, NumberField, NumberFieldMode, NumberFieldType, SettingsInputField,

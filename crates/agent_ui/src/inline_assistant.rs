@@ -48,12 +48,12 @@ use project::{CodeAction, DisableAiSettings, LspAction, Project, ProjectTransact
 use prompt_store::{PromptBuilder, PromptStore};
 use settings::{Settings, SettingsStore};
 
+use hawk_actions::agent::OpenSettings;
 use terminal_view::{TerminalView, terminal_panel::TerminalPanel};
 use text::{OffsetRangeExt, ToPoint as _};
 use ui::prelude::*;
 use util::{RangeExt, ResultExt, maybe};
 use workspace::{ItemHandle, Toast, Workspace, dock::Panel, notifications::NotificationId};
-use hawk_actions::agent::OpenSettings;
 
 pub fn init(fs: Arc<dyn Fs>, prompt_builder: Arc<PromptBuilder>, cx: &mut App) {
     cx.set_global(InlineAssistant::new(fs, prompt_builder));

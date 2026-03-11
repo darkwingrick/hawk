@@ -6,9 +6,9 @@ use cloud_llm_client::predict_edits_v3::{
     PredictEditsV3Request, PredictEditsV3Response, RawCompletionRequest, RawCompletionResponse,
 };
 use cloud_llm_client::{
-    EditPredictionRejectReason, EditPredictionRejection,
+    EditPredictionRejectReason, EditPredictionRejection, HAWK_VERSION_HEADER_NAME,
     MAX_EDIT_PREDICTION_REJECTIONS_PER_REQUEST, MINIMUM_REQUIRED_VERSION_HEADER_NAME,
-    PredictEditsRequestTrigger, RejectEditPredictionsBodyRef, HAWK_VERSION_HEADER_NAME,
+    PredictEditsRequestTrigger, RejectEditPredictionsBodyRef,
 };
 use collections::{HashMap, HashSet};
 use copilot::{Copilot, Reinstall, SignIn, SignOut};
@@ -83,9 +83,9 @@ pub use crate::prediction::EditPredictionId;
 use crate::prediction::EditPredictionResult;
 pub use crate::sweep_ai::SweepAi;
 pub use capture_example::capture_example;
+pub use hawk_edit_prediction_delegate::HawkEditPredictionDelegate;
 pub use language_model::ApiKeyState;
 pub use telemetry_events::EditPredictionRating;
-pub use hawk_edit_prediction_delegate::HawkEditPredictionDelegate;
 
 actions!(
     edit_prediction,

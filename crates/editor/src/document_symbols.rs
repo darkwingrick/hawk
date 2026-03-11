@@ -397,9 +397,9 @@ mod tests {
 
     use futures::StreamExt as _;
     use gpui::TestAppContext;
+    use hawk_actions::editor::{MoveDown, MoveUp};
     use settings::DocumentSymbols;
     use util::path;
-    use hawk_actions::editor::{MoveDown, MoveUp};
 
     use crate::{
         Editor, LSP_REQUEST_DEBOUNCE_TIMEOUT,

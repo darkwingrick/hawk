@@ -3,13 +3,13 @@ pub use buffer_search::BufferSearchBar;
 pub use editor::HighlightKey;
 use editor::SearchSettings;
 use gpui::{Action, App, ClickEvent, FocusHandle, IntoElement, actions};
+pub use hawk_actions::search::ToggleIncludeIgnored;
 use project::search::SearchQuery;
 pub use project_search::ProjectSearchView;
 use ui::{ButtonStyle, IconButton, IconButtonShape};
 use ui::{Tooltip, prelude::*};
 use workspace::notifications::NotificationId;
 use workspace::{Toast, Workspace};
-pub use hawk_actions::search::ToggleIncludeIgnored;
 
 pub use search_status_button::SEARCH_ICON;
 

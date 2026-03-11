@@ -1,8 +1,8 @@
 use gpui::{App, ClipboardItem, PromptLevel, actions};
+use hawk_actions::feedback::{EmailZed, FileBugReport, RequestFeature};
 use system_specs::{CopySystemSpecsIntoClipboard, SystemSpecs};
 use util::ResultExt;
 use workspace::Workspace;
-use hawk_actions::feedback::{EmailZed, FileBugReport, RequestFeature};
 
 actions!(
     zed,

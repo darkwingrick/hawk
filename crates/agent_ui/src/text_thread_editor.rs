@@ -5,7 +5,7 @@ use crate::{
 use anyhow::Result;
 use assistant_slash_command::{SlashCommand, SlashCommandOutputSection, SlashCommandWorkingSet};
 use assistant_slash_commands::{DefaultSlashCommand, FileSlashCommand, selections_creases};
-use client::{proto, hawk_urls};
+use client::{hawk_urls, proto};
 use collections::{BTreeSet, HashMap, HashSet, hash_map};
 use editor::{
     Anchor, Editor, EditorEvent, MenuEditPredictionsPolicy, MultiBuffer, MultiBufferOffset,
@@ -64,6 +64,7 @@ use workspace::{
     searchable::{Direction, SearchToken, SearchableItemHandle},
 };
 
+use hawk_actions::agent::{AddSelectionToThread, PasteRaw, ToggleModelSelector};
 use workspace::{
     Save, Toast, Workspace,
     item::{self, FollowableItem, Item},
@@ -71,7 +72,6 @@ use workspace::{
     pane,
     searchable::{SearchEvent, SearchableItem},
 };
-use hawk_actions::agent::{AddSelectionToThread, PasteRaw, ToggleModelSelector};
 
 use crate::CycleFavoriteModels;
 

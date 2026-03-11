@@ -58,6 +58,7 @@ use {
         App, AppContext as _, Bounds, KeyBinding, Modifiers, SharedString, VisualTestAppContext,
         WindowBounds, WindowHandle, WindowOptions, point, px, size,
     },
+    hawk_actions::OpenSettingsAt,
     image::RgbaImage,
     project_panel::ProjectPanel,
     recent_projects::RecentProjectEntry,
@@ -72,7 +73,6 @@ use {
     },
     util::ResultExt as _,
     workspace::{AppState, MultiWorkspace, Workspace, WorkspaceId},
-    hawk_actions::OpenSettingsAt,
 };
 
 // All macOS-specific constants grouped together
@@ -2299,8 +2299,8 @@ fn run_tool_permissions_visual_tests(
 ) -> Result<TestResult> {
     use agent_settings::{AgentSettings, CompiledRegex, ToolPermissions, ToolRules};
     use collections::HashMap;
-    use settings::ToolPermissionMode;
     use hawk_actions::OpenSettingsAt;
+    use settings::ToolPermissionMode;
 
     // Set up tool permissions with "hi" as both always_deny and always_allow for terminal
     cx.update(|cx| {

@@ -60,12 +60,12 @@ use crate::agent_registry_ui::AgentRegistryPage;
 pub use crate::inline_assistant::InlineAssistant;
 pub use agent_diff::{AgentDiffPane, AgentDiffToolbar};
 pub(crate) use connection_view::ConnectionView;
+use hawk_actions;
 pub(crate) use mode_selector::ModeSelector;
 pub(crate) use model_selector::ModelSelector;
 pub(crate) use model_selector_popover::ModelSelectorPopover;
 pub use text_thread_editor::{AgentPanelDelegate, TextThreadEditor};
 pub(crate) use thread_history::*;
-use hawk_actions;
 
 actions!(
     agent,

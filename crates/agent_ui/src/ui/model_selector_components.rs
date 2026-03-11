@@ -1,6 +1,6 @@
 use gpui::{Action, ClickEvent, FocusHandle, prelude::*};
-use ui::{Chip, ElevationIndex, KeyBinding, ListItem, ListItemSpacing, Tooltip, prelude::*};
 use hawk_actions::agent::ToggleModelSelector;
+use ui::{Chip, ElevationIndex, KeyBinding, ListItem, ListItemSpacing, Tooltip, prelude::*};
 
 use crate::CycleFavoriteModels;
 

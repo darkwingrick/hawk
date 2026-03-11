@@ -11,7 +11,7 @@ use cloud_llm_client::WebSearchResponse;
 use futures::FutureExt as _;
 use gpui::{App, Task};
 use language_model::{
-    LanguageModelProviderId, LanguageModelToolResultContent, HAWK_CLOUD_PROVIDER_ID,
+    HAWK_CLOUD_PROVIDER_ID, LanguageModelProviderId, LanguageModelToolResultContent,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

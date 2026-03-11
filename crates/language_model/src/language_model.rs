@@ -57,7 +57,8 @@ pub const OPEN_AI_PROVIDER_NAME: LanguageModelProviderName =
 pub const X_AI_PROVIDER_ID: LanguageModelProviderId = LanguageModelProviderId::new("x_ai");
 pub const X_AI_PROVIDER_NAME: LanguageModelProviderName = LanguageModelProviderName::new("xAI");
 
-pub const HAWK_CLOUD_PROVIDER_ID: LanguageModelProviderId = LanguageModelProviderId::new("hawk.dev");
+pub const HAWK_CLOUD_PROVIDER_ID: LanguageModelProviderId =
+    LanguageModelProviderId::new("hawk.dev");
 pub const HAWK_CLOUD_PROVIDER_NAME: LanguageModelProviderName =
     LanguageModelProviderName::new("Hawk");
 

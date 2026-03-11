@@ -106,7 +106,10 @@ impl DebugAdapter for ExtensionDapAdapter {
             .await
     }
 
-    async fn config_from_hawk_format(&self, hawk_scenario: ZedDebugConfig) -> Result<DebugScenario> {
+    async fn config_from_hawk_format(
+        &self,
+        hawk_scenario: ZedDebugConfig,
+    ) -> Result<DebugScenario> {
         self.extension.dap_config_to_scenario(hawk_scenario).await
     }
 

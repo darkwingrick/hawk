@@ -11,9 +11,9 @@ use collections::HashMap;
 use db::kvp::KEY_VALUE_STORE;
 use futures::{channel::oneshot, future::join_all};
 use gpui::{
-    Action, AnyView, App, AsyncApp, AsyncWindowContext, Context, Corner, Entity, EventEmitter,
-    ExternalPaths, FocusHandle, Focusable, IntoElement, ParentElement, Pixels, Render, Styled,
-    Task, WeakEntity, Window, actions,
+    Action, AnyView, App, AsyncApp, AsyncWindowContext, Context, Corner, Entity, EntityId,
+    EventEmitter, ExternalPaths, FocusHandle, Focusable, IntoElement, ParentElement, Pixels,
+    Render, Styled, Task, WeakEntity, Window, actions,
 };
 use itertools::Itertools;
 use project::{Fs, Project, ProjectEntryId};
@@ -83,6 +83,7 @@ pub struct TerminalPanel {
     pub(crate) height: Option<Pixels>,
     pending_serialization: Task<Option<()>>,
     pending_terminals_to_add: usize,
+    pending_terminals_by_pane: HashMap<EntityId, usize>,
     deferred_tasks: HashMap<TaskId, Task<()>>,
     assistant_enabled: bool,
     assistant_tab_bar_button: Option<AnyView>,
@@ -103,6 +104,7 @@ impl TerminalPanel {
             width: None,
             height: None,
             pending_terminals_to_add: 0,
+            pending_terminals_by_pane: HashMap::default(),
             deferred_tasks: Default::default(),
             assistant_enabled: false,
             assistant_tab_bar_button: None,
@@ -111,9 +113,35 @@ impl TerminalPanel {
         terminal_panel.apply_tab_bar_buttons(&terminal_panel.active_pane, cx);
         terminal_panel
     }
-    
+
     pub fn panes(&self) -> Vec<Entity<Pane>> {
         self.center.panes().into_iter().cloned().collect()
+    }
+
+    fn reserve_terminal_slot(&mut self, pane: &Entity<Pane>, cx: &App) -> usize {
+        let pending_for_pane = self
+            .pending_terminals_by_pane
+            .get(&pane.entity_id())
+            .copied()
+            .unwrap_or(0);
+        let target_index = pane.read(cx).items_len() + pending_for_pane;
+
+        self.pending_terminals_to_add += 1;
+        self.pending_terminals_by_pane
+            .insert(pane.entity_id(), pending_for_pane + 1);
+
+        target_index
+    }
+
+    fn release_terminal_slot(&mut self, pane_id: EntityId) {
+        self.pending_terminals_to_add = self.pending_terminals_to_add.saturating_sub(1);
+
+        if let Some(pending_for_pane) = self.pending_terminals_by_pane.get_mut(&pane_id) {
+            *pending_for_pane = pending_for_pane.saturating_sub(1);
+            if *pending_for_pane == 0 {
+                self.pending_terminals_by_pane.remove(&pane_id);
+            }
+        }
     }
 
     pub fn set_assistant_enabled(&mut self, enabled: bool, cx: &mut Context<Self>) {
@@ -766,10 +794,12 @@ impl TerminalPanel {
             if workspace.update(cx, |workspace, cx| !is_enabled_in_workspace(workspace, cx))? {
                 anyhow::bail!("terminal not yet supported for remote projects");
             }
-            let pane = terminal_panel.update(cx, |terminal_panel, _| {
-                terminal_panel.pending_terminals_to_add += 1;
-                terminal_panel.active_pane.clone()
+            let (pane, target_index) = terminal_panel.update(cx, |terminal_panel, cx| {
+                let pane = terminal_panel.active_pane.clone();
+                let target_index = terminal_panel.reserve_terminal_slot(&pane, cx);
+                (pane, target_index)
             })?;
+            let pane_id = pane.entity_id();
             let project = workspace.read_with(cx, |workspace, _| workspace.project().clone())?;
             let terminal = project
                 .update(cx, |project, cx| project.create_terminal_task(task, cx))
@@ -798,14 +828,13 @@ impl TerminalPanel {
 
                 pane.update(cx, |pane, cx| {
                     let focus = matches!(reveal_strategy, RevealStrategy::Always);
-                    pane.add_item(terminal_view, true, focus, None, window, cx);
+                    pane.add_item(terminal_view, true, focus, Some(target_index), window, cx);
                 });
 
                 Ok(terminal.downgrade())
             })?;
             terminal_panel.update(cx, |terminal_panel, cx| {
-                terminal_panel.pending_terminals_to_add =
-                    terminal_panel.pending_terminals_to_add.saturating_sub(1);
+                terminal_panel.release_terminal_slot(pane_id);
                 terminal_panel.serialize(cx)
             })?;
             result
@@ -845,10 +874,12 @@ impl TerminalPanel {
             if workspace.update(cx, |workspace, cx| !is_enabled_in_workspace(workspace, cx))? {
                 anyhow::bail!("terminal not yet supported for collaborative projects");
             }
-            let pane = terminal_panel.update(cx, |terminal_panel, _| {
-                terminal_panel.pending_terminals_to_add += 1;
-                terminal_panel.active_pane.clone()
+            let (pane, target_index) = terminal_panel.update(cx, |terminal_panel, cx| {
+                let pane = terminal_panel.active_pane.clone();
+                let target_index = terminal_panel.reserve_terminal_slot(&pane, cx);
+                (pane, target_index)
             })?;
+            let pane_id = pane.entity_id();
             let project = workspace.read_with(cx, |workspace, _| workspace.project().clone())?;
             let terminal = if force_local {
                 project
@@ -886,14 +917,20 @@ impl TerminalPanel {
 
                         pane.update(cx, |pane, cx| {
                             let focus = matches!(reveal_strategy, RevealStrategy::Always);
-                            pane.add_item(terminal_view, true, focus, None, window, cx);
+                            pane.add_item(
+                                terminal_view,
+                                true,
+                                focus,
+                                Some(target_index),
+                                window,
+                                cx,
+                            );
                         });
 
                         Ok(terminal.downgrade())
                     })?;
                     terminal_panel.update(cx, |terminal_panel, cx| {
-                        terminal_panel.pending_terminals_to_add =
-                            terminal_panel.pending_terminals_to_add.saturating_sub(1);
+                        terminal_panel.release_terminal_slot(pane_id);
                         terminal_panel.serialize(cx)
                     })?;
                     result
@@ -905,7 +942,17 @@ impl TerminalPanel {
                             error: error.to_string(),
                             focus_handle: cx.focus_handle(),
                         });
-                        pane.add_item(Box::new(failed_to_spawn), true, focus, None, window, cx);
+                        pane.add_item(
+                            Box::new(failed_to_spawn),
+                            true,
+                            focus,
+                            Some(target_index),
+                            window,
+                            cx,
+                        );
+                    })?;
+                    terminal_panel.update(cx, |terminal_panel, _| {
+                        terminal_panel.release_terminal_slot(pane_id);
                     })?;
                     Err(error)
                 }
@@ -1077,12 +1124,7 @@ impl TerminalPanel {
         self.center.panes().iter().any(|pane| {
             pane.read(cx).items().any(|item| {
                 item.downcast::<crate::TerminalView>()
-                    .map_or(false, |tv| {
-                        tv.read(cx)
-                            .terminal()
-                            .read(cx)
-                            .is_busy()
-                    })
+                    .map_or(false, |tv| tv.read(cx).terminal().read(cx).is_busy())
             })
         })
     }
@@ -1460,7 +1502,8 @@ impl Render for FailedToSpawnTerminal {
                         ButtonLike::new("open-settings-ui")
                             .child(Label::new("Edit Settings").size(LabelSize::Small))
                             .on_click(|_, window, cx| {
-                                window.dispatch_action(hawk_actions::OpenSettings.boxed_clone(), cx);
+                                window
+                                    .dispatch_action(hawk_actions::OpenSettings.boxed_clone(), cx);
                             }),
                         popover_menu.into_any_element(),
                     )),
@@ -1874,16 +1917,7 @@ mod tests {
 
         let fs = FakeFs::new(cx.executor());
         let project = Project::test(fs, [], cx).await;
-        let window_handle =
-            cx.add_window(|window, cx| MultiWorkspace::test_new(project, window, cx));
-
-        let terminal_panel = window_handle
-            .update(cx, |multi_workspace, window, cx| {
-                multi_workspace.workspace().update(cx, |workspace, cx| {
-                    cx.new(|cx| TerminalPanel::new(workspace, window, cx))
-                })
-            })
-            .unwrap();
+        let (window_handle, terminal_panel) = new_test_terminal_panel(project, cx);
 
         set_max_tabs(cx, Some(3));
 
@@ -1906,6 +1940,116 @@ mod tests {
         assert_eq!(
             item_count, 5,
             "Terminal panel should bypass max_tabs limit and have all 5 terminals"
+        );
+    }
+
+    #[gpui::test]
+    async fn test_new_terminal_opens_at_end_of_tab_strip(cx: &mut TestAppContext) {
+        cx.executor().allow_parking();
+        init_test(cx);
+
+        let fs = FakeFs::new(cx.executor());
+        let project = Project::test(fs, [], cx).await;
+        let (window_handle, terminal_panel) = new_test_terminal_panel(project, cx);
+
+        let pane =
+            terminal_panel.read_with(cx, |terminal_panel, _| terminal_panel.active_pane.clone());
+        window_handle
+            .update(cx, |_, window, cx| {
+                for label in ["one", "two", "three"] {
+                    pane.update(cx, |pane, cx| {
+                        let destination_index = pane.items_len();
+                        pane.add_item(
+                            failed_terminal_item(label, cx),
+                            true,
+                            false,
+                            Some(destination_index),
+                            window,
+                            cx,
+                        );
+                    });
+                }
+            })
+            .unwrap();
+
+        let existing_ids = pane.read_with(cx, |pane, _| {
+            pane.items().map(|item| item.item_id()).collect::<Vec<_>>()
+        });
+
+        window_handle
+            .update(cx, |_, window, cx| {
+                pane.update(cx, |pane, cx| {
+                    pane.activate_item(0, true, true, window, cx);
+                });
+            })
+            .unwrap();
+
+        let (first_target_index, second_target_index) =
+            terminal_panel.update(cx, |terminal_panel, cx| {
+                (
+                    terminal_panel.reserve_terminal_slot(&pane, cx),
+                    terminal_panel.reserve_terminal_slot(&pane, cx),
+                )
+            });
+
+        let (second_pending_id, first_pending_id) = window_handle
+            .update(cx, |_, window, cx| {
+                pane.update(cx, |pane, cx| {
+                    let second_pending = failed_terminal_item("second pending", cx);
+                    let second_pending_id = second_pending.item_id();
+                    pane.add_item(
+                        second_pending,
+                        true,
+                        false,
+                        Some(second_target_index),
+                        window,
+                        cx,
+                    );
+                    let first_pending = failed_terminal_item("first pending", cx);
+                    let first_pending_id = first_pending.item_id();
+                    pane.add_item(
+                        first_pending,
+                        true,
+                        false,
+                        Some(first_target_index),
+                        window,
+                        cx,
+                    );
+                    (second_pending_id, first_pending_id)
+                })
+            })
+            .unwrap();
+        terminal_panel.update(cx, |terminal_panel, _| {
+            terminal_panel.release_terminal_slot(pane.entity_id());
+            terminal_panel.release_terminal_slot(pane.entity_id());
+        });
+
+        let updated_ids = pane.read_with(cx, |pane, _| {
+            pane.items().map(|item| item.item_id()).collect::<Vec<_>>()
+        });
+
+        assert_eq!(
+            &updated_ids[..existing_ids.len()],
+            existing_ids.as_slice(),
+            "clicking the terminal tab-bar plus should keep existing tab order intact",
+        );
+        assert_eq!(
+            updated_ids.len(),
+            existing_ids.len() + 2,
+            "new terminal tabs should be appended next to the plus button",
+        );
+        assert_eq!(
+            updated_ids[3], first_pending_id,
+            "the first reserved terminal slot should stay ahead of later reservations",
+        );
+        assert_eq!(
+            updated_ids[4], second_pending_id,
+            "later terminal reservations should follow earlier ones even if they finish first",
+        );
+        assert_eq!(
+            pane.read_with(cx, |pane, _| pane.active_item().unwrap().item_id()),
+            first_pending_id,
+            "the terminal that finishes last should take focus even when it inserts earlier",
         );
     }
 
@@ -1960,16 +2104,7 @@ mod tests {
 
         let fs = FakeFs::new(cx.executor());
         let project = Project::test(fs, [], cx).await;
-        let window_handle =
-            cx.add_window(|window, cx| MultiWorkspace::test_new(project, window, cx));
-
-        let terminal_panel = window_handle
-            .update(cx, |multi_workspace, window, cx| {
-                multi_workspace.workspace().update(cx, |workspace, cx| {
-                    cx.new(|cx| TerminalPanel::new(workspace, window, cx))
-                })
-            })
-            .unwrap();
+        let (window_handle, terminal_panel) = new_test_terminal_panel(project, cx);
 
         window_handle
             .update(cx, |_, window, cx| {
@@ -2004,16 +2139,7 @@ mod tests {
 
         let fs = FakeFs::new(cx.executor());
         let project = Project::test(fs, [], cx).await;
-        let window_handle =
-            cx.add_window(|window, cx| MultiWorkspace::test_new(project, window, cx));
-
-        let terminal_panel = window_handle
-            .update(cx, |multi_workspace, window, cx| {
-                multi_workspace.workspace().update(cx, |workspace, cx| {
-                    cx.new(|cx| TerminalPanel::new(workspace, window, cx))
-                })
-            })
-            .unwrap();
+        let (window_handle, terminal_panel) = new_test_terminal_panel(project, cx);
 
         let result = window_handle
             .update(cx, |_, window, cx| {
@@ -2036,6 +2162,30 @@ mod tests {
                 settings.workspace.max_tabs = value.map(|v| NonZero::new(v).unwrap())
             });
         });
+    }
+
+    fn new_test_terminal_panel(
+        project: Entity<Project>,
+        cx: &mut TestAppContext,
+    ) -> (gpui::WindowHandle<MultiWorkspace>, Entity<TerminalPanel>) {
+        let window_handle =
+            cx.add_window(|window, cx| MultiWorkspace::test_new(project, window, cx));
+        let terminal_panel = window_handle
+            .update(cx, |multi_workspace, window, cx| {
+                multi_workspace.workspace().update(cx, |workspace, cx| {
+                    cx.new(|cx| TerminalPanel::new(workspace, window, cx))
+                })
+            })
+            .unwrap();
+
+        (window_handle, terminal_panel)
+    }
+
+    fn failed_terminal_item(label: &str, cx: &mut Context<Pane>) -> Box<dyn workspace::ItemHandle> {
+        Box::new(cx.new(|cx| FailedToSpawnTerminal {
+            error: label.to_string(),
+            focus_handle: cx.focus_handle(),
+        }))
     }
 
     pub fn init_test(cx: &mut TestAppContext) {

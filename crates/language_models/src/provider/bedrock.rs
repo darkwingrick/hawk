@@ -290,7 +290,8 @@ impl State {
         let credentials_provider = <dyn CredentialsProvider>::global(cx);
         cx.spawn(async move |this, cx| {
             // Try environment variables first
-            let (auth, from_env) = if let Some(bearer_token) = &HAWK_BEDROCK_BEARER_TOKEN_VAR.value {
+            let (auth, from_env) = if let Some(bearer_token) = &HAWK_BEDROCK_BEARER_TOKEN_VAR.value
+            {
                 if !bearer_token.is_empty() {
                     (
                         Some(BedrockAuth::ApiKey {

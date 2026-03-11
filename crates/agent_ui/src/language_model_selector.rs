@@ -7,6 +7,7 @@ use gpui::{
     Action, AnyElement, App, BackgroundExecutor, DismissEvent, FocusHandle, ForegroundExecutor,
     Subscription, Task,
 };
+use hawk_actions::agent::OpenSettings;
 use language_model::{
     AuthenticateError, ConfiguredModel, IconOrSvg, LanguageModel, LanguageModelId,
     LanguageModelProvider, LanguageModelProviderId, LanguageModelRegistry,
@@ -15,7 +16,6 @@ use ordered_float::OrderedFloat;
 use picker::{Picker, PickerDelegate};
 use settings::Settings;
 use ui::prelude::*;
-use hawk_actions::agent::OpenSettings;
 
 use crate::ui::{ModelSelectorFooter, ModelSelectorHeader, ModelSelectorListItem};
 
@@ -951,11 +951,19 @@ mod tests {
 
         let grouped_models = GroupedModels::new(all_models, recommended_models);
 
-        assert_models_eq(grouped_models.favorites, vec!["hawk/gemini", "openai/gpt-4"]);
+        assert_models_eq(
+            grouped_models.favorites,
+            vec!["hawk/gemini", "openai/gpt-4"],
+        );
         assert_models_eq(grouped_models.recommended, vec!["hawk/claude"]);
         assert_models_eq(
             grouped_models.all.values().flatten().cloned().collect(),
-            vec!["hawk/claude", "hawk/gemini", "openai/gpt-4", "openai/gpt-3.5"],
+            vec![
+                "hawk/claude",
+                "hawk/gemini",
+                "openai/gpt-4",
+                "openai/gpt-3.5",
+            ],
         );
     }
 }

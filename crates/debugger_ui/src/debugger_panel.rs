@@ -22,6 +22,7 @@ use gpui::{
     Subscription, Task, WeakEntity, anchored, deferred,
 };
 
+use hawk_actions::debug_panel::ToggleFocus;
 use itertools::Itertools as _;
 use language::Buffer;
 use project::debugger::session::{Session, SessionQuirks, SessionState, SessionStateEvent};
@@ -44,7 +45,6 @@ use workspace::{
     Item, Pane, Workspace,
     dock::{DockPosition, Panel, PanelEvent},
 };
-use hawk_actions::debug_panel::ToggleFocus;
 
 pub struct DebuggerHistoryFeatureFlag;
 
@@ -1625,7 +1625,10 @@ impl Panel for DebugPanel {
     }
 }
 
-fn should_show_debug_button(button_setting_enabled: bool, hide_debug_button_flag_enabled: bool) -> bool {
+fn should_show_debug_button(
+    button_setting_enabled: bool,
+    hide_debug_button_flag_enabled: bool,
+) -> bool {
     button_setting_enabled && !hide_debug_button_flag_enabled
 }
 

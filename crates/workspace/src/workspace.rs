@@ -39,7 +39,7 @@ use client::{
     proto::{self, ErrorCode, PanelId, PeerId},
 };
 use collections::{HashMap, HashSet, hash_map};
-use dock::{Dock, DockPosition, PanelButtons, ActivityBar, PanelHandle, RESIZE_HANDLE_SIZE};
+use dock::{ActivityBar, Dock, DockPosition, PanelButtons, PanelHandle, RESIZE_HANDLE_SIZE};
 use fs::Fs;
 use futures::{
     Future, FutureExt, StreamExt,
@@ -101,6 +101,7 @@ use settings::{
     CenteredPaddingSettings, Settings, SettingsLocation, SettingsStore, update_settings_file,
 };
 
+use hawk_actions::{Spawn, feedback::FileBugReport};
 use sqlez::{
     bindable::{Bind, Column, StaticColumnCount},
     statement::Statement,
@@ -142,7 +143,6 @@ pub use workspace_settings::{
     AutosaveSetting, BottomDockLayout, RestoreOnStartupBehavior, StatusBarSettings, TabBarSettings,
     WorkspaceSettings,
 };
-use hawk_actions::{Spawn, feedback::FileBugReport};
 
 use crate::{item::ItemBufferKind, notifications::NotificationId};
 use crate::{
@@ -1564,7 +1564,8 @@ impl Workspace {
 
         let left_dock = Dock::new(DockPosition::Left, modal_layer.clone(), window, cx);
         let bottom_dock = Dock::new(DockPosition::Bottom, modal_layer.clone(), window, cx);
-        let activity_bar = cx.new(|cx| ActivityBar::new(left_dock.clone(), bottom_dock.clone(), cx));
+        let activity_bar =
+            cx.new(|cx| ActivityBar::new(left_dock.clone(), bottom_dock.clone(), cx));
         let right_dock = Dock::new(DockPosition::Right, modal_layer.clone(), window, cx);
         let bottom_dock_buttons = cx.new(|cx| PanelButtons::new(bottom_dock.clone(), cx));
         let right_dock_buttons = cx.new(|cx| PanelButtons::new(right_dock.clone(), cx));
@@ -1822,7 +1823,10 @@ impl Workspace {
                             .worktrees(cx)
                             .next()
                             .is_none()
-                            && !current_workspace.read(cx).items(cx).any(|item| item.is_dirty(cx));
+                            && !current_workspace
+                                .read(cx)
+                                .items(cx)
+                                .any(|item| item.is_dirty(cx));
 
                         let workspace = cx.new(|cx| {
                             let mut workspace = Workspace::new(

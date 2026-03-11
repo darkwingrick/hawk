@@ -7,8 +7,8 @@ use cloud_api_types::Plan;
 use cloud_llm_client::{
     CLIENT_SUPPORTS_STATUS_MESSAGES_HEADER_NAME, CLIENT_SUPPORTS_STATUS_STREAM_ENDED_HEADER_NAME,
     CLIENT_SUPPORTS_X_AI_HEADER_NAME, CompletionBody, CompletionEvent, CompletionRequestStatus,
-    CountTokensBody, CountTokensResponse, ListModelsResponse,
-    SERVER_SUPPORTS_STATUS_MESSAGES_HEADER_NAME, HAWK_VERSION_HEADER_NAME,
+    CountTokensBody, CountTokensResponse, HAWK_VERSION_HEADER_NAME, ListModelsResponse,
+    SERVER_SUPPORTS_STATUS_MESSAGES_HEADER_NAME,
 };
 use feature_flags::{FeatureFlagAppExt, SignInFeatureFlag};
 use futures::{
@@ -392,7 +392,11 @@ impl CloudLanguageModel {
         loop {
             let request = http_client::Request::builder()
                 .method(Method::POST)
-                .uri(http_client.build_hawk_llm_url("/completions", &[])?.as_ref())
+                .uri(
+                    http_client
+                        .build_hawk_llm_url("/completions", &[])?
+                        .as_ref(),
+                )
                 .when_some(app_version.as_ref(), |builder, app_version| {
                     builder.header(HAWK_VERSION_HEADER_NAME, app_version.to_string())
                 })

@@ -81,7 +81,10 @@ pub(crate) fn build_nix(
         .with_repository_owner_guard()
         .runs_on(runner)
         .add_env(("HAWK_CLIENT_CHECKSUM_SEED", vars::HAWK_CLIENT_CHECKSUM_SEED))
-        .add_env(("HAWK_MINIDUMP_ENDPOINT", vars::HAWK_SENTRY_MINIDUMP_ENDPOINT))
+        .add_env((
+            "HAWK_MINIDUMP_ENDPOINT",
+            vars::HAWK_SENTRY_MINIDUMP_ENDPOINT,
+        ))
         .add_env((
             "HAWK_CLOUD_PROVIDER_ADDITIONAL_MODELS_JSON",
             vars::HAWK_CLOUD_PROVIDER_ADDITIONAL_MODELS_JSON,

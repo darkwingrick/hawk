@@ -1,8 +1,8 @@
 use crash_handler::{CrashEventResult, CrashHandler};
+use feature_flags::FeatureFlag;
 use futures::future::BoxFuture;
 use log::info;
 use minidumper::{Client, LoopAction, MinidumpBinary};
-use feature_flags::FeatureFlag;
 use release_channel::{RELEASE_CHANNEL, ReleaseChannel};
 use serde::{Deserialize, Serialize};
 use std::cell::Cell;

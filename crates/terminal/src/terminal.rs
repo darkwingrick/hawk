@@ -1594,6 +1594,44 @@ impl Terminal {
         self.input(paste_text.into_bytes());
     }
 
+    fn cursor_click_motion(&self, target: AlacPoint) -> Option<Vec<u8>> {
+        if self.last_content.display_offset != 0
+            || self.last_content.mode.contains(TermMode::ALT_SCREEN)
+        {
+            return None;
+        }
+
+        let cursor = self.last_content.cursor.point;
+        if target.line != cursor.line {
+            return None;
+        }
+
+        let target_column = target.column.0;
+        let cursor_column = cursor.column.0;
+        if target_column == cursor_column {
+            return None;
+        }
+
+        let direction = if target_column > cursor_column {
+            if self.last_content.mode.contains(TermMode::APP_CURSOR) {
+                b"\x1bOC".as_slice()
+            } else {
+                b"\x1b[C".as_slice()
+            }
+        } else if self.last_content.mode.contains(TermMode::APP_CURSOR) {
+            b"\x1bOD".as_slice()
+        } else {
+            b"\x1b[D".as_slice()
+        };
+
+        let repeat_count = target_column.abs_diff(cursor_column);
+        let mut bytes = Vec::with_capacity(direction.len() * repeat_count);
+        for _ in 0..repeat_count {
+            bytes.extend_from_slice(direction);
+        }
+        Some(bytes)
+    }
+
     pub fn sync(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let term = self.term.clone();
         let mut terminal = term.lock_unfair();
@@ -1893,6 +1931,14 @@ impl Terminal {
         } else {
             match e.button {
                 MouseButton::Left => {
+                    if e.modifiers.alt
+                        && e.click_count == 1
+                        && let Some(bytes) = self.cursor_click_motion(point)
+                    {
+                        self.input(bytes);
+                        return;
+                    }
+
                     let (point, side) = grid_point_and_side(
                         position,
                         self.last_content.terminal_bounds,
@@ -2689,6 +2735,32 @@ mod tests {
         terminal.mouse_up(&mouse_up, cx);
     }
 
+    fn init_terminal_for_cursor_click_motion(cx: &mut TestAppContext) -> Entity<Terminal> {
+        let terminal = cx.new(|cx| {
+            TerminalBuilder::new_display_only(
+                CursorShape::default(),
+                AlternateScroll::On,
+                None,
+                0,
+                cx.background_executor(),
+                PathStyle::local(),
+            )
+            .unwrap()
+            .subscribe(cx)
+        });
+
+        terminal.update(cx, |terminal, _cx| {
+            terminal.last_content.cursor.point = AlacPoint::new(Line(3), Column(4));
+            terminal.last_content.terminal_bounds = TerminalBounds::new(
+                px(20.0),
+                px(10.0),
+                bounds(point(px(0.0), px(0.0)), size(px(400.0), px(400.0))),
+            );
+        });
+
+        terminal
+    }
+
     #[gpui::test]
     async fn test_basic_terminal(cx: &mut TestAppContext) {
         cx.executor().allow_parking();
@@ -2713,6 +2785,45 @@ mod tests {
             content_after.contains("from_injection"),
             "expected injected output to appear, got: {content_after}"
         );
+    }
+
+    #[gpui::test]
+    async fn test_cursor_click_motion_moves_right(cx: &mut TestAppContext) {
+        let terminal = init_terminal_for_cursor_click_motion(cx);
+
+        terminal.update(cx, |terminal, _cx| {
+            let bytes = terminal.cursor_click_motion(AlacPoint::new(Line(3), Column(7)));
+            assert_eq!(bytes, Some(b"\x1b[C\x1b[C\x1b[C".to_vec()));
+        });
+    }
+
+    #[gpui::test]
+    async fn test_cursor_click_motion_moves_left_in_app_cursor_mode(cx: &mut TestAppContext) {
+        let terminal = init_terminal_for_cursor_click_motion(cx);
+
+        terminal.update(cx, |terminal, _cx| {
+            terminal.last_content.mode.insert(TermMode::APP_CURSOR);
+            let bytes = terminal.cursor_click_motion(AlacPoint::new(Line(3), Column(1)));
+            assert_eq!(bytes, Some(b"\x1bOD\x1bOD\x1bOD".to_vec()));
+        });
+    }
+
+    #[gpui::test]
+    async fn test_cursor_click_motion_ignores_other_rows_and_scrollback(cx: &mut TestAppContext) {
+        let terminal = init_terminal_for_cursor_click_motion(cx);
+
+        terminal.update(cx, |terminal, _cx| {
+            assert_eq!(
+                terminal.cursor_click_motion(AlacPoint::new(Line(2), Column(7))),
+                None
+            );
+
+            terminal.last_content.display_offset = 1;
+            assert_eq!(
+                terminal.cursor_click_motion(AlacPoint::new(Line(3), Column(7))),
+                None
+            );
+        });
     }
 
     // TODO should be tested on Linux too, but does not work there well

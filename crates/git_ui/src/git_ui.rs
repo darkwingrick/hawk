@@ -18,12 +18,12 @@ use git::{
 use gpui::{
     App, Context, DismissEvent, Entity, EventEmitter, FocusHandle, Focusable, SharedString, Window,
 };
+use hawk_actions;
 use menu::{Cancel, Confirm};
 use project::git_store::Repository;
 use project_diff::ProjectDiff;
 use ui::prelude::*;
 use workspace::{ModalView, Workspace, notifications::DetachAndPromptErr};
-use hawk_actions;
 
 use crate::{git_panel::GitPanel, text_diff_view::TextDiffView};
 

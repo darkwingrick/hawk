@@ -10,6 +10,7 @@ use gpui::{
     ScrollStrategy, Task, UniformListScrollHandle, Window, actions, canvas, div, list, prelude::*,
     uniform_list,
 };
+use hawk_actions::editor::{MoveDown, MoveUp};
 use head::Head;
 use schemars::JsonSchema;
 use serde::Deserialize;
@@ -23,7 +24,6 @@ use ui::{
 };
 use ui_input::{ErasedEditor, ErasedEditorEvent};
 use workspace::{ModalView, item::Settings};
-use hawk_actions::editor::{MoveDown, MoveUp};
 
 enum ElementContainer {
     List(ListState),

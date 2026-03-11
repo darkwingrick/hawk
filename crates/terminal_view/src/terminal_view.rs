@@ -13,6 +13,7 @@ use gpui::{
     Render, ScrollWheelEvent, Styled, Subscription, Task, WeakEntity, actions, anchored, deferred,
     div,
 };
+use hawk_actions::{agent::AddSelectionToThread, assistant::InlineAssist};
 use menu;
 use persistence::TERMINAL_DB;
 use project::{Project, search::SearchQuery};
@@ -60,7 +61,6 @@ use workspace::{
         Direction, SearchEvent, SearchOptions, SearchToken, SearchableItem, SearchableItemHandle,
     },
 };
-use hawk_actions::{agent::AddSelectionToThread, assistant::InlineAssist};
 
 struct ImeState {
     marked_text: String,

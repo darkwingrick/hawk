@@ -805,8 +805,11 @@ mod linux {
 
                 // libexec is the standard, lib/hawk is for Arch (and other non-libexec distros),
                 // ./hawk is for the target directory in development builds.
-                let possible_locations =
-                    ["../libexec/hawk-editor", "../lib/hawk/hawk-editor", "./hawk"];
+                let possible_locations = [
+                    "../libexec/hawk-editor",
+                    "../lib/hawk/hawk-editor",
+                    "./hawk",
+                ];
                 possible_locations
                     .iter()
                     .find_map(|p| dir.join(p).canonicalize().ok().filter(|path| path != &cli))
@@ -986,7 +989,12 @@ mod flatpak {
             && args.hawk.is_none()
         {
             args.hawk = Some("/app/libexec/hawk-editor".into());
-            unsafe { env::set_var("HAWK_UPDATE_EXPLANATION", "Please use flatpak to update hawk") };
+            unsafe {
+                env::set_var(
+                    "HAWK_UPDATE_EXPLANATION",
+                    "Please use flatpak to update hawk",
+                )
+            };
         }
         args
     }
@@ -1140,7 +1148,8 @@ mod windows {
 
                 // ../Hawk.exe is the standard, lib/hawk is for MSYS2, ./hawk.exe is for the target
                 // directory in development builds.
-                let possible_locations = ["../Hawk.exe", "../lib/hawk/hawk-editor.exe", "./hawk.exe"];
+                let possible_locations =
+                    ["../Hawk.exe", "../lib/hawk/hawk-editor.exe", "./hawk.exe"];
                 possible_locations
                     .iter()
                     .find_map(|p| dir.join(p).canonicalize().ok().filter(|path| path != &cli))

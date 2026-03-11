@@ -37,11 +37,11 @@ use ui::{
 };
 use util::ResultExt as _;
 
+use hawk_actions::{OpenBrowser, OpenSettingsAt};
 use workspace::{
     StatusItemView, Toast, Workspace, create_and_open_local_file, item::ItemHandle,
     notifications::NotificationId,
 };
-use hawk_actions::{OpenBrowser, OpenSettingsAt};
 
 use crate::{
     CaptureExample, RatePredictions, rate_prediction_modal::PredictEditsRatePredictionsFeatureFlag,
@@ -252,17 +252,13 @@ impl Render for EditPredictionButton {
                                         });
                                     }
 
-                                    menu.entry(
-                                        "Use Zed AI",
-                                        None,
-                                        move |_, cx| {
-                                            set_completion_provider(
-                                                fs.clone(),
-                                                cx,
-                                                EditPredictionProvider::Hawk,
-                                            )
-                                        },
-                                    )
+                                    menu.entry("Use Zed AI", None, move |_, cx| {
+                                        set_completion_provider(
+                                            fs.clone(),
+                                            cx,
+                                            EditPredictionProvider::Hawk,
+                                        )
+                                    })
                                 }))
                             }
                             SupermavenButtonStatus::Ready => this
@@ -1216,7 +1212,8 @@ impl EditPredictionButton {
                     });
                 }
 
-                menu = menu.link_with_handler(
+                menu = menu
+                    .link_with_handler(
                         "Learn More",
                         OpenBrowser {
                             url: hawk_urls::edit_prediction_docs(cx),

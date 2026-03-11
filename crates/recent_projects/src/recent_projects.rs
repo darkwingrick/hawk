@@ -38,6 +38,7 @@ use settings::{Settings, WorktreeId};
 use ui_input::ErasedEditor;
 
 use dev_container::{DevContainerContext, find_devcontainer_configs};
+use hawk_actions::{OpenDevContainer, OpenRecent, OpenRemote};
 use ui::{
     ContextMenu, Divider, KeyBinding, ListItem, ListItemSpacing, ListSubHeader, PopoverMenu,
     PopoverMenuHandle, TintColor, Tooltip, prelude::*,
@@ -48,7 +49,6 @@ use workspace::{
     SerializedWorkspaceLocation, WORKSPACE_DB, Workspace, WorkspaceId,
     notifications::DetachAndPromptErr, with_active_or_new_workspace,
 };
-use hawk_actions::{OpenDevContainer, OpenRecent, OpenRemote};
 
 actions!(recent_projects, [ToggleActionsMenu]);
 
