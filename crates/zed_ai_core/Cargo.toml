@@ -1,0 +1,39 @@
+[package]
+name = "zed_ai_core"
+version = "0.1.0"
+edition.workspace = true
+publish.workspace = true
+license = "GPL-3.0-or-later"
+
+[lints]
+workspace = true
+
+[lib]
+path = "src/zed_ai_core.rs"
+doctest = false
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+collections.workspace = true
+futures.workspace = true
+gpui.workspace = true
+heed.workspace = true
+http_client.workspace = true
+language.workspace = true
+ollama.workspace = true
+parking_lot.workspace = true
+paths.workspace = true
+prompt_store.workspace = true
+rope.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+text.workspace = true
+tree-sitter.workspace = true
+tree-sitter-rust.workspace = true
+util.workspace = true
+
+[dev-dependencies]
+gpui = { workspace = true, features = ["test-support"] }
+pretty_assertions.workspace = true

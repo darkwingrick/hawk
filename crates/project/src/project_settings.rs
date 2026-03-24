@@ -79,6 +79,9 @@ pub struct ProjectSettings {
 
     /// Configuration for session-related features
     pub session: SessionSettings,
+
+    /// Configuration for the local codebase expert.
+    pub local_codebase_expert: LocalCodebaseExpertSettings,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -96,6 +99,31 @@ pub struct SessionSettings {
     ///
     /// Default: false
     pub trust_all_worktrees: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct LocalCodebaseExpertSettings {
+    pub enabled: bool,
+    pub auto_index_on_open: bool,
+    pub chat_model_preset: Option<String>,
+    pub embedding_model_preset: Option<String>,
+    pub max_file_bytes: u64,
+    pub exclude_globs: Vec<String>,
+    pub notes_enabled: bool,
+}
+
+impl Default for LocalCodebaseExpertSettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            auto_index_on_open: true,
+            chat_model_preset: Some("qwen2.5-coder-14b-instruct".to_string()),
+            embedding_model_preset: Some("nomic-embed-text".to_string()),
+            max_file_bytes: 256 * 1024,
+            exclude_globs: Vec::new(),
+            notes_enabled: true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, JsonSchema)]
@@ -730,7 +758,52 @@ impl Settings for ProjectSettings {
                 restore_unsaved_buffers: content.session.unwrap().restore_unsaved_buffers.unwrap(),
                 trust_all_worktrees: content.session.unwrap().trust_all_worktrees.unwrap(),
             },
+            local_codebase_expert: project
+                .local_codebase_expert
+                .clone()
+                .map(Into::into)
+                .unwrap_or_default(),
         }
+    }
+}
+
+impl From<settings::LocalCodebaseExpertSettingsContent> for LocalCodebaseExpertSettings {
+    fn from(settings: settings::LocalCodebaseExpertSettingsContent) -> Self {
+        let defaults = Self::default();
+        Self {
+            enabled: settings.enabled.unwrap_or(defaults.enabled),
+            auto_index_on_open: settings
+                .auto_index_on_open
+                .unwrap_or(defaults.auto_index_on_open),
+            chat_model_preset: settings
+                .chat_model_preset
+                .or(defaults.chat_model_preset),
+            embedding_model_preset: settings
+                .embedding_model_preset
+                .or(defaults.embedding_model_preset),
+            max_file_bytes: settings.max_file_bytes.unwrap_or(defaults.max_file_bytes),
+            exclude_globs: settings.exclude_globs.unwrap_or(defaults.exclude_globs),
+            notes_enabled: settings.notes_enabled.unwrap_or(defaults.notes_enabled),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::LocalCodebaseExpertSettings;
+
+    #[test]
+    fn project_settings_include_local_codebase_expert_defaults() {
+        let settings =
+            LocalCodebaseExpertSettings::from(settings::LocalCodebaseExpertSettingsContent::default());
+
+        assert!(settings.enabled);
+        assert!(settings.auto_index_on_open);
+        assert!(settings.notes_enabled);
+        assert_eq!(
+            settings.chat_model_preset.as_deref(),
+            Some("qwen2.5-coder-14b-instruct")
+        );
     }
 }
 

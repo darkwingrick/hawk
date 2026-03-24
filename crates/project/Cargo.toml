@@ -97,6 +97,7 @@ watch.workspace = true
 wax.workspace = true
 which.workspace = true
 worktree.workspace = true
+zed_ai_core.workspace = true
 zeroize.workspace = true
 zlog.workspace = true
 ztracing.workspace = true

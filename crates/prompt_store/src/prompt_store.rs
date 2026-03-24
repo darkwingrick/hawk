@@ -44,10 +44,20 @@ pub fn init(cx: &mut App) {
     cx.set_global(GlobalPromptStore(prompt_store_entity_task))
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PromptKind {
+    #[default]
+    Rule,
+    Skill,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PromptMetadata {
     pub id: PromptId,
     pub title: Option<SharedString>,
+    #[serde(default)]
+    pub kind: PromptKind,
     pub default: bool,
     pub saved_at: DateTime<Utc>,
 }
@@ -57,10 +67,19 @@ impl PromptMetadata {
         Self {
             id: PromptId::BuiltIn(builtin),
             title: Some(builtin.title().into()),
+            kind: PromptKind::Rule,
             default: false,
             saved_at: DateTime::default(),
         }
     }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PromptAsset {
+    pub title: Option<String>,
+    pub kind: PromptKind,
+    pub default: bool,
+    pub body: String,
 }
 
 /// Built-in prompts that have default content and can be customized by users.
@@ -326,6 +345,7 @@ impl PromptStore {
                     &PromptMetadata {
                         id: prompt_id_v2,
                         title: metadata_v1.title.clone(),
+                        kind: PromptKind::Rule,
                         default: metadata_v1.default,
                         saved_at: metadata_v1.saved_at,
                     },
@@ -480,6 +500,7 @@ impl PromptStore {
         &self,
         id: PromptId,
         title: Option<SharedString>,
+        kind: PromptKind,
         default: bool,
         body: Rope,
         cx: &Context<Self>,
@@ -499,6 +520,7 @@ impl PromptStore {
             PromptMetadata {
                 id,
                 title,
+                kind,
                 default,
                 saved_at: Utc::now(),
             }
@@ -537,6 +559,7 @@ impl PromptStore {
         &self,
         id: PromptId,
         mut title: Option<SharedString>,
+        kind: PromptKind,
         default: bool,
         cx: &Context<Self>,
     ) -> Task<Result<()>> {
@@ -552,6 +575,7 @@ impl PromptStore {
         let prompt_metadata = PromptMetadata {
             id,
             title,
+            kind,
             default,
             saved_at: Utc::now(),
         };
@@ -573,6 +597,37 @@ impl PromptStore {
             task.await?;
             this.update(cx, |_, cx| cx.emit(PromptsUpdatedEvent)).ok();
             anyhow::Ok(())
+        })
+    }
+
+    pub fn export_asset(&self, id: PromptId, cx: &Context<Self>) -> Task<Result<PromptAsset>> {
+        let metadata = self.metadata(id).ok_or_else(|| anyhow!("prompt not found"));
+        let body = self.load(id, cx);
+        cx.spawn(async move |_this, _cx| {
+            let metadata = metadata?;
+            let body = body.await?;
+            Ok(PromptAsset {
+                title: metadata.title.as_ref().map(ToString::to_string),
+                kind: metadata.kind,
+                default: metadata.default,
+                body,
+            })
+        })
+    }
+
+    pub fn import_asset(&self, asset: PromptAsset, cx: &Context<Self>) -> Task<Result<PromptId>> {
+        let id = PromptId::new();
+        let save = self.save(
+            id,
+            asset.title.map(SharedString::from),
+            asset.kind,
+            asset.default,
+            Rope::from(asset.body),
+            cx,
+        );
+        cx.spawn(async move |_this, _cx| {
+            save.await?;
+            Ok(id)
         })
     }
 }
@@ -653,6 +708,7 @@ mod tests {
                 store.save(
                     commit_message_id,
                     Some("Commit message".into()),
+                    PromptKind::Rule,
                     false,
                     Rope::from(custom_content),
                     cx,
@@ -683,6 +739,7 @@ mod tests {
                 store.save(
                     commit_message_id,
                     Some("Commit message".into()),
+                    PromptKind::Rule,
                     false,
                     Rope::from(BuiltInPrompt::CommitMessage.default_content()),
                     cx,
@@ -716,6 +773,82 @@ mod tests {
             loaded_after_reset.trim(),
             expected_content_after_reset.trim(),
             "Content should be back to default after saving default content"
+        );
+    }
+
+    #[gpui::test]
+    async fn test_user_prompt_kind_round_trip(cx: &mut TestAppContext) {
+        cx.executor().allow_parking();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let db_path = temp_dir.path().join("prompts-db-kind-round-trip");
+
+        let store = cx.update(|cx| PromptStore::new(db_path, cx)).await.unwrap();
+        let store = cx.new(|_cx| store);
+
+        let prompt_id = PromptId::new();
+        store
+            .update(cx, |store, cx| {
+                store.save(
+                    prompt_id,
+                    Some("Codebase explainer".into()),
+                    PromptKind::Skill,
+                    false,
+                    Rope::from("Explain the currently indexed project."),
+                    cx,
+                )
+            })
+            .await
+            .unwrap();
+
+        let metadata = store
+            .read_with(cx, |store, _| store.metadata(prompt_id))
+            .expect("metadata should exist");
+        assert_eq!(metadata.kind, PromptKind::Skill);
+    }
+
+    #[gpui::test]
+    async fn test_export_import_prompt_asset_round_trip(cx: &mut TestAppContext) {
+        cx.executor().allow_parking();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        let db_path = temp_dir.path().join("prompts-db-import-export");
+
+        let store = cx.update(|cx| PromptStore::new(db_path, cx)).await.unwrap();
+        let store = cx.new(|_cx| store);
+
+        let prompt_id = PromptId::new();
+        store
+            .update(cx, |store, cx| {
+                store.save(
+                    prompt_id,
+                    Some("Repo memory".into()),
+                    PromptKind::Rule,
+                    false,
+                    Rope::from("Only answer from indexed sources."),
+                    cx,
+                )
+            })
+            .await
+            .unwrap();
+
+        let exported = store
+            .update(cx, |store, cx| store.export_asset(prompt_id, cx))
+            .await
+            .expect("export should succeed");
+
+        let imported_id = store
+            .update(cx, |store, cx| store.import_asset(exported, cx))
+            .await
+            .expect("import should succeed");
+
+        let metadata = store
+            .read_with(cx, |store, _| store.metadata(imported_id))
+            .expect("imported metadata should exist");
+        assert_eq!(metadata.kind, PromptKind::Rule);
+        assert_eq!(
+            metadata.title.as_ref().map(|title| title.to_string()),
+            Some("Repo memory".to_string())
         );
     }
 

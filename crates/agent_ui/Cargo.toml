@@ -106,14 +106,16 @@ time_format.workspace = true
 ui.workspace = true
 ui_input.workspace = true
 url.workspace = true
-util.workspace = true
-uuid.workspace = true
-watch.workspace = true
-workspace.workspace = true
-hawk_actions.workspace = true
-image.workspace = true
-async-fs.workspace = true
-reqwest_client = { workspace = true, optional = true }
+ util.workspace = true
+ uuid.workspace = true
+ watch.workspace = true
+ workspace.workspace = true
+ worktree.workspace = true
+ hawk_actions.workspace = true
+ image.workspace = true
+ async-fs.workspace = true
+ reqwest_client = { workspace = true, optional = true }
+ zed_ai_core.workspace = true
 
 [dev-dependencies]
 acp_thread = { workspace = true, features = ["test-support"] }

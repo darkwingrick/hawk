@@ -6,7 +6,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use acp_thread::{AcpThread, AgentSessionInfo, MentionUri};
@@ -26,10 +26,10 @@ use hawk_actions::agent::{OpenClaudeAgentOnboardingModal, ReauthenticateAgent, R
 
 use crate::ui::{AcpOnboardingModal, ClaudeCodeOnboardingModal};
 use crate::{
-    AddContextServer, AgentDiffPane, ConnectionView, CopyThreadToClipboard, Follow,
+    AddContextServer, AgentDiffPane, AskCodebase, ConnectionView, CopyThreadToClipboard, Follow,
     InlineAssistant, LoadThreadFromClipboard, NewTextThread, NewThread, OpenActiveThreadAsMarkdown,
-    OpenAgentDiff, OpenHistory, ResetTrialEndUpsell, ResetTrialUpsell, ToggleNavigationMenu,
-    ToggleNewThreadMenu, ToggleOptionsMenu,
+    OpenAgentDiff, OpenHistory, ResetTrialEndUpsell, ResetTrialUpsell, SaveNote,
+    ToggleNavigationMenu, ToggleNewThreadMenu, ToggleOptionsMenu,
     agent_configuration::{AgentConfiguration, AssistantConfigurationEvent},
     slash_command::SlashCommandCompletionProvider,
     text_thread_editor::{AgentPanelDelegate, TextThreadEditor, make_lsp_adapter_delegate},
@@ -58,7 +58,8 @@ use fs::Fs;
 use gpui::{
     Action, Animation, AnimationExt, AnyElement, App, AsyncWindowContext, ClipboardItem, Corner,
     DismissEvent, Entity, EventEmitter, ExternalPaths, FocusHandle, Focusable, KeyContext, Pixels,
-    Subscription, Task, UpdateGlobal, WeakEntity, prelude::*, pulsating_between,
+    SharedString, Subscription, Task, UpdateGlobal, WeakEntity, Window, prelude::*,
+    pulsating_between,
 };
 use hawk_actions::{
     DecreaseBufferFontSize, IncreaseBufferFontSize, ResetBufferFontSize,
@@ -67,26 +68,33 @@ use hawk_actions::{
 };
 use language::LanguageRegistry;
 use language_model::{ConfigurationError, LanguageModelRegistry};
-use project::{Project, ProjectPath, Worktree};
+use project::project_settings::ProjectSettings;
+use project::{Project, ProjectPath, Worktree, worktree_store::WorktreeStoreEvent};
 use prompt_store::{PromptBuilder, PromptStore, UserPromptId};
 use rules_library::{RulesLibrary, open_rules_library};
 use search::{BufferSearchBar, buffer_search};
 use settings::{Settings, update_settings_file};
 use theme::ThemeSettings;
+use ui::utils::WithRemSize;
 use ui::{
-    Callout, ContextMenu, ContextMenuEntry, KeyBinding, PopoverMenu, PopoverMenuHandle, Tab,
-    Tooltip, prelude::*, utils::WithRemSize,
+    Button, ButtonCommon, ButtonStyle, Callout, Clickable, Color, ContextMenu, ContextMenuEntry,
+    Div, DynamicSpacing, Icon, IconButton, IconName, IconSize, KeyBinding, Label, LabelCommon,
+    LabelSize, PopoverMenu, PopoverMenuHandle, Severity, Tab, Tooltip, div, h_flex, px,
+    rems_from_px, v_flex,
 };
-use util::ResultExt as _;
+use util::ResultExt;
 use workspace::{
-    CollaboratorId, DraggedSelection, DraggedTab, ToggleZoom, ToolbarItemView, Workspace,
+    CollaboratorId, DraggedSelection, DraggedTab, GoBack, ToggleZoom, ToolbarItemView, Workspace,
     WorkspaceId,
     dock::{DockPosition, Panel, PanelEvent},
 };
+use worktree::{Entry, PathChange, UpdatedEntriesSet};
 
 const AGENT_PANEL_KEY: &str = "agent_panel";
 const RECENTLY_UPDATED_MENU_LIMIT: usize = 6;
 const DEFAULT_THREAD_TITLE: &str = "New Thread";
+const ASK_CODEBASE_PROMPT: &str =
+    "Answer using only the current codebase and saved notes. Cite relevant files when possible.\n";
 
 fn read_serialized_panel(workspace_id: workspace::WorkspaceId) -> Option<SerializedAgentPanel> {
     let scope = KEY_VALUE_STORE.scoped(AGENT_PANEL_KEY);
@@ -177,6 +185,22 @@ pub fn init(cx: &mut App) {
                         workspace.focus_panel::<AgentPanel>(window, cx);
                         panel.update(cx, |panel, cx| {
                             panel.new_text_thread(window, cx);
+                        });
+                    }
+                })
+                .register_action(|workspace, _: &AskCodebase, window, cx| {
+                    if let Some(panel) = workspace.panel::<AgentPanel>(cx) {
+                        workspace.focus_panel::<AgentPanel>(window, cx);
+                        panel.update(cx, |panel, cx| {
+                            panel.ask_codebase(window, cx);
+                        });
+                    }
+                })
+                .register_action(|workspace, _: &SaveNote, window, cx| {
+                    if let Some(panel) = workspace.panel::<AgentPanel>(cx) {
+                        workspace.focus_panel::<AgentPanel>(window, cx);
+                        panel.update(cx, |panel, cx| {
+                            panel.save_note(window, cx);
                         });
                     }
                 })
@@ -529,6 +553,8 @@ pub struct AgentPanel {
     show_trust_workspace_message: bool,
     last_configuration_error_telemetry: Option<String>,
     on_boarding_upsell_dismissed: AtomicBool,
+
+    model_download_progress: Option<(String, u64, Option<u64>)>, // (preset_id, completed, total)
 }
 
 impl AgentPanel {
@@ -767,6 +793,18 @@ impl AgentPanel {
             )
         });
 
+        // Subscribe to worktree events for indexing
+        let weak_panel = cx.entity().downgrade();
+        let worktree_store = project.read(cx).worktree_store();
+        cx.subscribe(&worktree_store, move |worktree_store, _, event, cx| {
+            if let Some(panel) = weak_panel.upgrade() {
+                panel.update(cx, |panel, cx| {
+                    panel.handle_worktree_event(event, cx);
+                });
+            }
+        })
+        .detach();
+
         // Subscribe to extension events to sync agent servers when extensions change
         let extension_subscription = if let Some(extension_events) = ExtensionEvents::try_global(cx)
         {
@@ -817,10 +855,14 @@ impl AgentPanel {
             show_trust_workspace_message: false,
             last_configuration_error_telemetry: None,
             on_boarding_upsell_dismissed: AtomicBool::new(OnboardingUpsell::dismissed()),
+            model_download_progress: None,
         };
 
         // Initial sync of agent servers from extensions
         panel.sync_agent_servers_from_extensions(cx);
+
+        // TODO: Local expert service initialization removed - functionality disabled
+
         panel
     }
 
@@ -940,6 +982,21 @@ impl AgentPanel {
     }
 
     fn new_text_thread(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.new_text_thread_with_seed(None, window, cx);
+    }
+
+    fn ask_codebase(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        // Resume indexing when user wants to ask codebase
+        self.resume_indexing(cx);
+        self.new_text_thread_with_seed(Some(ASK_CODEBASE_PROMPT), window, cx);
+    }
+
+    fn new_text_thread_with_seed(
+        &mut self,
+        seed_text: Option<&str>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         telemetry::event!("Agent Thread Started", agent = "zed-text");
 
         let context = self
@@ -960,6 +1017,11 @@ impl AgentPanel {
                 cx,
             );
             editor.insert_default_prompt(window, cx);
+            if let Some(seed_text) = seed_text {
+                editor
+                    .editor()
+                    .update(cx, |editor, cx| editor.insert(seed_text, window, cx));
+            }
             editor
         });
 
@@ -1296,6 +1358,30 @@ impl AgentPanel {
     pub fn reset_agent_zoom(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
         theme::reset_agent_ui_font_size(cx);
         theme::reset_agent_buffer_font_size(cx);
+    }
+
+    fn handle_worktree_event(&mut self, _event: &WorktreeStoreEvent, _cx: &mut Context<Self>) {
+        // Local expert service disabled
+    }
+
+    fn pause_indexing(&mut self, _cx: &mut Context<Self>) {
+        // Local expert service disabled
+    }
+
+    fn resume_indexing(&mut self, _cx: &mut Context<Self>) {
+        // Local expert service disabled
+    }
+
+    fn on_user_activity(&mut self, _cx: &mut Context<Self>) {
+        // Local expert service disabled
+    }
+
+    fn rebuild_index(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
+        // Local expert service disabled
+    }
+
+    fn save_note(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        // Local expert service disabled
     }
 
     pub fn toggle_zoom(&mut self, _: &ToggleZoom, window: &mut Window, cx: &mut Context<Self>) {
@@ -2261,6 +2347,7 @@ impl AgentPanel {
                             )
                             .action("Add Custom Server…", Box::new(AddContextServer))
                             .separator()
+                            .action("Ask Codebase", Box::new(AskCodebase))
                             .action("Rules", Box::new(OpenRulesLibrary::default()))
                             .action("Profiles", Box::new(ManageProfiles::default()))
                             .action("Settings", Box::new(OpenSettings))
@@ -2441,6 +2528,28 @@ impl AgentPanel {
                                                                 window,
                                                                 cx,
                                                             );
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    }),
+                            )
+                            .item(
+                                ContextMenuEntry::new("Ask Codebase")
+                                    .action(AskCodebase.boxed_clone())
+                                    .icon(IconName::TextThread)
+                                    .icon_color(Color::Muted)
+                                    .handler({
+                                        let workspace = workspace.clone();
+                                        move |window, cx| {
+                                            if let Some(workspace) = workspace.upgrade() {
+                                                workspace.update(cx, |workspace, cx| {
+                                                    if let Some(panel) =
+                                                        workspace.panel::<AgentPanel>(cx)
+                                                    {
+                                                        panel.update(cx, |panel, cx| {
+                                                            panel.ask_codebase(window, cx);
                                                         });
                                                     }
                                                 });
@@ -2728,9 +2837,9 @@ impl AgentPanel {
             .flex_none()
             .justify_between()
             .gap_2()
-            .bg(cx.theme().colors().tab_bar_background)
+            .bg(theme::GlobalTheme::theme(cx).colors().tab_bar_background)
             .border_b_1()
-            .border_color(cx.theme().colors().border)
+            .border_color(theme::GlobalTheme::theme(cx).colors().border)
             .child(
                 h_flex()
                     .size_full()
@@ -2849,7 +2958,7 @@ impl AgentPanel {
         Some(
             div()
                 .when(text_thread_view, |this| {
-                    this.bg(cx.theme().colors().editor_background)
+                    this.bg(theme::GlobalTheme::theme(cx).colors().editor_background)
                 })
                 .child(self.onboarding.clone()),
         )
@@ -2869,7 +2978,7 @@ impl AgentPanel {
                 .absolute()
                 .inset_0()
                 .size_full()
-                .bg(cx.theme().colors().panel_background)
+                .bg(theme::GlobalTheme::theme(cx).colors().panel_background)
                 .opacity(0.85)
                 .block_mouse_except_scroll()
                 .child(EndTrialUpsell::new(Arc::new({
@@ -3010,8 +3119,8 @@ impl AgentPanel {
                         div()
                             .p(DynamicSpacing::Base08.rems(cx))
                             .border_b_1()
-                            .border_color(cx.theme().colors().border_variant)
-                            .bg(cx.theme().colors().editor_background)
+                            .border_color(theme::GlobalTheme::theme(cx).colors().border_variant)
+                            .bg(theme::GlobalTheme::theme(cx).colors().editor_background)
                             .child(buffer_search_bar.render(window, cx)),
                     )
                 })
@@ -3029,7 +3138,9 @@ impl AgentPanel {
             .right_0()
             .bottom_0()
             .left_0()
-            .bg(cx.theme().colors().drop_target_background)
+            .bg(theme::GlobalTheme::theme(cx)
+                .colors()
+                .drop_target_background)
             .drag_over::<DraggedTab>(|this, _, _, _| this.visible())
             .drag_over::<DraggedSelection>(|this, _, _, _| this.visible())
             .when(is_local, |this| {
@@ -3664,5 +3775,63 @@ mod tests {
         });
 
         cx.run_until_parked();
+    }
+
+    #[gpui::test]
+    async fn test_ask_codebase_action_handler(cx: &mut TestAppContext) {
+        init_test(cx);
+
+        let fs = FakeFs::new(cx.executor());
+
+        cx.update(|cx| {
+            cx.update_flags(true, vec!["agent-v2".to_string()]);
+            agent::ThreadStore::init_global(cx);
+            language_model::LanguageModelRegistry::test(cx);
+            let slash_command_registry =
+                assistant_slash_command::SlashCommandRegistry::default_global(cx);
+            slash_command_registry
+                .register_command(assistant_slash_commands::DefaultSlashCommand, false);
+            <dyn fs::Fs>::set_global(fs.clone(), cx);
+        });
+
+        let project = Project::test(fs.clone(), [], cx).await;
+
+        let multi_workspace =
+            cx.add_window(|window, cx| MultiWorkspace::test_new(project.clone(), window, cx));
+
+        let workspace_a = multi_workspace
+            .read_with(cx, |multi_workspace, _cx| {
+                multi_workspace.workspace().clone()
+            })
+            .unwrap();
+
+        let cx = &mut VisualTestContext::from_window(multi_workspace.into(), cx);
+
+        workspace_a.update_in(cx, |workspace, window, cx| {
+            let text_thread_store = cx.new(|cx| TextThreadStore::fake(project.clone(), cx));
+            let panel =
+                cx.new(|cx| AgentPanel::new(workspace, text_thread_store, None, window, cx));
+            workspace.add_panel(panel, window, cx);
+        });
+
+        cx.run_until_parked();
+
+        workspace_a.update_in(cx, |workspace, window, cx| {
+            window.dispatch_action(AskCodebase.boxed_clone(), cx);
+
+            let panel = workspace
+                .panel::<AgentPanel>(cx)
+                .expect("panel should exist");
+            let text = panel
+                .read(cx)
+                .active_text_thread_editor()
+                .expect("ask codebase should open a text thread")
+                .read(cx)
+                .editor()
+                .read(cx)
+                .text(cx);
+
+            assert!(text.contains(ASK_CODEBASE_PROMPT.trim()));
+        });
     }
 }

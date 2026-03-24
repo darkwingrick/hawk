@@ -84,6 +84,21 @@ pub struct ProjectSettingsContent {
     ///
     /// Default: false
     pub disable_ai: Option<SaturatingBool>,
+
+    /// Settings for the local codebase expert.
+    pub local_codebase_expert: Option<LocalCodebaseExpertSettingsContent>,
+}
+
+#[with_fallible_options]
+#[derive(Debug, PartialEq, Clone, Default, Serialize, Deserialize, JsonSchema, MergeFrom)]
+pub struct LocalCodebaseExpertSettingsContent {
+    pub enabled: Option<bool>,
+    pub auto_index_on_open: Option<bool>,
+    pub chat_model_preset: Option<String>,
+    pub embedding_model_preset: Option<String>,
+    pub max_file_bytes: Option<u64>,
+    pub exclude_globs: Option<Vec<String>>,
+    pub notes_enabled: Option<bool>,
 }
 
 #[with_fallible_options]

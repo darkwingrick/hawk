@@ -222,6 +222,7 @@ members = [
     "crates/hawk_actions",
     "crates/hawk_env_vars",
     "crates/zeta_prompt",
+    "crates/zed_ai_core",
     "crates/zlog",
     "crates/zlog_settings",
     "crates/ztracing",
@@ -468,6 +469,7 @@ hawk_actions = { path = "crates/hawk_actions" }
 hawk_env_vars = { path = "crates/hawk_env_vars" }
 edit_prediction = { path = "crates/edit_prediction" }
 zeta_prompt = { path = "crates/zeta_prompt" }
+zed_ai_core = { path = "crates/zed_ai_core" }
 zlog = { path = "crates/zlog" }
 zlog_settings = { path = "crates/zlog_settings" }
 ztracing = { path = "crates/ztracing" }

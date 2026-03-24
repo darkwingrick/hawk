@@ -72,6 +72,8 @@ actions!(
     [
         /// Creates a new text-based conversation thread.
         NewTextThread,
+        /// Opens a codebase-focused text thread.
+        AskCodebase,
         /// Toggles the menu to create new agent threads.
         ToggleNewThreadMenu,
         /// Toggles the navigation menu for switching between threads and views.
@@ -162,6 +164,8 @@ actions!(
         ToggleThinkingEffortMenu,
         /// Toggles fast mode for models that support it.
         ToggleFastMode,
+        /// Saves the current thread or message as a note in the codebase.
+        SaveNote,
     ]
 );
 

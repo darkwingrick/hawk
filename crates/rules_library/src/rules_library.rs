@@ -3,9 +3,9 @@ use collections::{HashMap, HashSet};
 use editor::{CompletionProvider, SelectionEffects};
 use editor::{CurrentLineHighlight, Editor, EditorElement, EditorEvent, EditorStyle, actions::Tab};
 use gpui::{
-    App, Bounds, DEFAULT_ADDITIONAL_WINDOW_SIZE, Entity, EventEmitter, Focusable, PromptLevel,
-    Subscription, Task, TextStyle, Tiling, TitlebarOptions, WindowBounds, WindowHandle,
-    WindowOptions, actions, point, size, transparent_black,
+    App, Bounds, DEFAULT_ADDITIONAL_WINDOW_SIZE, Entity, EventEmitter, Focusable,
+    PathPromptOptions, PromptLevel, Subscription, Task, TextStyle, Tiling, TitlebarOptions,
+    WindowBounds, WindowHandle, WindowOptions, actions, point, size, transparent_black,
 };
 use hawk_actions::assistant::InlineAssist;
 use language::{Buffer, LanguageRegistry, language_settings::SoftWrap};
@@ -17,6 +17,7 @@ use platform_title_bar::PlatformTitleBar;
 use release_channel::ReleaseChannel;
 use rope::Rope;
 use settings::Settings;
+use std::fs;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
@@ -38,6 +39,8 @@ actions!(
     [
         /// Creates a new rule in the rules library.
         NewRule,
+        /// Creates a new skill in the rules library.
+        NewSkill,
         /// Deletes the selected rule.
         DeleteRule,
         /// Duplicates the selected rule.
@@ -45,7 +48,11 @@ actions!(
         /// Toggles whether the selected rule is a default rule.
         ToggleDefaultRule,
         /// Restores a built-in rule to its default content.
-        RestoreDefaultContent
+        RestoreDefaultContent,
+        /// Exports the selected rule as a prompt asset.
+        ExportRule,
+        /// Imports a prompt asset from file.
+        ImportRule
     ]
 );
 
@@ -263,6 +270,12 @@ impl PickerDelegate for RulePickerDelegate {
                     let (default_rules, other_rules): (Vec<_>, Vec<_>) =
                         user_rules.into_iter().partition(|rule| rule.default);
 
+                    let (other_rules, skills): (Vec<_>, Vec<_>) = other_rules
+                        .into_iter()
+                        .partition(|rule| rule.kind == PromptKind::Rule);
+                    let (default_skills, other_skills): (Vec<_>, Vec<_>) =
+                        skills.into_iter().partition(|rule| rule.default);
+
                     let mut filtered_entries = Vec::new();
 
                     if !built_in_rules.is_empty() {
@@ -285,8 +298,34 @@ impl PickerDelegate for RulePickerDelegate {
                         filtered_entries.push(RulePickerEntry::Separator);
                     }
 
-                    for rule in other_rules {
-                        filtered_entries.push(RulePickerEntry::Rule(rule));
+                    if !other_rules.is_empty() {
+                        filtered_entries.push(RulePickerEntry::Header("Rules".into()));
+
+                        for rule in other_rules {
+                            filtered_entries.push(RulePickerEntry::Rule(rule));
+                        }
+
+                        filtered_entries.push(RulePickerEntry::Separator);
+                    }
+
+                    if !default_skills.is_empty() {
+                        filtered_entries.push(RulePickerEntry::Header("Default Skills".into()));
+
+                        for skill in default_skills {
+                            filtered_entries.push(RulePickerEntry::Rule(skill));
+                        }
+
+                        filtered_entries.push(RulePickerEntry::Separator);
+                    }
+
+                    if !other_skills.is_empty() {
+                        filtered_entries.push(RulePickerEntry::Header("Skills".into()));
+
+                        for skill in other_skills {
+                            filtered_entries.push(RulePickerEntry::Rule(skill));
+                        }
+
+                        filtered_entries.push(RulePickerEntry::Separator);
                     }
 
                     let selected_index = prev_prompt_id
@@ -342,10 +381,19 @@ impl PickerDelegate for RulePickerDelegate {
     ) -> Option<Self::ListItem> {
         match self.filtered_entries.get(ix)? {
             RulePickerEntry::Header(title) => {
-                let tooltip_text = if title.as_ref() == "Built-in Rules" {
-                    "Built-in rules are those included out of the box with Zed."
-                } else {
-                    "Default Rules are attached by default with every new thread."
+                let tooltip_text = match title.as_ref() {
+                    "Built-in Rules" => {
+                        "Built-in rules are those included out of the box with Zed."
+                    }
+                    "Default Rules" => {
+                        "Default Rules are attached by default with every new thread."
+                    }
+                    "Rules" => "Rules provide context and constraints for AI interactions.",
+                    "Default Skills" => {
+                        "Default Skills are attached by default with every new thread."
+                    }
+                    "Skills" => "Skills are reusable prompt templates for specific tasks.",
+                    _ => "",
                 };
 
                 Some(
@@ -544,10 +592,19 @@ impl RulesLibrary {
     }
 
     pub fn new_rule(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        // If we already have an untitled rule, use that instead
+        self.new_prompt(PromptKind::Rule, window, cx);
+    }
+
+    pub fn new_skill(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.new_prompt(PromptKind::Skill, window, cx);
+    }
+
+    fn new_prompt(&mut self, kind: PromptKind, window: &mut Window, cx: &mut Context<Self>) {
+        // If we already have an untitled prompt of the same kind, use that instead
         // of creating a new one.
         if let Some(metadata) = self.store.read(cx).first()
             && metadata.title.is_none()
+            && metadata.kind == kind
         {
             self.load_rule(metadata.id, true, window, cx);
             return;
@@ -555,7 +612,7 @@ impl RulesLibrary {
 
         let prompt_id = PromptId::new();
         let save = self.store.update(cx, |store, cx| {
-            store.save(prompt_id, None, false, "".into(), cx)
+            store.save(prompt_id, None, kind, false, "".into(), cx)
         });
         self.picker
             .update(cx, |picker, cx| picker.refresh(window, cx));
@@ -612,7 +669,14 @@ impl RulesLibrary {
                             };
                             cx.update(|_window, cx| {
                                 store.update(cx, |store, cx| {
-                                    store.save(prompt_id, title, rule_metadata.default, body, cx)
+                                    store.save(
+                                        prompt_id,
+                                        title,
+                                        rule_metadata.kind,
+                                        rule_metadata.default,
+                                        body,
+                                        cx,
+                                    )
                                 })
                             })?
                             .await
@@ -669,6 +733,62 @@ impl RulesLibrary {
         }
     }
 
+    pub fn export_active_rule(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if let Some(active_rule_id) = self.active_rule_id {
+            self.export_rule(active_rule_id, window, cx);
+        }
+    }
+
+    pub fn export_rule(
+        &mut self,
+        prompt_id: PromptId,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let store = self.store.clone();
+        cx.spawn_in(window, async move |this, cx| {
+            let asset = store
+                .update(cx, |store, cx| store.export_asset(prompt_id, cx))
+                .await?;
+            let asset_json = serde_json::to_string_pretty(&asset)?;
+            cx.update(|_, cx| {
+                cx.write_to_clipboard(asset_json.into());
+            })?;
+            // TODO: show toast notification
+            Ok::<(), anyhow::Error>(())
+        })
+        .detach_and_log_err(cx);
+    }
+
+    pub fn import_rule(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let store = self.store.clone();
+        let paths_receiver = cx.prompt_for_paths(PathPromptOptions {
+            files: true,
+            directories: false,
+            multiple: false,
+            prompt: Some("Import Prompt Asset".into()),
+        });
+
+        window
+            .spawn(cx, async move |cx| {
+                let paths = match paths_receiver.await {
+                    Ok(Ok(Some(paths))) if !paths.is_empty() => paths,
+                    _ => return Ok::<(), anyhow::Error>(()),
+                };
+
+                let path = &paths[0];
+                let content = fs::read_to_string(path)?;
+                let asset: PromptAsset = serde_json::from_str(&content)?;
+                store
+                    .update(cx, |store, cx| store.import_asset(asset, cx))
+                    .await?;
+
+                // TODO: show toast notification or refresh UI
+                Ok(())
+            })
+            .detach_and_log_err(cx);
+    }
+
     pub fn restore_default_content(
         &mut self,
         prompt_id: PromptId,
@@ -695,7 +815,13 @@ impl RulesLibrary {
         self.store.update(cx, move |store, cx| {
             if let Some(rule_metadata) = store.metadata(prompt_id) {
                 store
-                    .save_metadata(prompt_id, rule_metadata.title, !rule_metadata.default, cx)
+                    .save_metadata(
+                        prompt_id,
+                        rule_metadata.title,
+                        rule_metadata.kind,
+                        !rule_metadata.default,
+                        cx,
+                    )
                     .detach_and_log_err(cx);
             }
         });
@@ -913,10 +1039,18 @@ impl RulesLibrary {
                 }
             };
 
+            let rule_metadata = self.store.read(cx).metadata(prompt_id).unwrap();
             let new_id = PromptId::new();
             let body = rule.body_editor.read(cx).text(cx);
             let save = self.store.update(cx, |store, cx| {
-                store.save(new_id, Some(title.into()), false, body.into(), cx)
+                store.save(
+                    new_id,
+                    Some(title.into()),
+                    rule_metadata.kind,
+                    false,
+                    body.into(),
+                    cx,
+                )
             });
             self.picker
                 .update(cx, |picker, cx| picker.refresh(window, cx));
@@ -1144,6 +1278,24 @@ impl RulesLibrary {
                             .flex_none()
                             .justify_end()
                             .child(
+                                IconButton::new("import-rule", IconName::Download)
+                                    .tooltip(move |_window, cx| {
+                                        Tooltip::for_action("Import Rule", &ImportRule, cx)
+                                    })
+                                    .on_click(|_, window, cx| {
+                                        window.dispatch_action(Box::new(ImportRule), cx);
+                                    }),
+                            )
+                            .child(
+                                IconButton::new("new-skill", IconName::Ai)
+                                    .tooltip(move |_window, cx| {
+                                        Tooltip::for_action("New Skill", &NewSkill, cx)
+                                    })
+                                    .on_click(|_, window, cx| {
+                                        window.dispatch_action(Box::new(NewSkill), cx);
+                                    }),
+                            )
+                            .child(
                                 IconButton::new("new-rule", IconName::Plus)
                                     .tooltip(move |_window, cx| {
                                         Tooltip::for_action("New Rule", &NewRule, cx)
@@ -1155,9 +1307,28 @@ impl RulesLibrary {
                     )
                 } else {
                     this.child(
-                        h_flex().p_1().w_full().child(
+                        h_flex().p_1().w_full().gap_1().children([
+                            Button::new("import-rule", "Import Rule")
+                                .style(ButtonStyle::Outlined)
+                                .icon(IconName::Download)
+                                .icon_size(IconSize::Small)
+                                .icon_position(IconPosition::Start)
+                                .icon_color(Color::Muted)
+                                .on_click(|_, window, cx| {
+                                    window.dispatch_action(Box::new(ImportRule), cx);
+                                })
+                                .into_any_element(),
+                            Button::new("new-skill", "New Skill")
+                                .style(ButtonStyle::Outlined)
+                                .icon(IconName::Ai)
+                                .icon_size(IconSize::Small)
+                                .icon_position(IconPosition::Start)
+                                .icon_color(Color::Muted)
+                                .on_click(|_, window, cx| {
+                                    window.dispatch_action(Box::new(NewSkill), cx);
+                                })
+                                .into_any_element(),
                             Button::new("new-rule", "New Rule")
-                                .full_width()
                                 .style(ButtonStyle::Outlined)
                                 .icon(IconName::Plus)
                                 .icon_size(IconSize::Small)
@@ -1165,8 +1336,9 @@ impl RulesLibrary {
                                 .icon_color(Color::Muted)
                                 .on_click(|_, window, cx| {
                                     window.dispatch_action(Box::new(NewRule), cx);
-                                }),
-                        ),
+                                })
+                                .into_any_element(),
+                        ]),
                     )
                 }
             })
@@ -1252,6 +1424,13 @@ impl RulesLibrary {
     fn render_regular_rule_controls(&self, default: bool) -> impl IntoElement {
         h_flex()
             .gap_1()
+            .child(
+                IconButton::new("export-rule", IconName::ArrowUp)
+                    .tooltip(move |_window, cx| Tooltip::for_action("Export Rule", &ExportRule, cx))
+                    .on_click(|_, window, cx| {
+                        window.dispatch_action(Box::new(ExportRule), cx);
+                    }),
+            )
             .child(
                 IconButton::new("toggle-default-rule", IconName::Paperclip)
                     .toggle_state(default)
@@ -1399,6 +1578,8 @@ impl Render for RulesLibrary {
                 .id("rules-library")
                 .key_context("RulesLibrary")
                 .on_action(cx.listener(|this, &NewRule, window, cx| this.new_rule(window, cx)))
+                .on_action(cx.listener(|this, &NewSkill, window, cx| this.new_skill(window, cx)))
+                .on_action(cx.listener(|this, &NewSkill, window, cx| this.new_skill(window, cx)))
                 .on_action(
                     cx.listener(|this, &DeleteRule, window, cx| {
                         this.delete_active_rule(window, cx)
@@ -1413,6 +1594,22 @@ impl Render for RulesLibrary {
                 .on_action(cx.listener(|this, &RestoreDefaultContent, window, cx| {
                     this.restore_default_content_for_active_rule(window, cx)
                 }))
+                .on_action(
+                    cx.listener(|this, &ExportRule, window, cx| {
+                        this.export_active_rule(window, cx)
+                    }),
+                )
+                .on_action(
+                    cx.listener(|this, &ImportRule, window, cx| this.import_rule(window, cx)),
+                )
+                .on_action(
+                    cx.listener(|this, &ExportRule, window, cx| {
+                        this.export_active_rule(window, cx)
+                    }),
+                )
+                .on_action(
+                    cx.listener(|this, &ImportRule, window, cx| this.import_rule(window, cx)),
+                )
                 .size_full()
                 .overflow_hidden()
                 .font(ui_font)

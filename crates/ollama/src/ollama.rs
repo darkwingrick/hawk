@@ -257,6 +257,95 @@ impl ModelShow {
     }
 }
 
+#[derive(Serialize, Debug)]
+pub struct EmbedRequest {
+    pub model: String,
+    pub input: Vec<String>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct EmbedResponse {
+    pub embeddings: Vec<Vec<f32>>,
+}
+
+/// Progress event emitted during a model pull.
+#[derive(Deserialize, Debug)]
+pub struct PullEvent {
+    pub status: String,
+    #[serde(default)]
+    pub completed: Option<u64>,
+    #[serde(default)]
+    pub total: Option<u64>,
+}
+
+/// Pull (download) a model into Ollama's local cache.
+/// Returns a stream of [`PullEvent`] progress events.
+pub async fn pull_model(
+    client: &dyn HttpClient,
+    api_url: &str,
+    api_key: Option<&str>,
+    model: &str,
+) -> Result<BoxStream<'static, Result<PullEvent>>> {
+    let body = serde_json::json!({ "model": model, "stream": true });
+    let request = HttpRequest::builder()
+        .method(Method::POST)
+        .uri(format!("{api_url}/api/pull"))
+        .header("Content-Type", "application/json")
+        .when_some(api_key, |builder, key| {
+            builder.header("Authorization", format!("Bearer {key}"))
+        })
+        .body(AsyncBody::from(body.to_string()))?;
+
+    let mut response = client.send(request).await?;
+    if response.status().is_success() {
+        let reader = BufReader::new(response.into_body());
+        Ok(reader
+            .lines()
+            .map(|line| match line {
+                Ok(line) => serde_json::from_str(&line).context("Unable to parse pull event"),
+                Err(e) => Err(e.into()),
+            })
+            .boxed())
+    } else {
+        let mut body = String::new();
+        response.body_mut().read_to_string(&mut body).await?;
+        anyhow::bail!(
+            "Ollama pull request failed: {} {}",
+            response.status(),
+            body,
+        );
+    }
+}
+
+pub async fn embed(
+    client: &dyn HttpClient,
+    api_url: &str,
+    api_key: Option<&str>,
+    request: EmbedRequest,
+) -> Result<EmbedResponse> {
+    let uri = format!("{api_url}/api/embed");
+    let http_request = HttpRequest::builder()
+        .method(Method::POST)
+        .uri(uri)
+        .header("Content-Type", "application/json")
+        .when_some(api_key, |builder, key| {
+            builder.header("Authorization", format!("Bearer {key}"))
+        })
+        .body(AsyncBody::from(serde_json::to_string(&request)?))?;
+
+    let mut response = client.send(http_request).await?;
+    let mut body = String::new();
+    response.body_mut().read_to_string(&mut body).await?;
+
+    anyhow::ensure!(
+        response.status().is_success(),
+        "Ollama embed request failed: {} {}",
+        response.status(),
+        body,
+    );
+    serde_json::from_str(&body).context("Unable to parse Ollama embed response")
+}
+
 pub async fn stream_chat_completion(
     client: &dyn HttpClient,
     api_url: &str,

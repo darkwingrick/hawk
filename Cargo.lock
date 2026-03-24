@@ -431,6 +431,8 @@ dependencies = [
  "uuid",
  "watch",
  "workspace",
+ "worktree",
+ "zed_ai_core",
 ]
 
 [[package]]
@@ -13287,6 +13289,7 @@ dependencies = [
  "wax",
  "which 6.0.3",
  "worktree",
+ "zed_ai_core",
  "zeroize",
  "zlog",
  "ztracing",
@@ -14792,6 +14795,7 @@ dependencies = [
  "release_channel",
  "rope",
  "serde",
+ "serde_json",
  "settings",
  "theme",
  "ui",
@@ -22034,6 +22038,33 @@ dependencies = [
  "x11rb",
  "xim-ctext",
  "xim-parser",
+]
+
+[[package]]
+name = "zed_ai_core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "collections",
+ "futures 0.3.31",
+ "gpui",
+ "heed",
+ "http_client",
+ "language",
+ "ollama",
+ "parking_lot",
+ "paths",
+ "pretty_assertions",
+ "prompt_store",
+ "rope",
+ "serde",
+ "serde_json",
+ "sha2",
+ "text",
+ "tree-sitter",
+ "tree-sitter-rust",
+ "util",
 ]
 
 [[package]]
